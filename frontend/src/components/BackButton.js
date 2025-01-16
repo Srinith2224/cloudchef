@@ -14,6 +14,10 @@ const BackButton = () => {
             navigate('/welcome'); // Navigate to Welcome page from SavedRecipe page
         } else if (location.pathname === '/myrecipes') {
             navigate('/welcome'); // Navigate to Welcome page from MyRecipes page
+        } else if (location.pathname === '/profile') {
+            navigate('/welcome'); // Navigate to Welcome page from MyRecipes page
+        } else if (location.pathname === '/generaterecipe') {
+            navigate('/welcome'); // Navigate to Welcome page from MyRecipes page
         } else {
             navigate(-1); // Navigate to the previous page
         }
