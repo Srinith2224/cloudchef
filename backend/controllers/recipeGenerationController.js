@@ -31,16 +31,16 @@ Instructions:`;
 
         let recipeText = response.generated_text;
 
+        
+
         if (!recipeText) {
             return res.status(500).json({ error: 'Failed to generate recipe text' });
         }
 
         // Adjust regex patterns to match the generated text structure
-        const recipeNameMatch = recipeText.match(/(?:Enjoy your |Enjoy this )?(.*)!/);
+        const recipeNameMatch = recipeText.match(/(?:Enjoy your |Enjoy this )?(.*)\nServing Size:/);
         const ingredientsListMatch = recipeText.match(/Ingredients:\n([\s\S]*?)\n\nInstructions:/);
         const stepsTextMatch = recipeText.match(/Instructions:\n([\s\S]*?)(?:\n\n|$)/);
-
-        
 
         if (!recipeNameMatch || !ingredientsListMatch || !stepsTextMatch) {
             return res.status(500).json({ error: 'Failed to parse generated recipe text' });
