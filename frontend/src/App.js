@@ -3,7 +3,7 @@ import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 
 // pages and components 
-import Home from './pages/home';
+
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -30,7 +30,6 @@ function App() {
             <Route path="/login" element={<Layout><Login /></Layout>} />
             <Route path="/register" element={<Layout><Register /></Layout>} />
             <Route path="/welcome" element={<RequireAuth><Layout><Welcome /></Layout></RequireAuth>} />
-            <Route path="/home" element={<RequireAuth><Layout><Home /></Layout></RequireAuth>} />
             <Route path="/profile" element={<RequireAuth><Layout><Profile /></Layout></RequireAuth>} />
             <Route path="/recipe/:id" element={<RequireAuth><Layout><RecipeDetails /></Layout></RequireAuth>} />
             <Route path="/search-results" element={<RequireAuth><SearchResults /></RequireAuth>} />
