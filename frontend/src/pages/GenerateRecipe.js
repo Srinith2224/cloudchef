@@ -89,7 +89,7 @@ const GenerateRecipe = () => {
             {generatedRecipe && (
                 <div className="generated-recipe">
                     <h2>{generatedRecipe.recipeName}</h2>
-                    <p><strong>Total Time:</strong> {generatedRecipe.totalTime}</p>
+                    
                     <p><strong>Ingredients:</strong></p>
                     <ul>
                         {generatedRecipe.ingredientsList.map((ingredient, index) => (
