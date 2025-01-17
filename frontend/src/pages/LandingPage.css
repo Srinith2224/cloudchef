@@ -1,59 +1,69 @@
 .landing-page {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   height: 100vh;
   font-family: 'Roboto', sans-serif;
   color: #fff;
-  
+  padding: 20px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-.landing-page {
-  padding: 20px; /* Add padding for smaller screens */
+  .landing-page {
+    flex-direction: column; /* Stack elements vertically on smaller screens */
+    padding: 20px;
+  }
+
+  .hero-section {
+    padding: 20px; /* Reduce padding */
+    max-width: 100%; /* Full width */
+    margin-top: -30px; /* Move the welcome message up */
+  }
+
+  .hero-section h1 {
+    font-size: 2.5em; /* Smaller font size */
+  }
+
+  .hero-section h2 {
+    font-size: 1.5em; /* Smaller font size */
+  }
+
+  .hero-section p {
+    font-size: 1em; /* Smaller font size */
+  }
+
+  .auth-buttons {
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 10px; /* Reduce gap */
+  }
+
+  .auth-buttons a {
+    width: 100%; /* Full width buttons */
+    text-align: center; /* Center text */
+  }
+
+  .background-animation {
+    width: 100%; /* Full width on smaller screens */
+    height: 50%; /* Adjust height */
+    top: -30px; /* Move the background animation up */
+  }
 }
 
 .hero-section {
-  padding: 20px; /* Reduce padding */
-  max-width: 100%; /* Full width */
-}
-
-.hero-section h1 {
-  font-size: 2.5em; /* Smaller font size */
-}
-
-.hero-section h2 {
-  font-size: 1.5em; /* Smaller font size */
-}
-
-.hero-section p {
-  font-size: 1em; /* Smaller font size */
-}
-
-.auth-buttons {
-  flex-direction: column; /* Stack buttons vertically */
-  gap: 10px; /* Reduce gap */
-}
-
-.auth-buttons a {
-  width: 100%; /* Full width buttons */
-  text-align: center; /* Center text */
-}
-}
-
-.hero-section {
-  background-color: rgba(248, 119, 44, 0.6);
+  background-color: #fc653d;
+  color: #502f05; /* White text color */
   padding: 40px;
   border-radius: 10px;
   text-align: center;
   max-width: 600px;
+  margin-top: -50px;
 }
 
 .hero-section h1 {
-  font-size: 3.5em;
+  font-size: 2.5em;
   margin-bottom: 20px;
-  color: #cfe6d4;
+  color: #ffffff;
 }
 
 .hero-section h2 {
@@ -69,12 +79,12 @@
 
 .auth-buttons {
   display: flex;
-  justify-content: center; /* Center the buttons horizontally */
+  justify-content: center;
   gap: 20px;
 }
 
 .auth-buttons a {
-  background-color: #28a745;
+  background-color: #ffa837;
   color: #fff;
   padding: 10px 20px;
   border-radius: 5px;
@@ -83,5 +93,14 @@
 }
 
 .auth-buttons a:hover {
-  background-color: #218838;
+  background: linear-gradient(90deg, #ff7e5f, #feb47b); /* Gradient background color */
+  color: #ffffff; /* Ensure text color is white for better contrast */
+}
+
+.background-animation {
+  position: relative;
+  width: 50%;
+  top: -50px;
+  z-index: -1;
+  pointer-events: none;
 }

@@ -15,20 +15,20 @@ const LandingPage = () => {
                 />
             </div>
             <div className="hero-section">
-                <h1>Welcome to Cloud Chef</h1>
-                <h2>Discover Easy and Smart Recipes</h2>
+                <h1>Create, Cook, and Celebrate</h1>
+                <h2>Embark on a Culinary Journey with Cloud Chef</h2>
                 <p>
-                    Spend less time in the kitchen and more time enjoying your meals. With Cloud Chef, you'll never repeat the same meal every day.
+                    Transform your kitchen into a gourmet paradise. With Cloud Chef, every meal is a new experience, crafted just for you.
                 </p>
                 <p>
-                    So, shall we cook something amazing today?
+                    Ready to embark on a delicious journey? Let's create something extraordinary together!
                 </p>
                 <div className="auth-buttons">
-                    <Link to="/register">Register</Link>
-                    <Link to="/login">Login</Link>
+                    <Link to="/register">Join the Feast</Link>
+                    <Link to="/login">Sign In</Link>
                 </div>
             </div>
         </div>
     );
 };
-export default LandingPage; 
+export default LandingPage;
