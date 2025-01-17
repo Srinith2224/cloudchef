@@ -28,7 +28,6 @@ const Navbar = () => {
                 console.error('Error fetching user information:', error);
             }
         };
-
         fetchUserInfo();
     }, [user]);
 
@@ -39,8 +38,13 @@ const Navbar = () => {
     return (
         <header>
             <div className="container">
-                <Link to={user ? "/welcome" : "/"}>
-                    <h1>Cloud Chef</h1>
+                <Link to={user ? "/welcome" : "/"} className="logo-container">
+                    <img
+                        src="/cloudcheflogo.png"
+                        alt="Cloud Chef Logo"
+                        className="logo"
+                    />
+                    <h1 className="logo-text">Cloud Chef</h1>
                 </Link>
                 {user && (
                     <div className="nav-links">

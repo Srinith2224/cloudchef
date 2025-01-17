@@ -31,3 +31,17 @@
     align-items: center;
     margin-top: 15px; /* Adjust this value to move the photo down */
 }
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo-text {
+    margin: 0;
+}
