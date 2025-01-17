@@ -3,10 +3,9 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: url('/public/bear.jpg') no-repeat center center/cover;
   font-family: 'Roboto', sans-serif;
   color: #fff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  
 }
 
 /* Responsive adjustments */
@@ -44,7 +43,7 @@
 }
 
 .hero-section {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(248, 119, 44, 0.6);
   padding: 40px;
   border-radius: 10px;
   text-align: center;
@@ -54,6 +53,7 @@
 .hero-section h1 {
   font-size: 3.5em;
   margin-bottom: 20px;
+  color: #cfe6d4;
 }
 
 .hero-section h2 {

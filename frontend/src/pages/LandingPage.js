@@ -1,10 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './LandingPage.css'; // Import the CSS file for styling
+import Lottie from 'lottie-react';
+import animationData from '../assets/cooking-background.json'; 
+import './LandingPage.css';
 
 const LandingPage = () => {
     return (
         <div className="landing-page">
+            <div className="background-animation">
+                <Lottie 
+                    animationData={animationData}
+                    loop={true}
+                    autoplay={true}
+                />
+            </div>
             <div className="hero-section">
                 <h1>Welcome to Cloud Chef</h1>
                 <h2>Discover Easy and Smart Recipes</h2>
@@ -22,5 +31,4 @@ const LandingPage = () => {
         </div>
     );
 };
-
-export default LandingPage;
+export default LandingPage; 
