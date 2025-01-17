@@ -40,7 +40,7 @@ header {
   font-size: 24px;
   color: var(--primary);
   text-decoration: none;
-  margin-right: 20px; /* Add margin to create gap */
+  margin-right: 50px; /* Add margin to create gap */
 }
 
 .cart-link .material-icons {
@@ -60,9 +60,6 @@ header {
   cursor: pointer;
   display: flex;
   align-items: center;
-}
-
-.profile-icon {
-  color: var(--primary);
-  cursor: pointer;
+  margin-left: 20px; /* Add margin to create gap */
+  margin-top: 14px; /* Adjust this value to move the profile photo down */
 }

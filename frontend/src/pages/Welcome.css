@@ -1,9 +1,10 @@
 .welcome-container {
-    padding: 40px 20px;
-    min-height: 100vh;
-    text-align: center;
-    background-color: var(--background);
-  }
+  padding: 40px 20px;
+  min-height: 100vh;
+  text-align: center;
+  background-color: var(--background);
+  margin-top: -60px; /* Move the container up */
+}
   
   .welcome-container h1 {
     font-size: 2.5em;
@@ -64,12 +65,12 @@
   
   .recipes-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr); /* Change to 5 columns */
     gap: 20px;
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
-  }
+}
   
   .recipe-item {
     width: 100%;
