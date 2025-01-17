@@ -44,38 +44,40 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
-            <form className="login-form" onSubmit={handleSubmit}>
-                <h3>Login</h3>
-                <label>Email:</label>
-                <input 
-                    type="email"
-                    onChange={(e) => setEmail(e.target.value)}
-                    value={email}
-                />
-                <label>Password:</label>
-                <input 
-                    type="password"
-                    onChange={(e) => setPassword(e.target.value)}
-                    value={password}
-                />
-                <button>Login</button>
-                {error && <div className="error">{error}</div>}
-            </form>
+        <>
+            <div className="login-container">
+                <form className="login-form" onSubmit={handleSubmit}>
+                    <h3>Login</h3>
+                    <label>Email:</label>
+                    <input 
+                        type="email"
+                        onChange={(e) => setEmail(e.target.value)}
+                        value={email}
+                    />
+                    <label>Password:</label>
+                    <input 
+                        type="password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        value={password}
+                    />
+                    <button>Login</button>
+                    {error && <div className="error">{error}</div>}
+                </form>
 
-            {showSuccessModal && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h4>Login Successful</h4>
-                        <button onClick={handleOkClick}>OK</button>
+                {showSuccessModal && (
+                    <div className="modal">
+                        <div className="modal-content">
+                            <h4>Login Successful</h4>
+                            <button onClick={handleOkClick}>OK</button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             <div className="register-prompt">
                 <p>New here? <button onClick={() => navigate('/register')} className="register-link">Create an account</button></p>
             </div>
-        </div>
+        </>
     );
 };
 

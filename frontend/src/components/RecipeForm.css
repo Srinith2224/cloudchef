@@ -1,26 +1,75 @@
 .recipe-form-container {
-    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 20px;
 }
 
-.recipe-form h2, .recipe-form h3 {
+.recipe-form {
+    background-color: #dfbe94;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recipe-form h3 {
+    margin-bottom: 25px;
+    font-size: 2em;
+    color: #fc653d;
+    font-weight: 600;
+}
+
+.recipe-form label {
+    display: block;
+    margin: 15px 0 5px;
+    font-size: 1.1em;
+    color: #fc653d;
+    text-align: left;
+}
+
+.recipe-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-form input:focus {
+    border-color: #fc653d;
+    outline: none;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
+.recipe-form button {
+    background-color: #fc653d;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     margin-top: 20px;
 }
 
-.ingredient-item, .step-item {
-    margin-bottom: 10px;
-}
-
-.nutrition-section {
-    margin-bottom: 20px;
-}
-
-button {
-    margin-top: 10px;
+.recipe-form button:hover {
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);
+    transform: translateY(-2px);
 }
 
 .error {
-    color: red;
+    color: #e63946;
     margin-top: 10px;
+    font-size: 0.9em;
 }
 
 .modal {
@@ -36,22 +85,29 @@ button {
 }
 
 .modal-content {
-    background: white;
+    background: #fff;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
-.total-time-inputs {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.modal-content h4 {
+    margin-bottom: 20px;
 }
 
-.total-time-inputs input {
-    width: 60px;
+.modal-content button {
+    background-color: #fc653d;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    margin: 5px;
 }
 
-.total-time-inputs span {
-    margin-left: 5px;
+.modal-content button:hover {
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);
 }
