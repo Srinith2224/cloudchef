@@ -7,20 +7,20 @@
 }
 
 .recipe-form {
-    background-color: #dfbe94;
+    background-color: var(--secondary);
     padding: 40px;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     max-width: 400px;
     width: 100%;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform var(--transition), box-shadow var(--transition);
 }
 
 .recipe-form h3 {
     margin-bottom: 25px;
     font-size: 2em;
-    color: #fc653d;
+    color: var(--primary);
     font-weight: 600;
 }
 
@@ -28,41 +28,44 @@
     display: block;
     margin: 15px 0 5px;
     font-size: 1.1em;
-    color: #fc653d;
+    color: var(--primary);
     text-align: left;
 }
 
-.recipe-form input {
+.recipe-form input,
+.recipe-form textarea {
     width: 100%;
     padding: 10px;
     margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid var(--button-border);
+    border-radius: var(--border-radius);
     font-size: 1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    transition: border-color var(--transition), box-shadow var(--transition);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.recipe-form input:focus {
-    border-color: #fc653d;
+.recipe-form input:focus,
+.recipe-form textarea:focus {
+    border-color: var(--button-hover-border);
     outline: none;
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
 }
 
 .recipe-form button {
-    background-color: #fc653d;
-    color: #fff;
-    border: none;
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 12px 30px;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1.1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color var(--transition), transform var(--transition);
     margin-top: 20px;
 }
 
 .recipe-form button:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
     transform: translateY(-2px);
 }
 
@@ -85,9 +88,9 @@
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--secondary);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
@@ -97,17 +100,18 @@
 }
 
 .modal-content button {
-    background-color: #fc653d;
-    color: #fff;
-    border: none;
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.3s ease;
+    transition: background-color var(--transition);
     margin: 5px;
 }
 
 .modal-content button:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
 }

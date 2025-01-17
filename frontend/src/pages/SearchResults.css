@@ -1,36 +1,42 @@
 .search-results-container {
     text-align: center;
     padding: 20px;
-    position: relative; /* Add this to position the back button */
-}
-
-.recipes-grid {
+    position: relative;
+    background-color: var(--secondary);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: var(--font-family);
+  }
+  
+  .recipes-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-}
-
-.recipe-item {
+  }
+  
+  .recipe-item {
     width: 200px;
     margin: 10px;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border: 1px solid var(--accent);
+    border-radius: var(--border-radius);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.recipe-item img {
+    text-align: center;
+  }
+  
+  .recipe-item img {
     width: 100%;
-    border-radius: 8px;
-}
-
-.recipe-item h4 {
+    border-radius: var(--border-radius);
+  }
+  
+  .recipe-item h4 {
     margin-top: 10px;
-    font-size: 18px;
-}
-
-.back-button-container {
+    font-size: 1.2em;
+    color: var(--primary);
+  }
+  
+  .back-button-container {
     position: absolute;
     top: 20px;
     left: 20px;
-}
+  }

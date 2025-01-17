@@ -2,97 +2,82 @@
     padding: 40px 20px;
     min-height: 100vh;
     text-align: center;
-}
-
-.welcome-container h1 {
+    background-color: var(--background);
+  }
+  
+  .welcome-container h1 {
     font-size: 2.5em;
-    color: #fffefe;
+    color: var(--primary);
     margin-bottom: 10px;
     font-weight: 600;
-}
-
-.welcome-container p {
+  }
+  
+  .welcome-container p {
     font-size: 1.2em;
-    color: #ffffff;
-    margin-bottom: 20px; /* Reduced margin for less gap */
-}
-
-.search-bar {
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+  
+  .search-bar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px; /* Adjusted margin for overall spacing */
-}
-
-.search-bar input {
+    margin-bottom: 30px;
+  }
+  
+  .search-bar input {
     width: 300px;
     padding: 10px;
-    border: 1px solid #ffffff;
-    border-radius: 5px;
+    border: 1px solid var(--button-border);
+    border-radius: var(--border-radius);
     font-size: 1em;
-    transition: border-color 0.3s ease;
+    transition: border-color var(--transition);
     margin-bottom: 10px;
-}
-
-.search-bar input:focus {
-    border-color: #fc653d;
+  }
+  
+  .search-bar input:focus {
+    border-color: var(--button-hover-border);
     outline: none;
-}
-
-.button-group {
+  }
+  
+  .button-group {
     display: flex;
     gap: 10px;
-}
-
-.search-bar button {
-    background-color: #fc653d;
-    color: #fff;
-    border: none;
+  }
+  
+  .search-bar button {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.search-bar button:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
+    transition: background-color var(--transition), transform var(--transition);
+  }
+  
+  .search-bar button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
     transform: translateY(-2px);
-}
-
-.recipes-grid {
+  }
+  
+  .recipes-grid {
     display: grid;
-     /* Four columns */
-    gap: 20px; /* Space between boxes */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
     padding: 20px;
-    max-width: 1200px; /* Optional: limit the width of the grid */
-    margin: 0 auto; /* Center the grid */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .home {
-    grid-template-columns: 1fr; /* Single column layout */
-    gap: 20px; /* Reduce gap */
+    max-width: 1200px;
+    margin: 0 auto;
   }
-
-  .workout-details {
-    margin: 10px; /* Adjust margin for smaller screens */
+  
+  .recipe-item {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
   }
-
-  .recipes {
-    grid-template-columns: repeat(2, 1fr); /* Two columns on smaller screens */
-  }
-
-  .recipe-box {
-    width: 100%; /* Full width */
-    height: auto; /* Auto height */
-  }
-}
-
-
-/* styles.css or your component-specific CSS file */
-.recipe-item img {
+  
+  .recipe-item img {
     width: 200px; /* Set a fixed width */
     height: 200px; /* Set a fixed height */
     object-fit: cover; /* Ensure the image covers the area while maintaining aspect ratio */
@@ -100,33 +85,15 @@
     display: block; /* Ensure the image is displayed as a block element */
     margin: 0 auto; /* Center the image horizontally */
 }
-.search-results-container {
-    text-align: center;
-    padding: 20px;
-}
-
-.recipes-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.recipe-item {
-    width: 200px;
-    margin: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.recipe-item img {
-    width: 100%;
-    border-radius: 8px;
-}
-
-.recipe-item h4 {
+  
+  .recipe-item h4 {
     margin-top: 10px;
-    font-size: 18px;
-    color: #ffffff;
-}
+    font-size: 1.2em;
+    color: var(--primary);
+  }
+  
+  @media (max-width: 768px) {
+    .recipes-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }

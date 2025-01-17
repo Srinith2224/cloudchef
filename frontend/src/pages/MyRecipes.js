@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import { useNavigate } from 'react-router-dom';
+import './MyRecipes.css'; // Import the CSS file for styling
 
 const MyRecipes = () => {
     const { user } = useRecipesContext();
@@ -42,7 +43,7 @@ const MyRecipes = () => {
     return (
         <div className="my-recipes">
             <h1>My Recipes</h1>
-            <div className="recipes">
+            <div className="recipes-grid">
                 {recipes.length > 0 ? (
                     recipes.map((recipe) => (
                         <div 

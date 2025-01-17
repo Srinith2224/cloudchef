@@ -2,10 +2,10 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
+    background-color: var(--secondary);
+    border-radius: var(--border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
 }
 
 .recipe-details h2 {
@@ -17,13 +17,13 @@
 
 .recipe-details p {
     font-size: 1.1em;
-    color: #555;
+    color: var(--primary);
     line-height: 1.6;
     margin-bottom: 15px;
 }
 
 .recipe-details p strong {
-    color: #333;
+    color: var(--primary);
 }
 
 .recipe-details p:last-child {
@@ -32,12 +32,12 @@
 
 .recipe-image {
     width: 100%;
-    max-width: 400px; /* Set a fixed max width */
+    max-width: 400px;
     height: auto;
-    object-fit: cover; /* Maintain aspect ratio */
-    border-radius: 8px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
     display: block;
-    margin: 0 auto 20px; /* Center the image and add bottom margin */
+    margin: 0 auto 20px;
 }
 
 .recipe-info {
@@ -46,12 +46,12 @@
 
 .step-image {
     width: 100%;
-    max-width: 400px; /* Set a fixed max width */
+    max-width: 400px;
     height: auto;
-    object-fit: cover; /* Maintain aspect ratio */
-    border-radius: 8px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
     display: block;
-    margin: 10px 0; /* Add top and bottom margin */
+    margin: 10px 0;
 }
 
 .ingredients-table, .nutrition-table {
@@ -61,13 +61,13 @@
 }
 
 .ingredients-table th, .nutrition-table th, .ingredients-table td, .nutrition-table td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--accent);
     padding: 8px;
     text-align: left;
 }
 
 .ingredients-table th, .nutrition-table th {
-    background-color: #f2f2f2;
+    background-color: var(--button-hover-bg);
     font-weight: bold;
 }
 
@@ -79,40 +79,40 @@
 }
 
 .add-to-cart-btn, .add-all-to-cart-btn, .save-btn, .unsave-btn {
-    background-color: #fc653d;
-    color: #fff;
-    border: none;
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 5px 10px;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.3s ease;
+    transition: background-color var(--transition);
 }
 
 .add-to-cart-btn:hover, .add-all-to-cart-btn:hover, .save-btn:hover, .unsave-btn:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
 }
 
 .add-to-cart-btn:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
 }
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
 
 .update-btn {
-    background-color: #fc653d;
-    color: #fff;
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 12px 30px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color var(--transition), transform var(--transition);
 }
 
 .update-btn:hover {
-    background-color: #0056b3;
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
     transform: translateY(-2px);
 }
 
@@ -137,23 +137,6 @@
     color: #c82333;
 }
 
-.save-btn {
-    background-color: #37ff44;
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-top: 20px; /* Add margin for spacing */
-}
-
-.save-btn:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
-    transform: translateY(-2px);
-}
-
 .modal {
     position: fixed;
     top: 0;
@@ -168,36 +151,37 @@
 }
 
 .modal-content {
-    background-color: #ffffff;
+    background-color: var(--secondary);
     padding: 40px;
-    border-radius: 12px;
+    border-radius: var(--border-radius);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     max-width: 500px;
     width: 90%;
     text-align: center;
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn var(--transition);
 }
 
 .modal-content h4 {
     margin-bottom: 25px;
     font-size: 1.8em;
-    color: #333;
+    color: var(--primary);
     font-weight: bold;
 }
 
 .modal-content button {
-    background-color: #fc653d;
-    color: #fff;
-    border: none;
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 12px 24px;
-    border-radius: 6px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1.1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color var(--transition), transform var(--transition);
 }
 
 .modal-content button:hover {
-    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
     transform: translateY(-2px);
 }
 
@@ -210,32 +194,4 @@
         opacity: 1;
         transform: scale(1);
     }
-}
-.unsave-btn {
-    background-color: #dc3545;
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-top: 20px; /* Add margin for spacing */
-}
-
-.unsave-btn:hover {
-    background-color: #c82333;
-    transform: translateY(-2px);
-}
-
-.material-icons-outlined {
-    cursor: pointer;
-    color: #dc3545; /* Red color for delete icon */
-    font-size: 24px; /* Adjust the size as needed */
-    margin-top: 10px; /* Add margin for spacing */
-}
-
-.success-message {
-    color: green;
-    margin-top: 10px;
 }

@@ -28,6 +28,7 @@ const Navbar = () => {
                 console.error('Error fetching user information:', error);
             }
         };
+
         fetchUserInfo();
     }, [user]);
 
@@ -48,17 +49,15 @@ const Navbar = () => {
                 </Link>
                 {user && (
                     <div className="nav-links">
-                        <Link to="/cart" className="cart-link" style={{ marginRight: '30px' }}>
+                        <Link to="/cart" className="cart-link">
                             <span className="material-icons">shopping_cart</span>
                         </Link>
-                        
                         {profilePhoto ? (
                             <img
                                 src={profilePhoto}
                                 alt="Profile"
                                 className="profile-photo"
                                 onClick={handleProfileClick}
-                                style={{ cursor: 'pointer' }}
                             />
                         ) : (
                             <span onClick={handleProfileClick} className="profile-icon">My Profile</span>

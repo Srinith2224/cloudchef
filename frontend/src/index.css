@@ -3,25 +3,73 @@
 
 /* layout */
 :root {
-  --primary: #1aac83;
-  --error: #e7195a;
+  --primary: #ffffff;
+  --secondary: #1e1e1e;
+  --accent: #3a3a3a;
+  --background: #121212;
+  --font-family: 'sans-serif';
+  --button-bg: #2a2a2a;
+  --button-border: #444444;
+  --button-hover-bg: #3a3a3a;
+  --button-hover-border: #555555;
+  --border-radius: 4px;
+  --transition: 0.3s ease;
 }
 body {
-  background: #e09670;
+  background: var(--background);
+  color: var(--primary);
+  font-family: var(--font-family);
   margin: 0;
-  font-family: "Poppins";
+  padding: 0;
 }
 
-header .container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary);
 }
-header a {
-  color: #ffffff;
+
+a {
+  color: var(--primary);
   text-decoration: none;
 }
 
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  background-color: var(--button-bg);
+  border: 1px solid var(--button-border);
+  color: var(--primary);
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+button:hover {
+  background-color: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+}
+
+input, textarea {
+  background-color: var(--secondary);
+  border: 1px solid var(--button-border);
+  color: var(--primary);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  transition: border-color var(--transition);
+}
+
+input:focus, textarea:focus {
+  border-color: var(--button-hover-border);
+  outline: none;
+}
+
+.container {
+  background-color: var(--secondary);
+  border: 1px solid var(--accent);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
