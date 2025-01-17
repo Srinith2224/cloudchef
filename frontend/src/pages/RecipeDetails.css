@@ -79,7 +79,7 @@
 }
 
 .add-to-cart-btn, .add-all-to-cart-btn, .save-btn, .unsave-btn {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 5px 10px;
@@ -90,7 +90,7 @@
 }
 
 .add-to-cart-btn:hover, .add-all-to-cart-btn:hover, .save-btn:hover, .unsave-btn:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
 }
 
 .add-to-cart-btn:disabled {
@@ -107,7 +107,7 @@
 }
 
 .update-btn {
-    background-color: #007bff;
+    background-color: #fc653d;
     color: #fff;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .save-btn {
-    background-color: #28a745;
+    background-color: #37ff44;
     color: #fff;
     border: none;
     padding: 12px 30px;
@@ -150,7 +150,7 @@
 }
 
 .save-btn:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
     transform: translateY(-2px);
 }
 
@@ -186,7 +186,7 @@
 }
 
 .modal-content button {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 12px 24px;
@@ -197,7 +197,7 @@
 }
 
 .modal-content button:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
     transform: translateY(-2px);
 }
 

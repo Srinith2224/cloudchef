@@ -17,7 +17,7 @@
 
 .add-ingredient-btn {
     display: inline-block;
-    background-color: #007bff;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -29,7 +29,7 @@
 }
 
 .add-ingredient-btn:hover {
-    background-color: #0056b3;
+    background-color: #a34b10;
 }
 
 .add-item-form {
@@ -60,7 +60,7 @@
 
 .add-item-form button {
     flex: 1;
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     cursor: pointer;
@@ -68,7 +68,7 @@
 }
 
 .add-item-form button:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
 }
 
 .cart-table {
@@ -96,7 +96,7 @@
 }
 
 .quantity-controls button {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 5px 10px;
@@ -158,7 +158,7 @@
 }
 
 .popup-content button {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 10px 20px;
@@ -170,5 +170,5 @@
 }
 
 .popup-content button:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
 }

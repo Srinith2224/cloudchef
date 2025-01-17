@@ -38,7 +38,7 @@
 }
 
 .sidebar ul li:hover {
-    color: #28a745;
+    color: #fc653d;
 }
 
 .profile-card {
@@ -110,7 +110,7 @@
 }
 
 .profile-photo label {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
@@ -120,11 +120,11 @@
 }
 
 .profile-photo label:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
 }
 
 .upload-photo-label {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     padding: 10px 20px;
     border-radius: 5px;
@@ -135,7 +135,7 @@
 }
 
 .upload-photo-label:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
 }
 
 .upload-photo-input {
@@ -169,7 +169,7 @@
 
 .profile-info input:focus,
 .profile-info textarea:focus {
-    border-color: #28a745;
+    border-color: #fc653d;
     outline: none;
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
 }
@@ -180,7 +180,7 @@
 }
 
 button[type="submit"] {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 12px 30px;
@@ -192,7 +192,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
     transform: translateY(-2px);
 }
 

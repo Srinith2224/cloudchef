@@ -1,0 +1,168 @@
+.welcome-container {
+    padding: 40px 20px;
+    min-height: 100vh;
+    text-align: center;
+}
+
+.welcome-container h1 {
+    font-size: 2.5em;
+    color: #fffefe;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.welcome-container p {
+    font-size: 1.2em;
+    color: #ffffff;
+    margin-bottom: 20px; /* Reduced margin for less gap */
+}
+
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px; /* Adjusted margin for overall spacing */
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ffffff;
+    border-radius: 5px;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.search-bar input:focus {
+    border-color: #fc653d;
+    outline: none;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.search-bar button {
+    background-color: #fc653d;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.search-bar button:hover {
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
+    transform: translateY(-2px);
+}
+
+.recipes-grid {
+    display: grid;
+     /* Four columns */
+    gap: 20px; /* Space between boxes */
+    padding: 20px;
+    max-width: 1200px; /* Optional: limit the width of the grid */
+    margin: 0 auto; /* Center the grid */
+}
+
+
+
+.recipe-form h2 {
+    margin-bottom: 25px;
+    font-size: 2em;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.recipe-form label {
+    display: block;
+    margin: 15px 0 5px;
+    font-size: 1.1em;
+    color: #ffffff;
+    text-align: left;
+}
+
+.recipe-form input,
+.recipe-form textarea,
+.recipe-form label {
+    font-family: 'Poppins', sans-serif; /* Ensure consistent font */
+    font-size: 1em; /* Set a consistent font size */
+    color: #ffffff; /* Set a consistent font color */
+}
+
+.recipe-form input,
+.recipe-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .home {
+    grid-template-columns: 1fr; /* Single column layout */
+    gap: 20px; /* Reduce gap */
+  }
+
+  .workout-details {
+    margin: 10px; /* Adjust margin for smaller screens */
+  }
+
+  .recipes {
+    grid-template-columns: repeat(2, 1fr); /* Two columns on smaller screens */
+  }
+
+  .recipe-box {
+    width: 100%; /* Full width */
+    height: auto; /* Auto height */
+  }
+}
+
+
+/* styles.css or your component-specific CSS file */
+.recipe-item img {
+    width: 200px; /* Set a fixed width */
+    height: 200px; /* Set a fixed height */
+    object-fit: cover; /* Ensure the image covers the area while maintaining aspect ratio */
+    border-radius: 8px; /* Optional: Add border radius for rounded corners */
+    display: block; /* Ensure the image is displayed as a block element */
+    margin: 0 auto; /* Center the image horizontally */
+}
+.search-results-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.recipes-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.recipe-item {
+    width: 200px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-item img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.recipe-item h4 {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #ffffff;
+}

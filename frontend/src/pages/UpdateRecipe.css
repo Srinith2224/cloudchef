@@ -44,13 +44,13 @@
 
 .update-recipe-form input:focus,
 .update-recipe-form textarea:focus {
-    border-color: #28a745;
+    border-color: #fc653d;
     outline: none;
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
 }
 
 .update-recipe-form button {
-    background-color: #28a745;
+    background-color: #fc653d;
     color: #fff;
     border: none;
     padding: 12px 30px;
@@ -61,7 +61,7 @@
 }
 
 .update-recipe-form button:hover {
-    background-color: #218838;
+    background-color: linear-gradient(90deg, #ff7e5f, #feb47b);;
     transform: translateY(-2px);
 }
 

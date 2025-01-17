@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
+import './Welcome.css';
 
 const Welcome = () => {
     const { user, dispatch } = useRecipesContext();
