@@ -110,3 +110,25 @@
   z-index: -1;
   pointer-events: none;
 }
+.logo-animation {
+  position: relative;
+  width: 50%; /* Adjust the width as needed */
+  max-width: 300px; /* Optional: Set a maximum width */
+  margin: 0 auto; /* Center the image horizontally */
+  display: block; /* Ensure the image is displayed as a block element */
+  z-index: 1; /* Ensure the logo is above the circle */
+  top: -20px;
+  left: -10px;
+}
+
+.logo-background {
+  position: absolute;
+  width: 400px; /* Adjust the size as needed */
+  height: 400px; /* Adjust the size as needed */
+  background-color: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0; /* Ensure the circle is behind the logo */
+}
