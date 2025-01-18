@@ -50,7 +50,7 @@ const Profile = () => {
             if (response.ok) {
                 dispatch({ type: 'LOGOUT' });
                 localStorage.removeItem('token');
-                navigate('/'); // Navigate to Auth page
+                navigate('/auth'); // Navigate to Auth page
                 setShowLogoutSuccessModal(true); // Show the logout success modal
             } else {
                 console.error('Failed to log out');
