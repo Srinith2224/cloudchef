@@ -113,3 +113,18 @@
     outline: none;
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
 }
+.input-box {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.input-box:focus {
+  border-color: var(--button-hover-border);
+  outline: none;
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}

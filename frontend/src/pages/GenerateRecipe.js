@@ -9,10 +9,10 @@ const GenerateRecipe = () => {
     const [dietaryPreferences, setDietaryPreferences] = useState('');
     const [generatedRecipe, setGeneratedRecipe] = useState(null);
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false); // Add loading state
+    const [loading, setLoading] = useState(false);
 
     const handleGenerateRecipe = async () => {
-        setLoading(true); // Set loading to true when the request starts
+        setLoading(true);
         try {
             const response = await fetch('/api/recipes/generate-recipe', {
                 method: 'POST',
@@ -39,7 +39,7 @@ const GenerateRecipe = () => {
         } catch (error) {
             setError('Failed to generate recipe');
         } finally {
-            setLoading(false); // Set loading to false when the request completes
+            setLoading(false);
         }
     };
 
@@ -48,28 +48,28 @@ const GenerateRecipe = () => {
             <h1>Generate Recipe</h1>
             <label>Ingredients:</label>
             <textarea
+                className="input-box"
                 placeholder="Enter ingredients, separated by commas"
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
             />
             <label>Serving Size:</label>
-            <select value={servingSize} onChange={(e) => setServingSize(e.target.value)}>
+            <select className="input-box" value={servingSize} onChange={(e) => setServingSize(e.target.value)}>
                 {[...Array(10).keys()].map(i => (
                     <option key={i + 1} value={i + 1}>{i + 1}</option>
                 ))}
             </select>
             <label>Cuisine:</label>
-            <select value={cuisine} onChange={(e) => setCuisine(e.target.value)}>
+            <select className="input-box" value={cuisine} onChange={(e) => setCuisine(e.target.value)}>
                 <option value="">Select Cuisine</option>
                 <option value="Indian">Indian 🇮🇳</option>
                 <option value="Chinese">Chinese 🇨🇳</option>
                 <option value="Italian">Italian 🇮🇹</option>
                 <option value="Mexican">Mexican 🇲🇽</option>
                 <option value="American">American 🇺🇸</option>
-                {/* Add more cuisines as needed */}
             </select>
             <label>Difficulty:</label>
-            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+            <select className="input-box" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
                 <option value="">Select Difficulty</option>
                 <option value="Easy">Easy</option>
                 <option value="Medium">Medium</option>
@@ -77,6 +77,7 @@ const GenerateRecipe = () => {
             </select>
             <label>Dietary Preferences:</label>
             <input
+                className="input-box"
                 type="text"
                 placeholder="Enter dietary preferences, separated by commas"
                 value={dietaryPreferences}
@@ -89,7 +90,6 @@ const GenerateRecipe = () => {
             {generatedRecipe && (
                 <div className="generated-recipe">
                     <h2>{generatedRecipe.recipeName}</h2>
-                    
                     <p><strong>Ingredients:</strong></p>
                     <ul>
                         {generatedRecipe.ingredientsList.map((ingredient, index) => (
