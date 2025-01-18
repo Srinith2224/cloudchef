@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import './SearchResults.css';
-import BackButton from '../components/BackButton'; // Import the BackButton component
+
 
 const SearchResults = () => {
     const { dispatch } = useRecipesContext();
@@ -37,9 +37,7 @@ const SearchResults = () => {
 
     return (
         <div className="search-results-container">
-            <div className="back-button-container">
-                <BackButton /> {/* Add the BackButton component here */}
-            </div>
+            
             <h1>Search Results for "{query}"</h1>
             <div className="recipes-grid">
                 {searchResults.length > 0 ? (

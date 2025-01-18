@@ -33,11 +33,6 @@ const Welcome = () => {
         fetchRecipes();
     }, [dispatch]);
 
-    const handleSearch = () => {
-        if (searchQuery.trim()) {
-            navigate(`/search-results?query=${searchQuery}`);
-        }
-    };
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -45,44 +40,38 @@ const Welcome = () => {
         }
     };
 
-    const handleAddRecipe = () => {
-        navigate('/add-recipe');
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            navigate(`/search-results?query=${searchQuery}`);
+        }
     };
-
-    const handleMyRecipes = () => {
-        navigate('/my-recipes');
-    };
-
-    const handleSavedRecipes = () => {
-        navigate('/saved-recipes');
-    };
-
-    const handleGenerateRecipe = () => {
-        navigate('/generate-recipe');
+    const handleCuisineSearch = (cuisine) => {
+        navigate(`/search-results?query=${cuisine}`);
     };
 
     return (
         <div className="welcome-container">
-            <h1>Welcome, {user ? user.firstName : 'Guest'}!</h1>
-            {user && user.profilePhoto && (
-                <img src={user.profilePhoto} alt="Profile" className="profile-photo" />
-            )}
-            <p>Explore and share your favorite recipes.</p>
+            
+           
             <div className="search-bar">
                 <input
                     type="text"
                     placeholder="Search recipes..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown} // Add this line
+                    onKeyDown={handleKeyDown}
                 />
-                <div className="button-group">
-                    <button onClick={handleSearch}>Search</button>
-                    <button onClick={handleAddRecipe}>Add Recipe</button>
-                    <button onClick={handleMyRecipes}>My Recipes</button>
-                    <button onClick={handleSavedRecipes}>Saved Recipes</button>
-                    <button onClick={handleGenerateRecipe}>Generate Recipe</button>
-                </div>
+                <p>Explore and share your favorite recipes.</p>
+            </div>
+            <div className="button-group">
+                <button onClick={() => handleCuisineSearch('Indian')}>Indian</button>
+                <button onClick={() => handleCuisineSearch('Chinese')}>Chinese</button>
+                <button onClick={() => handleCuisineSearch('Italian')}>Italian</button>
+                <button onClick={() => handleCuisineSearch('Mexican')}>Mexican</button>
+                <button onClick={() => handleCuisineSearch('American')}>American</button>
+                <button onClick={() => handleCuisineSearch('Italian')}>BreakFast</button>
+                <button onClick={() => handleCuisineSearch('Mexican')}>Lunch</button>
+                <button onClick={() => handleCuisineSearch('American')}>Dessert</button>
             </div>
             <div className="recipes-grid">
                 {recipes.map((recipe) => (

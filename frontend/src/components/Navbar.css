@@ -3,7 +3,6 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  
 }
 
 .container {
@@ -32,6 +31,18 @@ header {
 .nav-links {
   display: flex;
   align-items: center;
+  gap: 40px; /* Add gap between nav links */
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.5em;
+  transition: color var(--transition);
+}
+
+.nav-link:hover {
+  color: var(--button-hover-border);
 }
 
 .cart-link {

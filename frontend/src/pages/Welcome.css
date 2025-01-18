@@ -5,96 +5,102 @@
   background-color: var(--background);
   margin-top: -60px; /* Move the container up */
 }
+
+.welcome-container h1 {
+  font-size: 2.5em;
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.welcome-container p {
+  font-size: 1.2em;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: -10px;
+  margin-top: 60px;
+}
+
+.search-bar input {
+  width: 300px;
+  padding: 10px;
+  border: 1px solid var(--button-border);
+  border-radius: var(--border-radius);
+  font-size: 1em;
+  transition: border-color var(--transition);
+  margin-bottom: 10px;
   
-  .welcome-container h1 {
-    font-size: 2.5em;
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
+}
+
+.search-bar input:focus {
+  border-color: var(--button-hover-border);
+  outline: none;
   
-  .welcome-container p {
-    font-size: 1.2em;
-    color: var(--primary);
-    margin-bottom: 20px;
-  }
-  
-  .search-bar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 30px;
-  }
-  
-  .search-bar input {
-    width: 300px;
-    padding: 10px;
-    border: 1px solid var(--button-border);
-    border-radius: var(--border-radius);
-    font-size: 1em;
-    transition: border-color var(--transition);
-    margin-bottom: 10px;
-  }
-  
-  .search-bar input:focus {
-    border-color: var(--button-hover-border);
-    outline: none;
-  }
-  
-  .button-group {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .search-bar button {
-    background-color: var(--button-bg);
-    color: var(--primary);
-    border: 1px solid var(--button-border);
-    padding: 10px 20px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color var(--transition), transform var(--transition);
-  }
-  
-  .search-bar button:hover {
-    background-color: var(--button-hover-bg);
-    border-color: var(--button-hover-border);
-    transform: translateY(-2px);
-  }
-  
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;  /* Reduced from 5px */
+  margin-top: -10px; 
+  max-width: 70%; /* Ensure buttons stay in one line */
+  margin-left: auto;
+  margin-right: auto;
+  white-space: nowrap; /* Prevent buttons from wrapping */
+}
+
+.button-group button {
+  padding: 10px 20px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color var(--transition), transform var(--transition);
+}
+
+
+.button-group button:hover {
+  background-color: var(--button-hover-bg);
+  border-color: var(--button-hover-border);
+  transform: translateY(-2px);
+}
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Change to 5 columns */
+  gap: 20px;
+  padding: 20px;
+}
+
+.recipe-item {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.recipe-item img {
+  width: 200px; /* Set a fixed width */
+  height: 200px; /* Set a fixed height */
+  object-fit: cover; /* Ensure the image covers the area while maintaining aspect ratio */
+  border-radius: 8px; /* Optional: Add border radius for rounded corners */
+  display: block; /* Ensure the image is displayed as a block element */
+  margin: 0 auto; /* Center the image horizontally */
+}
+
+.recipe-item h4 {
+  margin-top: 10px;
+  font-size: 1.2em;
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
   .recipes-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Change to 5 columns */
-    gap: 20px;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-  
-  .recipe-item {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .recipe-item img {
-    width: 200px; /* Set a fixed width */
-    height: 200px; /* Set a fixed height */
-    object-fit: cover; /* Ensure the image covers the area while maintaining aspect ratio */
-    border-radius: 8px; /* Optional: Add border radius for rounded corners */
-    display: block; /* Ensure the image is displayed as a block element */
-    margin: 0 auto; /* Center the image horizontally */
-}
-  
-  .recipe-item h4 {
-    margin-top: 10px;
-    font-size: 1.2em;
-    color: var(--primary);
-  }
-  
-  @media (max-width: 768px) {
-    .recipes-grid {
       grid-template-columns: repeat(2, 1fr);
-    }
   }
+}
