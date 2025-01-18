@@ -3,7 +3,9 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    background-color: var(--background);
     padding: 40px 20px;
+    margin-top: -50px;
 }
 
 .recipe-form {
@@ -11,10 +13,18 @@
     padding: 40px;
     border-radius: var(--border-radius);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-    max-width: 400px;
+    max-width: 500px;
     width: 100%;
     text-align: center;
     transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.recipe-form h2 {
+    margin-top: -20px; /* Adjust this value to move the text up */
+    margin-bottom: 25px;
+    font-size: 2em;
+    color: var(--primary);
+    font-weight: 600;
 }
 
 .recipe-form h3 {
@@ -32,11 +42,38 @@
     text-align: left;
 }
 
+.total-time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.total-time-inputs input[type="number"] {
+    width: 60px !important;  /* Override the default width */
+    padding: 8px !important;
+    text-align: center;
+}
+
+
+.total-time-inputs input:focus {
+    border-color: var(--button-hover-border);
+    outline: none;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
+
 .recipe-form input,
-.recipe-form textarea {
+.recipe-form textarea,
+.recipe-form select {
     width: 100%;
     padding: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     border: 1px solid var(--button-border);
     border-radius: var(--border-radius);
     font-size: 1em;
@@ -45,7 +82,8 @@
 }
 
 .recipe-form input:focus,
-.recipe-form textarea:focus {
+.recipe-form textarea:focus,
+.recipe-form select:focus {
     border-color: var(--button-hover-border);
     outline: none;
     box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
@@ -75,6 +113,114 @@
     font-size: 0.9em;
 }
 
+
+.ingredient-section {
+    width: 100%;
+    margin: 15px 0;
+}
+
+.ingredient-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.ingredient-table th, .ingredient-table td {
+    border: 1px solid var(--button-border);
+    padding: 10px;
+    text-align: left;
+}
+
+.ingredient-table th {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.ingredient-table td {
+    background-color: var(--secondary);
+    color: var(--primary);
+}
+
+.ingredient-table .delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    margin-top: -15px;
+}
+
+.ingredient-table .delete-btn:hover {
+    background-color: #c82333;
+}
+
+.ingredient-table input {
+    width: 100%; /* Ensure the input takes the full width of the cell */
+    padding: 8px;
+    border: 1px solid var(--button-border);
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.add-ingredient-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 10px;
+    transition: background-color var(--transition);
+}
+
+.add-ingredient-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+}
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.navigation-buttons .back-button {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color var(--transition), transform var(--transition);
+}
+
+.navigation-buttons .back-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-2px);
+}
+
+.navigation-buttons .next-button {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color var(--transition), transform var(--transition);
+}
+
+.navigation-buttons .next-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-2px);
+}
 .modal {
     position: fixed;
     top: 0;
