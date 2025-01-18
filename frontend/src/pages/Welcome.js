@@ -4,7 +4,7 @@ import { useRecipesContext } from '../hooks/useRecipesContext';
 import './Welcome.css';
 
 const Welcome = () => {
-    const { user, dispatch } = useRecipesContext();
+    const { dispatch } = useRecipesContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [recipes, setRecipes] = useState([]);
     const navigate = useNavigate();
@@ -69,9 +69,9 @@ const Welcome = () => {
                 <button onClick={() => handleCuisineSearch('Italian')}>Italian</button>
                 <button onClick={() => handleCuisineSearch('Mexican')}>Mexican</button>
                 <button onClick={() => handleCuisineSearch('American')}>American</button>
-                <button onClick={() => handleCuisineSearch('Italian')}>BreakFast</button>
-                <button onClick={() => handleCuisineSearch('Mexican')}>Lunch</button>
-                <button onClick={() => handleCuisineSearch('American')}>Dessert</button>
+                <button onClick={() => handleCuisineSearch('BreakFast')}>BreakFast</button>
+                <button onClick={() => handleCuisineSearch('Lunch')}>Lunch</button>
+                <button onClick={() => handleCuisineSearch('Dessert')}>Dessert</button>
             </div>
             <div className="recipes-grid">
                 {recipes.map((recipe) => (

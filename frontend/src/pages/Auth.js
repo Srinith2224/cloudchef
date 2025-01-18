@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useRecipesContext } from "../hooks/useRecipesContext";
 import Lottie from 'react-lottie';
 import animationData from '../assets/cooking-background.json';
-import './Auth.css'; // Import the CSS file for styling
-
+import './Auth.css'; 
+import googleIcon from '../assets/google.png';
 
 const Auth = () => {
     const { dispatch } = useRecipesContext();
@@ -121,10 +121,15 @@ const Auth = () => {
                         </div>
                     )}
                     <button type="submit">{isLogin ? 'Sign in' : 'Register'}</button>
-                    {isLogin && <button type="button" className="google-signin">Sign in with Google</button>}
+                    {isLogin && (
+    <button type="button" className="google-signin">
+        <img src={googleIcon} alt="Google Icon" className="google-icon" />
+        Sign in with Google
+    </button>
+)}
                     <p className="toggle-link">
                         {isLogin ? "Don’t have an account? " : "Already have an account? "}
-                        <a href="#" onClick={() => setIsLogin(!isLogin)} className="link">
+                        <a href="#" onClick={(e) => { e.preventDefault(); setIsLogin(!isLogin); }}>
                             {isLogin ? 'Sign up for free!' : 'Sign in'}
                         </a>
                     </p>
