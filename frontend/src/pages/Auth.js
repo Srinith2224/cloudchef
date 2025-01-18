@@ -115,9 +115,9 @@ const Auth = () => {
                         <div className="auth-options">
                             <label>
                                 <input type="checkbox" />
-                                Remember me
+                                Remember&nbsp;me
                             </label>
-                            <a href="/forgot-password">Forgot password</a>
+                            <a href="/forgot-password">Forgot password?</a>
                         </div>
                     )}
                     <button type="submit">{isLogin ? 'Sign in' : 'Register'}</button>

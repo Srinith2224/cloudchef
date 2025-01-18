@@ -70,17 +70,25 @@
 
 .auth-options {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
 .auth-options label {
     display: flex;
-    align-items: center;
+    align-items: center; /* Changed from flex-start */
+    gap: 5px; /* Added gap between checkbox and text */
     color: var(--primary);
 }
 
+.auth-options input[type="checkbox"] {
+    margin: 0;
+    width: 16px; /* Increased from default */
+    height: 16px; /* Added height to match width */
+    cursor: pointer; /* Better UX */
+    vertical-align: middle; /* Better alignment */
+}
 .auth-options a {
     color: var(--primary);
     text-decoration: none;
