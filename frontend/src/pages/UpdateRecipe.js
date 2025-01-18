@@ -4,16 +4,22 @@ import './UpdateRecipe.css'; // Import CSS for styling
 
 const UpdateRecipe = () => {
     const { id } = useParams();
+    const [currentStep, setCurrentStep] = useState(0);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [totalTime, setTotalTime] = useState({ hours: 0, minutes: 0 });
-    const [ingredients, setIngredients] = useState([{ name: '', quantity: '', alternate: [] }]);
-    const [nutrition, setNutrition] = useState({ calories: 0, fat: 0, protein: 0, carbs: 0 });
-    const [steps, setSteps] = useState([{ stepNumber: 1, text: '', ingredients: [], timer: 0 }]);
+    const [totalTimeHours, setTotalTimeHours] = useState(0);
+    const [totalTimeMinutes, setTotalTimeMinutes] = useState(0);
+    const [ingredients, setIngredients] = useState([{ name: '', quantity: '' }]);
+    const [nutritionCalories, setNutritionCalories] = useState(0);
+    const [nutritionFat, setNutritionFat] = useState(0);
+    const [nutritionProtein, setNutritionProtein] = useState(0);
+    const [nutritionCarbs, setNutritionCarbs] = useState(0);
+    const [steps, setSteps] = useState([{ description: '', ingredient: '', quantity: '', alternate: '' }]);
     const [tags, setTags] = useState([]);
-    const [image, setImage] = useState(null); // State for image
+    const [image, setImage] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [error, setError] = useState(null);
-    const [showUpdateSuccess, setShowUpdateSuccess] = useState(false); // State for update success modal
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,9 +34,13 @@ const UpdateRecipe = () => {
                 if (response.ok) {
                     setTitle(data.title);
                     setDescription(data.description);
-                    setTotalTime(data.totalTime);
+                    setTotalTimeHours(data.totalTime.hours);
+                    setTotalTimeMinutes(data.totalTime.minutes);
                     setIngredients(data.ingredients);
-                    setNutrition(data.nutrition);
+                    setNutritionCalories(data.nutrition.calories);
+                    setNutritionFat(data.nutrition.fat);
+                    setNutritionProtein(data.nutrition.protein);
+                    setNutritionCarbs(data.nutrition.carbs);
                     setSteps(data.steps);
                     setTags(data.tags);
                 } else {
@@ -44,22 +54,68 @@ const UpdateRecipe = () => {
         fetchRecipe();
     }, [id]);
 
+    const nextStep = () => {
+        setCurrentStep((prevStep) => prevStep + 1);
+    };
+
+    const prevStep = () => {
+        setCurrentStep((prevStep) => prevStep - 1);
+    };
+
+    const handleIngredientChange = (index, field, value) => {
+        const newIngredients = [...ingredients];
+        newIngredients[index][field] = value;
+        setIngredients(newIngredients);
+    };
+
+    const handleAddIngredient = () => {
+        setIngredients([...ingredients, { name: '', quantity: '' }]);
+    };
+
+    const handleDeleteIngredient = (index) => {
+        const newIngredients = ingredients.filter((_, i) => i !== index);
+        setIngredients(newIngredients);
+    };
+
+    const handleStepChange = (index, field, value) => {
+        const newSteps = [...steps];
+        newSteps[index][field] = value;
+        setSteps(newSteps);
+    };
+
+    const handleAddStep = () => {
+        setSteps([...steps, { description: '', ingredient: '', quantity: '', alternate: '' }]);
+    };
+
+    const handleDeleteStep = (index) => {
+        const newSteps = steps.filter((_, i) => i !== index);
+        setSteps(newSteps);
+    };
+
+    const handleTagChange = (e) => {
+        setTags(e.target.value.split(','));
+    };
+
+    const handleImageChange = (e) => {
+        setImage(e.target.files[0]);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const formData = new FormData();
         formData.append('title', title);
         formData.append('description', description);
-        formData.append('totalTime[hours]', totalTime.hours);
-        formData.append('totalTime[minutes]', totalTime.minutes);
+        formData.append('totalTime[hours]', totalTimeHours);
+        formData.append('totalTime[minutes]', totalTimeMinutes);
         formData.append('ingredients', JSON.stringify(ingredients));
-        formData.append('nutrition[calories]', nutrition.calories);
-        formData.append('nutrition[fat]', nutrition.fat);
-        formData.append('nutrition[protein]', nutrition.protein);
-        formData.append('nutrition[carbs]', nutrition.carbs);
+        formData.append('nutrition[calories]', nutritionCalories);
+        formData.append('nutrition[fat]', nutritionFat);
+        formData.append('nutrition[protein]', nutritionProtein);
+        formData.append('nutrition[carbs]', nutritionCarbs);
         formData.append('steps', JSON.stringify(steps));
         formData.append('tags', JSON.stringify(tags));
-        if (image) formData.append('mainImage', image); // Append image file if it exists
+        if (image) formData.append('mainImage', image);
 
         try {
             const response = await fetch(`/api/recipes/${id}`, {
@@ -70,171 +126,212 @@ const UpdateRecipe = () => {
                 }
             });
 
-            if (!response.ok) {
+            if (response.ok) {
+                setSuccessMessage('Recipe updated successfully');
+                setShowSuccessModal(true);
+            } else {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to update the recipe');
             }
-
-            setShowUpdateSuccess(true); // Show update success modal
         } catch (error) {
             console.error('Error updating recipe:', error);
             setError(error.message || 'Failed to update the recipe.');
         }
     };
 
-    const handleUpdateSuccess = () => {
-        setShowUpdateSuccess(false);
-        navigate('/my-recipes'); // Redirect to My Recipes page
+    const handleOkClick = () => {
+        setShowSuccessModal(false);
+        navigate('/my-recipes'); // Redirect to "My Recipes" page after acknowledging success
     };
 
-    const handleIngredientChange = (index, field, value) => {
-        const newIngredients = [...ingredients];
-        newIngredients[index][field] = value;
-        setIngredients(newIngredients);
-    };
-
-    const handleAddIngredient = () => {
-        setIngredients([...ingredients, { name: '', quantity: '', alternate: [] }]);
-    };
-
-    const handleStepChange = (index, field, value) => {
-        const newSteps = [...steps];
-        newSteps[index][field] = value;
-        setSteps(newSteps);
-    };
-
-    const handleAddStep = () => {
-        setSteps([...steps, { stepNumber: steps.length + 1, text: '', ingredients: [], timer: 0 }]);
-    };
-
-    return (
-        <div className="update-recipe-container">
-            <form className="update-recipe-form" onSubmit={handleSubmit}>
-                <h2>Update Recipe</h2>
-                <label>Title:</label>
-                <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                />
-                <label>Description:</label>
-                <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    required
-                />
-                <label>Total Time:</label>
+    const stepsContent = [
+        <div key="step1">
+            <h2>Update Recipe</h2>
+            <label>Title:</label>
+            <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+            />
+            <label>Description:</label>
+            <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+            />
+            <label>Total Time:</label>
+            <div className="total-time-inputs">
                 <input
                     type="number"
                     placeholder="Hours"
-                    value={totalTime.hours}
-                    onChange={(e) => setTotalTime({ ...totalTime, hours: parseInt(e.target.value, 10) })}
+                    value={totalTimeHours}
+                    onChange={(e) => setTotalTimeHours(parseInt(e.target.value, 10))}
                     required
                 />
+                <span>Hours</span>
                 <input
                     type="number"
                     placeholder="Minutes"
-                    value={totalTime.minutes}
-                    onChange={(e) => setTotalTime({ ...totalTime, minutes: parseInt(e.target.value, 10) })}
+                    value={totalTimeMinutes}
+                    onChange={(e) => setTotalTimeMinutes(parseInt(e.target.value, 10))}
                     required
                 />
-                <label>Ingredients:</label>
-                {ingredients.map((ingredient, index) => (
-                    <div key={index}>
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={ingredient.name}
-                            onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                            required
-                        />
-                        <input
-                            type="text"
-                            placeholder="Quantity"
-                            value={ingredient.quantity}
-                            onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
-                            required
-                        />
-                        <input
-                            type="text"
-                            placeholder="Alternate (comma separated)"
-                            value={ingredient.alternate.join(', ')}
-                            onChange={(e) => handleIngredientChange(index, 'alternate', e.target.value.split(', '))}
-                        />
-                    </div>
-                ))}
-                <button type="button" onClick={handleAddIngredient}>Add Ingredient</button>
-                <label>Nutrition:</label>
+                <span>Minutes</span>
+            </div>
+        </div>,
+        <div key="step2">
+            <div className="ingredient-section">
+                <h3>Ingredients:</h3>
+                <table className="ingredient-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ingredients.map((ingredient, index) => (
+                            <tr key={index}>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={ingredient.name}
+                                        onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                                        required
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={ingredient.quantity}
+                                        onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
+                                        required
+                                    />
+                                </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className="delete-btn"
+                                        onClick={() => handleDeleteIngredient(index)}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <button type="button" className="add-ingredient-btn" onClick={handleAddIngredient}>
+                    Add Ingredient
+                </button>
+            </div>
+        </div>,
+        <div key="step3">
+            <h3>Nutrition:</h3>
+            <div className="nutrition-section">
+                <label>Calories:</label>
                 <input
                     type="number"
                     placeholder="Calories"
-                    value={nutrition.calories}
-                    onChange={(e) => setNutrition({ ...nutrition, calories: parseInt(e.target.value, 10) })}
+                    value={nutritionCalories}
+                    onChange={(e) => setNutritionCalories(parseInt(e.target.value, 10))}
                     required
                 />
+                <label>Fat:</label>
                 <input
                     type="number"
-                    placeholder="Fat"
-                    value={nutrition.fat}
-                    onChange={(e) => setNutrition({ ...nutrition, fat: parseInt(e.target.value, 10) })}
+                    placeholder="Fat (g)"
+                    value={nutritionFat}
+                    onChange={(e) => setNutritionFat(parseInt(e.target.value, 10))}
                     required
                 />
+                <label>Protein:</label>
                 <input
                     type="number"
-                    placeholder="Protein"
-                    value={nutrition.protein}
-                    onChange={(e) => setNutrition({ ...nutrition, protein: parseInt(e.target.value, 10) })}
+                    placeholder="Protein (g)"
+                    value={nutritionProtein}
+                    onChange={(e) => setNutritionProtein(parseInt(e.target.value, 10))}
                     required
                 />
+                <label>Carbs:</label>
                 <input
                     type="number"
-                    placeholder="Carbs"
-                    value={nutrition.carbs}
-                    onChange={(e) => setNutrition({ ...nutrition, carbs: parseInt(e.target.value, 10) })}
+                    placeholder="Carbs (g)"
+                    value={nutritionCarbs}
+                    onChange={(e) => setNutritionCarbs(parseInt(e.target.value, 10))}
                     required
                 />
-                <label>Steps:</label>
-                {steps.map((step, index) => (
-                    <div key={index}>
-                        <textarea
-                            placeholder="Step Text"
-                            value={step.text}
-                            onChange={(e) => handleStepChange(index, 'text', e.target.value)}
-                            required
-                        />
-                        <input
-                            type="number"
-                            placeholder="Timer"
-                            value={step.timer}
-                            onChange={(e) => handleStepChange(index, 'timer', parseInt(e.target.value, 10))}
-                            required
-                        />
-                    </div>
-                ))}
-                <button type="button" onClick={handleAddStep}>Add Step</button>
-                <label>Tags:</label>
-                <input
-                    type="text"
-                    value={tags.join(', ')}
-                    onChange={(e) => setTags(e.target.value.split(',').map(tag => tag.trim()))}
-                    required
-                />
-                <label>Image:</label>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImage(e.target.files[0])} // Handle image file
-                />
-                <button type="submit">Update Recipe</button>
-                {error && <div className="error">{error}</div>}
-            </form>
+            </div>
+        </div>,
+        <div key="step4">
+            <h3>Steps:</h3>
+            {steps.map((step, index) => (
+                <div key={index} className="step-item">
+                    <h4>Step {index + 1}</h4>
+                    <textarea
+                        placeholder="Step description"
+                        value={step.description}
+                        onChange={(e) => handleStepChange(index, 'description', e.target.value)}
+                        required
+                    />
+                    <input
+                        type="text"
+                        placeholder="Ingredient"
+                        value={step.ingredient}
+                        onChange={(e) => handleStepChange(index, 'ingredient', e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Quantity"
+                        value={step.quantity}
+                        onChange={(e) => handleStepChange(index, 'quantity', e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Alternate Ingredient"
+                        value={step.alternate}
+                        onChange={(e) => handleStepChange(index, 'alternate', e.target.value)}
+                    />
+                    <button type="button" onClick={() => handleDeleteStep(index)}>Delete</button>
+                </div>
+            ))}
+            <button type="button" onClick={handleAddStep}>Add Step</button>
+        </div>,
+        <div key="step5">
+            <h3>Tags:</h3>
+            <input
+                type="text"
+                placeholder="Enter tags separated by commas"
+                value={tags.join(',')}
+                onChange={handleTagChange}
+            />
+        </div>,
+        <div key="step6">
+            <h3>Upload Image:</h3>
+            <input
+                type="file"
+                onChange={handleImageChange}
+            />
+        </div>
+    ];
 
-            {showUpdateSuccess && (
+    return (
+        <div className="recipe-form-container">
+            <form className="recipe-form" onSubmit={handleSubmit}>
+                {stepsContent[currentStep]}
+                <div className="navigation-buttons">
+                    {currentStep > 0 && <button type="button" className="back-button" onClick={prevStep}>Back</button>}
+                    {currentStep < stepsContent.length - 1 && <button type="button" className="next-button" onClick={nextStep}>Next</button>}
+                    {currentStep === stepsContent.length - 1 && <button type="submit" className="next-button">Submit</button>}
+                </div>
+            </form>
+            {showSuccessModal && (
                 <div className="modal">
                     <div className="modal-content">
-                        <h4>Update Successful</h4>
-                        <button onClick={handleUpdateSuccess}>OK</button>
+                        <h4>{successMessage}</h4>
+                        <button onClick={handleOkClick}>OK</button>
                     </div>
                 </div>
             )}
