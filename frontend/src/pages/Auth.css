@@ -9,8 +9,12 @@
     justify-content: center;
     align-items: center;
     background-color: var(--background); /* Optional: Add background color */
+    
 }
-
+.lottie-container {
+    margin-top: -150px;
+    margin-left: 60px;
+}
 .auth-container {
     flex: 1;
     display: flex;

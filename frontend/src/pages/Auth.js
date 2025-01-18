@@ -69,7 +69,9 @@ const Auth = () => {
     return (
         <div className="auth-page">
             <div className="auth-animation">
-                <Lottie options={defaultOptions} height={400} width={400} />
+                <div className="lottie-container">
+                    <Lottie options={defaultOptions} height={600} width={700} />
+                </div>
             </div>
             <div className="auth-container">
                 <form className="auth-form" onSubmit={handleSubmit}>
