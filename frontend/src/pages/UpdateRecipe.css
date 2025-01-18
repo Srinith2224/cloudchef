@@ -83,7 +83,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }
+    backdrop-filter: blur(5px); /* Add blur effect */
+}
   
   .modal-content {
     background: var(--secondary);
