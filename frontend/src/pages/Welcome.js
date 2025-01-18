@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import './Welcome.css';
+import searchIcon from '../assets/search-icon.png';
 
 const Welcome = () => {
     const { dispatch } = useRecipesContext();
@@ -52,15 +53,19 @@ const Welcome = () => {
     return (
         <div className="welcome-container">
             
-           
             <div className="search-bar">
-                <input
-                    type="text"
-                    placeholder="Search recipes..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                />
+                <div className="search-input-container">
+                    <input
+                        type="text"
+                        placeholder="Search recipes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
+                    <button className="search-icon-button" onClick={handleSearch}>
+                        <img src={searchIcon} alt="Search" className="search-icon" />
+                    </button>
+                </div>
                 <p>Explore and share your favorite recipes.</p>
             </div>
             <div className="button-group">
