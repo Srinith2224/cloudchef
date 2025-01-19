@@ -4,19 +4,26 @@
   text-align: center;
   background-color: var(--background);
   margin-top: -60px; /* Move the container up */
+  
 }
+
+
 
 .welcome-container h1 {
   font-size: 2.5em;
   color: var(--primary);
   margin-bottom: 10px;
   font-weight: 600;
+  
+  
 }
 
 .welcome-container p {
   font-size: 2em;
   color: var(--primary);
   margin-bottom: 20px;
+  
+  
 }
 
 
@@ -26,26 +33,35 @@
   align-items: center;
   margin-bottom: -10px;
   margin-top: 60px;
+  
 }
 
 .search-input-container {
   position: relative;
-  width: 300px;
+  width: 100%;
+  max-width: 400px; /* Adjust the max-width as needed */
+  margin: 0 auto; /* Center the search box */
 }
+
 
 .search-input-container input {
   width: 100%;
-  padding: 10px 40px 10px 10px; /* Add padding to the right for the icon */
+  padding: 10px 40px 10px 20px; /* Add padding to the right for the icon */
   border: 1px solid var(--button-border);
-  border-radius: var(--border-radius);
+  border-radius: 25px; /* Rounded corners */
   font-size: 1em;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  background: linear-gradient(135deg, #2a2a2a, #3a3a3a); /* Gradient background */
+  color: var(--primary);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow */
 }
 
 .search-input-container input:focus {
-  border-color: var(--button-hover-border);
+  border-color: rgba(50, 205, 50, 0.8);
   outline: none;
+  box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
+
 
 .search-icon-button {
   position: absolute;
@@ -87,7 +103,7 @@
 
 .button-group button:hover {
   background-color: var(--button-hover-bg);
-  border-color: var(--button-hover-border);
+  box-shadow: 0 0 7px rgba(50, 205, 50, 0.8); /* Green glow */
   transform: translateY(-2px);
 }
 
@@ -102,6 +118,7 @@
   width: 100%;
   text-align: center;
   margin-bottom: 20px;
+  
 }
 
 .recipe-item img {

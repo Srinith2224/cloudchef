@@ -3,6 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './UpdateRecipe.css'; // Import CSS for styling
 
 const UpdateRecipe = () => {
+    useEffect(() => {
+        // Add class to body to disable scrolling
+        document.body.classList.add('no-scroll');
+    
+        // Cleanup function to remove class when component unmounts
+        return () => {
+          document.body.classList.remove('no-scroll');
+        };
+      }, []);
     const { id } = useParams();
     const [currentStep, setCurrentStep] = useState(0);
     const [title, setTitle] = useState('');

@@ -1,12 +1,4 @@
-.saved-recipes {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: var(--secondary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-family: var(--font-family);
-  }
+
   
   .saved-recipes h1 {
     font-size: 2em;
@@ -16,10 +8,11 @@
   }
   
   .recipes-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Change to 5 columns */
+    gap: 20px;
+    padding: 20px;
+}
   
   .recipe-item {
     width: 200px;

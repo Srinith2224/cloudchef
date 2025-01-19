@@ -6,6 +6,10 @@
     background: var(--background);
     padding: 20px;
   }
+  body.no-scroll {
+    overflow: hidden; /* Disable scrolling */
+  }
+  
   
   .update-recipe-form {
     background: var(--secondary);
@@ -47,7 +51,7 @@
   .update-recipe-form textarea:focus {
     border-color: var(--button-hover-border);
     outline: none;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
   }
   
   .update-recipe-form button {

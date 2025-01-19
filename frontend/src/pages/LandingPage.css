@@ -1,79 +1,43 @@
 .landing-page {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
-  font-family: 'Roboto', sans-serif;
-  color: #fff;
+  text-align: center;
+  position: relative;
   padding: 20px;
+  margin-top: -100px;  
 }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .landing-page {
-    flex-direction: column; /* Stack elements vertically on smaller screens */
-    padding: 20px;
-  }
-
-  .hero-section {
-    padding: 20px; /* Reduce padding */
-    max-width: 100%; /* Full width */
-    margin-top: -30px; /* Move the welcome message up */
-  }
-
-  .hero-section h1 {
-    font-size: 2.5em; /* Smaller font size */
-  }
-
-  .hero-section h2 {
-    font-size: 1.5em; /* Smaller font size */
-  }
-
-  .hero-section p {
-    font-size: 1em; /* Smaller font size */
-  }
-
-  .auth-buttons {
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Reduce gap */
-  }
-
-  .auth-buttons a {
-    width: 100%; /* Full width buttons */
-    text-align: center; /* Center text */
-  }
-
-  .background-animation {
-    width: 100%; /* Full width on smaller screens */
-    height: 50%; /* Adjust height */
-    top: -30px; /* Move the background animation up */
-  }
+body.no-scroll {
+  overflow: hidden; /* Disable scrolling */
 }
 
 .hero-section {
-  background-color: #2c2c2c;
-  color: #656565; /* White text color */
-  padding: 40px;
-  border-radius: 10px;
-  text-align: center;
+  background: rgba(30, 30, 30, 0.9); /* Dark transparent background */
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
   max-width: 600px;
-  margin-top: -50px;
+  margin: 20px;
 }
 
 .hero-section h1 {
-  font-size: 2.5em;
+  font-size: 3em;
   margin-bottom: 20px;
-  color: #ffffff;
+  color: #32cd32; /* Vibrant green for title */
 }
 
 .hero-section h2 {
   font-size: 2em;
   margin-bottom: 20px;
+  color: #66ff66; /* Lighter green for subtitle */
 }
 
 .hero-section p {
   font-size: 1.2em;
   margin-bottom: 20px;
+  color: #ddd; /* Light grey for paragraph text */
   line-height: 1.6;
 }
 
@@ -84,51 +48,62 @@
 }
 
 .auth-buttons a {
-  background-color: var(--secondary);
-  
+  background: linear-gradient(135deg, #32cd32, #2e8b57); /* Vibrant green gradient */
+  color: #fff;
   padding: 12px 30px;
-  border-radius: var(--border-radius);
+  border-radius: 30px;
   text-decoration: none;
   cursor: pointer;
   font-size: 1.1em;
-  transition: background-color var(--transition), transform var(--transition);
-  display: inline-block;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Button shadow for depth */
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   text-align: center;
-  width: 100%; /* Full width buttons */
 }
 
 .auth-buttons a:hover {
-  background-color: var(--button-hover-bg);
-  border-color: var(--button-hover-border);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #3cb371, #66ff66); /* Brighter green gradient on hover */
+  transform: translateY(-4px); /* Slight lift effect on hover */
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
 }
 
+
+
 .background-animation {
-  position: relative;
-  width: 50%;
-  top: -50px;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(50, 205, 50, 0.1), rgba(0, 0, 0, 0));
   z-index: -1;
-  pointer-events: none;
+  animation: glow 3s infinite alternate;
 }
+
+@keyframes glow {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
 .logo-animation {
   position: relative;
-  width: 50%; /* Adjust the width as needed */
-  max-width: 300px; /* Optional: Set a maximum width */
-  margin: 0 auto; /* Center the image horizontally */
-  display: block; /* Ensure the image is displayed as a block element */
-  z-index: 1; /* Ensure the logo is above the circle */
-  top: -20px;
-  left: -10px;
+  width: 120px; /* Adjust logo size */
+  
+  margin-bottom: -80px;
 }
 
 .logo-background {
   position: absolute;
-  width: 400px; /* Adjust the size as needed */
-  height: 400px; /* Adjust the size as needed */
-  background-color: white;
+  width: 150px;
+  height: 150px;
+  background: #2a2a2a;
   border-radius: 50%;
+  z-index: 0;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 0; /* Ensure the circle is behind the logo */
 }

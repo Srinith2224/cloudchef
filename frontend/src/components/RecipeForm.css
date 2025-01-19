@@ -86,7 +86,7 @@
 .recipe-form select:focus {
     border-color: var(--button-hover-border);
     outline: none;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
 
 .recipe-form button {

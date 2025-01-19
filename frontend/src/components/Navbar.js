@@ -49,25 +49,39 @@ const Navbar = () => {
                 </Link>
                 {user && (
                     <div className="nav-links">
-                        <Link to="/welcome" className="nav-link">Home</Link>
-                        <Link to="/add-recipe" className="nav-link">Add Recipes</Link>
-                        <Link to="/my-recipes" className="nav-link">My Recipes</Link>
-                        <Link to="/saved-recipes" className="nav-link">Saved Recipes</Link>
-                        <Link to="/generate-recipe" className="nav-link">Generate Recipe</Link>
-                        <Link to="/cart" className="cart-link">
+                        <Link to="/welcome" className="nav-link">
+                            <span className="material-icons">home</span> 
+                        </Link>
+                        <Link to="/add-recipe" className="nav-link">
+                            <span className="material-icons">add_box</span> 
+                        </Link>
+                        <Link to="/my-recipes" className="nav-link">
+                            <span className="material-icons">library_books</span> 
+                        </Link>
+                        <Link to="/saved-recipes" className="nav-link">
+                            <span className="material-icons">bookmark</span> 
+                        </Link>
+                        <Link to="/generate-recipe" className="nav-link">
+                            <span className="material-icons">auto_awesome</span> 
+                        </Link>
+                        <Link to="/cart" className="nav-link">
                             <span className="material-icons">shopping_cart</span>
                         </Link>
                         {profilePhoto ? (
-                            <img
-                                src={profilePhoto}
-                                alt="Profile"
-                                className="profile-photo"
-                                onClick={handleProfileClick}
-                            />
-                        ) : (
-                            <span onClick={handleProfileClick} className="profile-icon">My Profile</span>
-                        )}
-                    </div>
+            <Link to="/profile" className="nav-link">
+              <img
+                src={profilePhoto}
+                alt="Profile"
+                className="profile-photo"
+                onClick={handleProfileClick}
+              />
+            </Link>
+          ) : (
+            <Link to="/profile" className="nav-link">
+              <span onClick={handleProfileClick} className="material-icons profile-icon">account_circle</span>
+            </Link>
+          )}
+        </div>
                 )}
             </div>
         </header>

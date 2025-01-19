@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecipesContext } from "../hooks/useRecipesContext";
 import Lottie from 'react-lottie';
@@ -7,6 +7,15 @@ import './Auth.css';
 import googleIcon from '../assets/google.png';
 
 const Auth = () => {
+    useEffect(() => {
+        // Add class to body to disable scrolling
+        document.body.classList.add('no-scroll');
+    
+        // Cleanup function to remove class when component unmounts
+        return () => {
+          document.body.classList.remove('no-scroll');
+        };
+      }, []);
     const { dispatch } = useRecipesContext();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');

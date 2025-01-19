@@ -53,6 +53,7 @@ const Welcome = () => {
     return (
         <div className="welcome-container">
             
+            
             <div className="search-bar">
                 <div className="search-input-container">
                     <input

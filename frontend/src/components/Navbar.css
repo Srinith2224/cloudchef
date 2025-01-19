@@ -10,6 +10,25 @@ header {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding: 10px 20px; /* Add padding for spacing */
+  background: linear-gradient(135deg, #2a2a2a, #1e1e1e); /* Gradient background */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+  margin: 0; /* Remove any default margins */
+  box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+}
+
+.container a {
+  color: rgba(50, 205, 50, 0.8); /* Ensure links are visible */
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container a:hover {
+  background-color: var(--button-hover-bg); /* Light green background on hover */
+  color: rgba(50, 205, 50, 0.8); /* Vibrant green text on hover */
 }
 
 .logo-container {
@@ -34,43 +53,34 @@ header {
   gap: 40px; /* Add gap between nav links */
 }
 
-.nav-link {
-  color: #fff;
-  text-decoration: none;
-  font-size: 1.5em;
-  transition: color var(--transition);
-}
-
-.nav-link:hover {
-  color: var(--button-hover-border);
-}
-
-.cart-link {
-  display: flex;
-  align-items: center;
-  font-size: 24px;
-  color: var(--primary);
-  text-decoration: none;
-  margin-right: 20px; /* Add margin to create gap */
-}
-
-.cart-link .material-icons {
-  font-size: 28px;
+.nav-link .material-icons {
+  font-size: 32px; /* Increase the font size */
   color: var(--primary);
 }
 
-.cart-link:hover .material-icons {
-  color: var(--button-hover-border);
+.nav-link:hover .material-icons {
+  color: rgba(50, 205, 50, 0.8);
 }
-
-.profile-photo {
-  width: 40px;
-  height: 40px;
+.nav-link .profile-photo {
+  width: 32px; /* Same size as the icons */
+  height: 32px; /* Same size as the icons */
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  margin-left: 20px; /* Add margin to create gap */
-  margin-top: 14px; /* Adjust this value to move the profile photo down */
+   /* Add margin to create gap */
 }
+
+.profile-icon {
+  font-size: 32px;
+  color: var(--primary);
+  cursor: pointer;
+  
+}
+
+.profile-icon:hover {
+  color: rgba(50, 205, 50, 0.8);
+}
+
+
+
+
