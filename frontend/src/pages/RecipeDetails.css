@@ -1,11 +1,12 @@
 .recipe-details {
+    position: relative; /* Ensure the close button is positioned relative to this container */
+    padding: 20px;
+    background: var(--background, #1e1e1e); /* Use background variable */
+    color: var(--primary, #ffffff); /* Use primary color variable */
+    border-radius: var(--border-radius, 8px); /* Use border radius variable */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
-    background-color: var(--secondary);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-family: var(--font-family);
 }
 
 .recipe-details h2 {
@@ -195,4 +196,18 @@
         opacity: 1;
         transform: scale(1);
     }
+}
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: red;
+}
+
+.close-btn:hover {
+    color: red;
 }

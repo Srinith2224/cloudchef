@@ -213,12 +213,17 @@ const RecipeDetails = () => {
         setShowSuccessModal(false);
     };
 
+    const handleClose = () => {
+        navigate(-1); // Go back to the previous page
+    };
+
     if (!recipe) {
         return <p>Loading...</p>;
     }
 
     return (
         <div className="recipe-details">
+            <button className="close-btn" onClick={handleClose}>X</button>
             {recipe.mainImage && (
                 <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} className="recipe-image" />
             )}
