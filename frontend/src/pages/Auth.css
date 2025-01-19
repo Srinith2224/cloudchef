@@ -3,9 +3,6 @@
     display: flex;
     min-height: 100vh;
 }
-body.no-scroll {
-    overflow: hidden; /* Disable scrolling */
-  }
 
 .auth-animation {
     flex: 1;
@@ -26,7 +23,7 @@ body.no-scroll {
     justify-content: center;
     align-items: center;
     padding: 40px 20px;
-    margin-top: -60px;
+    margin-top: -100px;
 }
 
 .auth-form {

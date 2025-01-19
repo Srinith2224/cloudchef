@@ -4,7 +4,7 @@
     height: 100vh;
     background: linear-gradient(135deg, #121212, #1a1a1a);
     color: #e0e0e0;
-    font-family: 'Arial', sans-serif;
+    font-family: var(--font-family, 'Arial', sans-serif); /* Use font family variable */
 }
 
 .sidebar {

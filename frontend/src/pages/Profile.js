@@ -109,8 +109,7 @@ const Profile = () => {
             case 'profile':
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
-                        <div style={{ display: 'flex', gap: '20px' }}>
-                            {/* Profile Photo Section */}
+                        <div className="profile-info">
                             <div className="profile-photo-container">
                                 <div className="profile-photo">
                                     <img src={profilePhoto || 'default-photo.jpg'} alt="Profile" />
@@ -124,7 +123,6 @@ const Profile = () => {
                                 </div>
                             </div>
 
-                            {/* Profile Info Section */}
                             <div className="profile-info">
                                 <label>First Name:</label>
                                 <input
@@ -219,8 +217,6 @@ const Profile = () => {
                 </div>
             )}
         </div>
-        
-        
     );
 };
 
