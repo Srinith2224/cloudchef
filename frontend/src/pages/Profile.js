@@ -14,6 +14,7 @@ const Profile = () => {
     const [error, setError] = useState(null);
     const [activeSection, setActiveSection] = useState('profile'); // State to track active section
     const [showLogoutSuccessModal, setShowLogoutSuccessModal] = useState(false); // State for logout success modal
+    const [showUpdateSuccessModal, setShowUpdateSuccessModal] = useState(false); // State for update success modal
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -37,8 +38,10 @@ const Profile = () => {
             }
         };
 
-        fetchUserInfo();
-    }, [user.userId]);
+        if (user && user.userId) {
+            fetchUserInfo();
+        }
+    }, [user]);
 
     const handleLogout = () => {
         fetch('/api/logout', {
@@ -93,7 +96,7 @@ const Profile = () => {
             } else {
                 dispatch({ type: 'LOGIN', payload: json });
                 setError(null);
-                alert('Profile updated successfully');
+                setShowUpdateSuccessModal(true); // Show the update success modal
             }
         } catch (error) {
             setError('Failed to update profile');
@@ -102,6 +105,7 @@ const Profile = () => {
 
     const handleOkClick = () => {
         setShowLogoutSuccessModal(false);
+        setShowUpdateSuccessModal(false);
     };
 
     const renderSection = () => {
@@ -109,41 +113,38 @@ const Profile = () => {
             case 'profile':
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
+                        <div className="profile-photo-container">
+                            <div className="profile-photo">
+                                <img src={profilePhoto || 'default-photo.jpg'} alt="Profile" />
+                                <label htmlFor="upload-photo" className="upload-photo-label">Update Photo</label>
+                                <input
+                                    type="file"
+                                    id="upload-photo"
+                                    className="upload-photo-input"
+                                    onChange={handlePhotoUpload}
+                                />
+                            </div>
+                        </div>
                         <div className="profile-info">
-                            <div className="profile-photo-container">
-                                <div className="profile-photo">
-                                    <img src={profilePhoto || 'default-photo.jpg'} alt="Profile" />
-                                    <label htmlFor="upload-photo" className="upload-photo-label">Update Photo</label>
-                                    <input
-                                        type="file"
-                                        id="upload-photo"
-                                        className="upload-photo-input"
-                                        onChange={handlePhotoUpload}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="profile-info">
-                                <label>First Name:</label>
-                                <input
-                                    type="text"
-                                    value={user.firstName}
-                                    readOnly
-                                />
-                                <label>Last Name:</label>
-                                <input
-                                    type="text"
-                                    value={user.lastName}
-                                    readOnly
-                                />
-                                <label>About:</label>
-                                <textarea
-                                    value={about}
-                                    onChange={(e) => setAbout(e.target.value)}
-                                />
-                                <button type="submit">Update Profile</button>
-                                {error && <div className="error">{error}</div>}
-                            </div>
+                            <label>First Name:</label>
+                            <input
+                                type="text"
+                                value={user.firstName || ''}
+                                readOnly
+                            />
+                            <label>Last Name:</label>
+                            <input
+                                type="text"
+                                value={user.lastName || ''}
+                                readOnly
+                            />
+                            <label>About:</label>
+                            <textarea
+                                value={about || 'Say something about you...'}
+                                onChange={(e) => setAbout(e.target.value)}
+                            />
+                            <button type="submit">Update Profile</button>
+                            {error && <div className="error">{error}</div>}
                         </div>
                     </form>
                 );
@@ -184,6 +185,21 @@ const Profile = () => {
                         </div>
                     </form>
                 );
+            case 'notifications':
+                return (
+                    <form onSubmit={handleUpdateProfile} className="profile-form">
+                        <div className="profile-info">
+                            <label>Notifications:</label>
+                            <input
+                                type="text"
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                            />
+                            <button type="submit">Update Notifications</button>
+                            {error && <div className="error">{error}</div>}
+                        </div>
+                    </form>
+                );
             default:
                 return null;
         }
@@ -212,6 +228,15 @@ const Profile = () => {
                 <div className="modal">
                     <div className="modal-content">
                         <h4>Logout Successful</h4>
+                        <button onClick={handleOkClick}>OK</button>
+                    </div>
+                </div>
+            )}
+
+            {showUpdateSuccessModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h4>Update Successful</h4>
                         <button onClick={handleOkClick}>OK</button>
                     </div>
                 </div>

@@ -30,7 +30,7 @@
 .sidebar ul li {
     padding: 12px;
     cursor: pointer;
-    color: #b3b3b3;
+    color: #ffffff;
     border-radius: 8px;
     transition: all 0.3s;
 }
@@ -62,7 +62,7 @@
     flex: 1;
     padding: 40px;
     overflow-y: auto;
-    background: #202020;
+    background: #121212;
     box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
     border-left: 1px solid #333;
     border-radius: 0 0 0 10px;
@@ -71,100 +71,152 @@
 .profile-card h2 {
     margin-bottom: 20px;
     color: #fff;
-    border-bottom: 2px solid #444;
-    padding-bottom: 10px;
-    text-transform: capitalize;
 }
 
-.profile-content {
-    animation: fadeIn 0.5s;
-    background: #282828;
+.profile-content form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    background: #282828;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.profile-content form input, .profile-content form textarea {
+.profile-info {
     width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #555;
-    background: #181818;
-    color: #e0e0e0;
-    transition: border 0.3s;
+    margin-bottom: 20px;
+    padding-left: 200px;
 }
 
-.profile-content form input:focus, .profile-content form textarea:focus {
-    border: 1px solid #00bcd4;
-    outline: none;
-}
-
-.profile-content form button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    background: #00bcd4;
-    color: #fff;
-    cursor: pointer;
+.profile-info label {
+    display: block;
+    margin-bottom: 5px;
     font-weight: bold;
-    transition: all 0.3s;
 }
 
-.profile-content form button:hover {
-    background: #019caf;
+.profile-info input, .profile-info textarea {
+    width: 50%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #282828;
+    border: 1px solid var(--button-border);
+    color: var(--primary);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family);
+    transition: border-color var(--transition);
+}
+
+.profile-info input:focus, .profile-info textarea:focus {
+    border: 1px solid rgba(50, 205, 50, 0.8);
+    outline: none;
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
+}
+
+.profile-info button {
+    background-color: var(--button-bg);
+    color: #fff;
+    padding: 12px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 10px;
+    width: 50%;
+    margin-left: 10px;
+}
+
+.profile-info button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
     transform: translateY(-2px);
 }
 
+.profile-photo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-photo {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-photo img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px; /* Add some space between the image and the label */
+}
+
+.upload-photo-label {
+    background: #625d5d;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-photo-input {
+    display: none;
+}
+.upload-photo-label:hover {
+    border-color: rgba(50, 205, 50, 0.8);
+  outline: none;
+  box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    backdrop-filter: blur(5px); /* Add blur effect */
 }
 
 .modal-content {
-    background: #333;
-    padding: 20px 30px;
-    border-radius: 10px;
+    background: var(--secondary);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
-    color: #fff;
-    animation: fadeIn 0.3s;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .modal-content h4 {
-    margin-bottom: 15px;
-    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--primary);
 }
 
 .modal-content button {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
     padding: 10px 20px;
-    background: #00bcd4;
-    border: none;
-    border-radius: 5px;
-    color: #fff;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-size: 1em;
+    transition: background-color var(--transition), transform var(--transition);
+    margin: 5px;
 }
 
 .modal-content button:hover {
-    background: #019caf;
-    transform: scale(1.05);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-2px);
 }

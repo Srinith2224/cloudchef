@@ -41,7 +41,7 @@
   .generate-recipe input[type="text"]:focus {
     border-color: var(--button-hover-border);
     outline: none;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
   }
   
   .generate-recipe button {
@@ -111,7 +111,7 @@
 .generate-recipe select:focus {
     border-color: var(--button-hover-border);
     outline: none;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
 .input-box {
   width: 100%;
@@ -126,5 +126,5 @@
 .input-box:focus {
   border-color: var(--button-hover-border);
   outline: none;
-  box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+  box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
