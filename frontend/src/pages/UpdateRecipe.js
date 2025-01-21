@@ -320,6 +320,7 @@ const UpdateRecipe = () => {
 
     return (
         <div className="recipe-form-container">
+            {error && <div className="error-message">{error}</div>}
             <form className="recipe-form" onSubmit={handleSubmit}>
                 {stepsContent[currentStep]}
                 <div className="navigation-buttons">
