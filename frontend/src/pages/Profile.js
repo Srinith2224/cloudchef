@@ -94,9 +94,16 @@ const Profile = () => {
             if (!response.ok) {
                 setError(json.error);
             } else {
-                dispatch({ type: 'LOGIN', payload: json });
+                dispatch({
+                    type: 'LOGIN',
+                    payload: {
+                        ...json,
+                        userId: json._id,
+                        token: localStorage.getItem('token') // keep the existing token
+                    }
+                });
                 setError(null);
-                setShowUpdateSuccessModal(true); // Show the update success modal
+                setShowUpdateSuccessModal(true);
             }
         } catch (error) {
             setError('Failed to update profile');

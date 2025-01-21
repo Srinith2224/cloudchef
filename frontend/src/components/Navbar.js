@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useRecipesContext } from '../hooks/useRecipesContext';
+import { useRecipesContext } from '../hooks/useRecipesContext.js';
 import './Navbar.css'; // Assuming you have a CSS file for styling
 
 const Navbar = () => {
@@ -10,26 +10,28 @@ const Navbar = () => {
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-            if (user) {
-                try {
-                    const response = await fetch(`/api/users/${user.userId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                        setProfilePhoto(data.profilePhoto);
-                    } else {
-                        console.error('Failed to fetch user info:', data.message);
+            try {
+                const response = await fetch(`/api/users/${user.userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                } catch (error) {
-                    console.error('Error fetching user info:', error);
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user info');
                 }
+
+                const userInfo = await response.json();
+                setProfilePhoto(userInfo.profilePhoto);
+            } catch (error) {
+                console.error(error);
             }
         };
 
-        fetchUserInfo();
+        if (user && user.userId) {
+            fetchUserInfo();
+        }
     }, [user]);
 
     const handleProfileClick = () => {
