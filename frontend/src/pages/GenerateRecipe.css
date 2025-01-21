@@ -128,3 +128,28 @@
   outline: none;
   box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
+.option-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.option-buttons button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.option-buttons button.active {
+  background-color: var(--button-hover-background);
+  box-shadow: 0 0 8px rgba(50, 205, 50, 0.8);
+}
+
+.option-buttons button:hover {
+  background-color: var(--button-hover-bg);
+}

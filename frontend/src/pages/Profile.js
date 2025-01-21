@@ -147,7 +147,7 @@ const Profile = () => {
                             />
                             <label>About:</label>
                             <textarea
-                                value={about || 'Say something about you...'}
+                                value={about}
                                 onChange={(e) => setAbout(e.target.value)}
                             />
                             <button type="submit">Update Profile</button>
