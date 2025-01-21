@@ -116,6 +116,9 @@ Instructions:`;
         const ingredientsList = ingredientsListMatch[1].trim().split('\n').map(item => item.trim());
         const stepsText = stepsTextMatch[1].trim();
 
+        // Filter out unwanted lines from ingredientsList
+        const filteredIngredientsList = ingredientsList.filter(item => !item.startsWith('Serving Size:') && !item.startsWith('Cuisine:') && !item.startsWith('Difficulty:') && !item.startsWith('Dietary Preferences:') && item !== '');
+
         // Clean and format steps
         const steps = stepsText.split('\n').map((step, index) => ({
             stepNumber: index + 1,
@@ -126,7 +129,7 @@ Instructions:`;
         // Construct the final recipe object
         const formattedRecipe = {
             recipeName,
-            ingredientsList,
+            ingredientsList: filteredIngredientsList,
             steps
         };
 
