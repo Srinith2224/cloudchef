@@ -12,6 +12,7 @@ import MyRecipes from './pages/MyRecipes';
 import UpdateRecipe from './pages/UpdateRecipe';
 import SavedRecipes from './pages/SavedRecipes';
 import Cart from './pages/Cart';
+import ScheduledMeals from './pages/ScheduledMeals';
 import GenerateRecipe from './pages/GenerateRecipe';
 import RequireAuth from './components/RequireAuth';
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/update-recipe/:id" element={<RequireAuth><UpdateRecipe /></RequireAuth>} />
             <Route path="/saved-recipes" element={<RequireAuth><SavedRecipes /></RequireAuth>} />
             <Route path="/cart" element={<RequireAuth><Cart /></RequireAuth>} />
+            <Route path="/scheduled-meals" element={<RequireAuth><ScheduledMeals /></RequireAuth>} /> 
             <Route path="/generate-recipe" element={<RequireAuth><GenerateRecipe /></RequireAuth>} />
           </Routes>
         </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import './RecipeDetails.css'; // Import the CSS file
+import CalendarPopup from '../components/CalendarPopup'; // Import the CalendarPopup component
 
 const RecipeDetails = () => {
     const { id } = useParams();
@@ -11,6 +12,7 @@ const RecipeDetails = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false); // State for success modal
     const [successMessage, setSuccessMessage] = useState(''); // State for success message
     const [addedIngredients, setAddedIngredients] = useState([]); // State to track added ingredients
+    const [showCalendarPopup, setShowCalendarPopup] = useState(false); // State for calendar popup
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -209,6 +211,33 @@ const RecipeDetails = () => {
         }
     };
 
+    const handleSchedule = () => {
+        setShowCalendarPopup(true);
+    };
+
+    const handleCalendarSubmit = async (date) => {
+        try {
+            const response = await fetch('/api/calendar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ recipeId: id, date })
+            });
+    
+            if (response.ok) {
+                setSuccessMessage('Recipe scheduled successfully');
+                setShowSuccessModal(true);
+                setShowCalendarPopup(false);
+            } else {
+                console.error('Failed to schedule recipe');
+            }
+        } catch (error) {
+            console.error('Error scheduling recipe:', error);
+        }
+    };
+
     const handleOkClick = () => {
         setShowSuccessModal(false);
     };
@@ -326,7 +355,7 @@ const RecipeDetails = () => {
                     <button className="btn save-btn" onClick={handleSave}>Save</button>
                 )
             )}
-
+            <button className="btn schedule-btn" onClick={handleSchedule}>Schedule</button>
             {showSuccessModal && (
                 <div className="modal">
                     <div className="modal-content">
@@ -334,6 +363,9 @@ const RecipeDetails = () => {
                         <button onClick={handleOkClick}>OK</button>
                     </div>
                 </div>
+            )}
+            {showCalendarPopup && (
+                <CalendarPopup onSubmit={handleCalendarSubmit} onClose={() => setShowCalendarPopup(false)} />
             )}
         </div>
     );

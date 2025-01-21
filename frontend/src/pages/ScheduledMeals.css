@@ -1,0 +1,66 @@
+.scheduled-meals {
+    padding: 20px;
+}
+
+.scheduled-meals h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2.5em; /* Increase the page title font size */
+}
+
+.fc {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.fc-daygrid-event {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-color: #3a3a3a; /* Apply background color to event cells */
+    color: white; /* Ensure text is readable on dark background */
+    border-radius: 5px; /* Optional: Add some border radius for better appearance */
+}
+
+.event-content {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center;
+}
+
+.recipe-title {
+    font-size: 1.5em; /* Increase the recipe name font size */
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 5px; /* Space between title and delete button */
+    text-align: center;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #dc3545; /* Bootstrap danger color */
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: color 0.3s;
+}
+
+.delete-btn .material-icons {
+    vertical-align: middle;
+}
+
+.delete-btn:hover {
+    color: #c82333;
+}
+
+@media (max-width: 600px) {
+    .recipe-title {
+        font-size: 1.2em;
+    }
+
+    .delete-btn {
+        font-size: 1em;
+    }
+}

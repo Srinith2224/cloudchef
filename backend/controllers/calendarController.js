@@ -11,8 +11,19 @@ const addCalendarEntry = async (req, res) => {
     }
 
     try {
-        const calendarEntry = await Calendar.create({ userId, recipeId, date });
-        res.status(200).json(calendarEntry);
+        // Find the user's calendar
+        let calendar = await Calendar.findOne({ userId });
+
+        if (!calendar) {
+            // Create a new calendar if it doesn't exist
+            calendar = new Calendar({ userId, scheduledRecipes: [] });
+        }
+
+        // Add the new scheduled recipe
+        calendar.scheduledRecipes.push({ recipeId, date });
+        await calendar.save();
+
+        res.status(200).json(calendar);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -27,14 +38,36 @@ const getCalendarEntries = async (req, res) => {
     }
 
     try {
-        const calendarEntries = await Calendar.find({ userId }).sort({ date: 1 });
-        res.status(200).json(calendarEntries);
+        const calendar = await Calendar.findOne({ userId }).populate('scheduledRecipes.recipeId');
+        res.status(200).json(calendar ? calendar.scheduledRecipes : []);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-module.exports = {
-    addCalendarEntry,
-    getCalendarEntries
+// Delete a calendar entry by ID
+const deleteCalendarEntry = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ error: 'Invalid entry ID' });
+    }
+
+    try {
+        const calendar = await Calendar.findOneAndUpdate(
+            { userId: req.userId },
+            { $pull: { scheduledRecipes: { _id: id } } },
+            { new: true }
+        );
+
+        if (!calendar) {
+            return res.status(404).json({ error: 'Calendar not found' });
+        }
+
+        res.status(200).json(calendar);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
+
+module.exports = { addCalendarEntry, getCalendarEntries, deleteCalendarEntry };

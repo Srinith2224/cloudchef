@@ -72,10 +72,11 @@
     font-weight: bold;
 }
 
+/* Add this CSS to create space between the buttons */
 .button-group {
     display: flex;
     justify-content: space-between;
-    gap: 15px;
+    gap: 10px; /* Add space between buttons */
     margin-top: 20px;
 }
 
@@ -210,4 +211,32 @@
 
 .close-btn:hover {
     color: red;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color var(--transition), transform var(--transition);
+}
+
+.save-btn, .unsave-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    margin-right: 10px; /* Add margin to the right */
+}
+
+.schedule-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    margin-left: 10px; /* Add margin to the left */
+}
+
+.save-btn:hover, .unsave-btn:hover, .schedule-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: rgba(50, 205, 50, 0.8);
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
