@@ -7,6 +7,7 @@ const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [newItem, setNewItem] = useState('');
     const [newQuantity, setNewQuantity] = useState(1);
+    const [newUnit, setNewUnit] = useState('');
     const [showPopup, setShowPopup] = useState(false);
 
     useEffect(() => {
@@ -47,7 +48,11 @@ const Cart = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ ingredient: newItem, quantity: newQuantity })
+                body: JSON.stringify({ 
+                    ingredient: newItem, 
+                    quantity: newQuantity,
+                    unit: newUnit
+                })
             });
 
             if (response.ok) {
@@ -64,6 +69,7 @@ const Cart = () => {
                 });
                 setNewItem('');
                 setNewQuantity(1);
+                setNewUnit('');
                 setShowPopup(false);
             } else {
                 console.error('Failed to add item to cart');
@@ -139,6 +145,22 @@ const Cart = () => {
                             value={newQuantity}
                             onChange={(e) => setNewQuantity(parseInt(e.target.value, 10))}
                         />
+                        <select 
+                            value={newUnit} 
+                            onChange={(e) => setNewUnit(e.target.value)}
+                        >
+                            <option value="">Select Unit</option>
+                            <option value="g">g (Gram)</option>
+                            <option value="kg">kg (Kilogram)</option>
+                            <option value="ml">ml (Milliliter)</option>
+                            <option value="l">l (Liter)</option>
+                            <option value="tbsp">tbsp (Tablespoon)</option>
+                            <option value="tsp">tsp (Teaspoon)</option>
+                            <option value="cup">cup</option>
+                            <option value="packet">packet</option>
+                            <option value="piece">piece</option>
+                            <option value="slice">slice</option>
+                        </select>
                         <button onClick={handleAddItem}>Add</button>
                         <button onClick={() => setShowPopup(false)}>Cancel</button>
                     </div>
@@ -149,6 +171,7 @@ const Cart = () => {
                     <tr>
                         <th>Ingredient</th>
                         <th>Quantity</th>
+                        <th>Unit</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -164,6 +187,7 @@ const Cart = () => {
                                         <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)}>+</button>
                                     </div>
                                 </td>
+                                <td>{item.unit}</td>
                                 <td>
                                     <button className="delete-btn" onClick={() => handleDelete(item._id)}>
                                         <span className="material-icons">delete</span>
@@ -173,7 +197,7 @@ const Cart = () => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="3">No items in the cart.</td>
+                            <td colSpan="4">No items in the cart.</td>
                         </tr>
                     )}
                 </tbody>

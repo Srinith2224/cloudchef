@@ -166,6 +166,23 @@
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
+.ingredient-table select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--button-border);
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    box-sizing: border-box;
+    background-color: var(--secondary);
+    color: var(--primary);
+}
+
+.ingredient-table select:focus {
+    border-color: var(--button-hover-border);
+    outline: none;
+    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8);
+}
+
 .add-ingredient-btn {
     background-color: var(--button-bg);
     color: var(--primary);

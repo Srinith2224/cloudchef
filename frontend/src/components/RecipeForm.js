@@ -8,7 +8,7 @@ const RecipeForm = () => {
     const [description, setDescription] = useState('');
     const [totalTimeHours, setTotalTimeHours] = useState(0);
     const [totalTimeMinutes, setTotalTimeMinutes] = useState(0);
-    const [ingredients, setIngredients] = useState([{ name: '', quantity: '' }]);
+    const [ingredients, setIngredients] = useState([{ name: '', quantity: '', unit: '' }]);
     const [nutritionCalories, setNutritionCalories] = useState(0);
     const [nutritionFat, setNutritionFat] = useState(0);
     const [nutritionProtein, setNutritionProtein] = useState(0);
@@ -36,7 +36,7 @@ const RecipeForm = () => {
     };
 
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, { name: '', quantity: '' }]);
+        setIngredients([...ingredients, { name: '', quantity: '', unit: '' }]);
     };
 
     const handleDeleteIngredient = (index) => {
@@ -154,6 +154,7 @@ const RecipeForm = () => {
                         <tr>
                             <th>Name</th>
                             <th>Quantity</th>
+                            <th>Unit</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -175,6 +176,24 @@ const RecipeForm = () => {
                                         onChange={(e) => handleIngredientChange(index, 'quantity', e.target.value)}
                                         required
                                     />
+                                </td>
+                                <td>
+                                    <select
+                                        value={ingredient.unit}
+                                        onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                                    >
+                                        <option value="">Select Unit</option>
+                                        <option value="g">g (Gram)</option>
+                                        <option value="kg">kg (Kilogram)</option>
+                                        <option value="ml">ml (Milliliter)</option>
+                                        <option value="l">l (Liter)</option>
+                                        <option value="tbsp">tbsp (Tablespoon)</option>
+                                        <option value="tsp">tsp (Teaspoon)</option>
+                                        <option value="cup">cup</option>
+                                        <option value="packet">packet</option>
+                                        <option value="piece">piece</option>
+                                        <option value="slice">slice</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <button

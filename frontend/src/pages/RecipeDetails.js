@@ -73,7 +73,11 @@ const RecipeDetails = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ ingredient: ingredient.name, quantity: parseInt(ingredient.quantity, 10) })
+                body: JSON.stringify({
+                    ingredient: ingredient.name,
+                    quantity: parseInt(ingredient.quantity, 10),
+                    unit: ingredient.unit || '' // Include unit
+                })
             });
 
             if (response.ok) {
@@ -92,13 +96,32 @@ const RecipeDetails = () => {
 
     const handleRemoveFromCart = async (ingredient) => {
         try {
+            // First find the cart item to get its ID
+            const cartResponse = await fetch('/api/cart', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const cartData = await cartResponse.json();
+            
+            // Find the item in the cart that matches this ingredient
+            const cartItem = cartData.items.find(item => 
+                item.ingredient.toLowerCase() === ingredient.name.toLowerCase()
+            );
+            
+            if (!cartItem) {
+                console.error('Item not found in cart');
+                return;
+            }
+
+            // Now delete it using its ID
             const response = await fetch('/api/cart/delete', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ ingredientId: ingredient._id })
+                body: JSON.stringify({ ingredientId: cartItem._id })
             });
 
             if (response.ok) {
@@ -117,13 +140,19 @@ const RecipeDetails = () => {
 
     const handleAddAllToCart = async () => {
         try {
+            // Make sure each ingredient has a unit property (even if it's empty string)
+            const ingredientsWithUnits = recipe.ingredients.map(ingredient => ({
+                ...ingredient,
+                unit: ingredient.unit || ''
+            }));
+
             const response = await fetch('/api/cart/add-multiple', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ ingredients: recipe.ingredients })
+                body: JSON.stringify({ ingredients: ingredientsWithUnits })
             });
 
             if (response.ok) {
@@ -276,7 +305,7 @@ const RecipeDetails = () => {
                         {recipe.ingredients.map((ingredient, index) => (
                             <tr key={index}>
                                 <td>{ingredient.name}</td>
-                                <td>{ingredient.quantity}</td>
+                                <td>{ingredient.quantity} {ingredient.unit}</td>
                                 <td>
                                     {addedIngredients.includes(ingredient.name) ? (
                                         <button
