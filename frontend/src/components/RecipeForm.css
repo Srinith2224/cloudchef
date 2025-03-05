@@ -279,3 +279,31 @@
     background-color: var(--button-hover-bg);
     border-color: var(--button-hover-border);
 }
+
+.nutrition-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.nutrition-value {
+  display: flex;
+  align-items: center;
+}
+
+.calculating {
+  color: #777;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.nutrition-note {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 15px;
+  font-style: italic;
+}
+
+.nutrition-section input[readonly] {
+  background-color: #3a3a3a;
+  cursor: not-allowed;
+}

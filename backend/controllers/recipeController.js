@@ -4,6 +4,8 @@ const User = require('../models/UserModel');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Import the fs module
+// Import nutrition service
+const { getNutritionData } = require('../services/nutritionService');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -257,6 +259,50 @@ const searchRecipes = async (req, res) => {
     }
   };
 
+// Add this function to your exports
+const calculateNutrition = async (req, res) => {
+  try {
+    const { ingredients } = req.body;
+    
+    if (!ingredients || !Array.isArray(ingredients)) {
+      return res.status(400).json({ error: 'Invalid ingredients data' });
+    }
+    
+    let totalNutrition = {
+      calories: 0,
+      fat: 0,
+      protein: 0,
+      carbs: 0
+    };
+    
+    // Calculate nutrition for each ingredient
+    for (const ingredient of ingredients) {
+      if (ingredient.name && ingredient.quantity) {
+        const nutrition = await getNutritionData(
+          ingredient.name,
+          ingredient.quantity,
+          ingredient.unit || ''
+        );
+        
+        totalNutrition.calories += nutrition.calories;
+        totalNutrition.fat += nutrition.fat;
+        totalNutrition.protein += nutrition.protein;
+        totalNutrition.carbs += nutrition.carbs;
+      }
+    }
+    
+    // Round the values
+    Object.keys(totalNutrition).forEach(key => {
+      totalNutrition[key] = Math.round(totalNutrition[key]);
+    });
+    
+    res.status(200).json(totalNutrition);
+  } catch (error) {
+    console.error('Error calculating nutrition:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
     getRecipes,
     getRecipe,
@@ -265,5 +311,6 @@ module.exports = {
     updateRecipe,
     getRecipesByUserId,
     saveRecipe,
-    searchRecipes // Add this line
+    searchRecipes, // Add this line
+    calculateNutrition
 };

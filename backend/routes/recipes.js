@@ -1,14 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const {
-    getRecipes,
-    getRecipe,
-    createRecipe,
-    deleteRecipe,
-    updateRecipe,
-    getRecipesByUserId,
-    searchRecipes // Add this line
-} = require('../controllers/recipeController');
+const recipeController = require('../controllers/recipeController');
 const { generateRecipe } = require('../controllers/recipeGenerationController');
 const requireAuth = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -28,27 +20,30 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // POST a new recipe with image upload
-router.post('/', upload.single('mainImage'), createRecipe);
+router.post('/', upload.single('mainImage'), recipeController.createRecipe);
 
 // GET all recipes
-router.get('/', getRecipes);
+router.get('/', recipeController.getRecipes);
 
 // Add this route for searching recipes
-router.get('/search', searchRecipes);
+router.get('/search', recipeController.searchRecipes);
 
 // GET a single recipe
-router.get('/:id', getRecipe);
+router.get('/:id', recipeController.getRecipe);
 
 // DELETE a recipe
-router.delete('/:id', deleteRecipe);
+router.delete('/:id', recipeController.deleteRecipe);
 
 // UPDATE a recipe
-router.patch('/:id', upload.single('mainImage'), updateRecipe);
+router.patch('/:id', upload.single('mainImage'), recipeController.updateRecipe);
 
 // GET recipes by userId
-router.get('/user/:userId', getRecipesByUserId);
+router.get('/user/:userId', recipeController.getRecipesByUserId);
 
 // POST generate a recipe
 router.post('/generate-recipe', generateRecipe);
+
+// Add the route for nutrition calculation
+router.post('/calculate-nutrition', requireAuth, recipeController.calculateNutrition);
 
 module.exports = router;

@@ -21,6 +21,7 @@ const UpdateRecipe = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [error, setError] = useState('');
+    const [calculatingNutrition, setCalculatingNutrition] = useState(false); // Add this line
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -54,6 +55,43 @@ const UpdateRecipe = () => {
 
         fetchRecipe();
     }, [id]);
+
+    useEffect(() => {
+        const calculateNutrition = async () => {
+            if (ingredients.length === 0 || !ingredients[0].name) return;
+            
+            setCalculatingNutrition(true);
+            try {
+                const response = await fetch('/api/recipes/calculate-nutrition', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ ingredients })
+                });
+                
+                if (response.ok) {
+                    const nutritionData = await response.json();
+                    setNutritionCalories(nutritionData.calories);
+                    setNutritionFat(nutritionData.fat);
+                    setNutritionProtein(nutritionData.protein);
+                    setNutritionCarbs(nutritionData.carbs);
+                }
+            } catch (error) {
+                console.error('Error calculating nutrition:', error);
+            } finally {
+                setCalculatingNutrition(false);
+            }
+        };
+        
+        // Add debounce to prevent too many API calls
+        const timer = setTimeout(() => {
+            calculateNutrition();
+        }, 1000);
+        
+        return () => clearTimeout(timer);
+    }, [ingredients]);
 
     const nextStep = () => {
         setCurrentStep((prevStep) => prevStep + 1);
@@ -252,38 +290,69 @@ const UpdateRecipe = () => {
             <h3>Nutrition:</h3>
             <div className="nutrition-section">
                 <label>Calories:</label>
-                <input
-                    type="number"
-                    placeholder="Calories"
-                    value={nutritionCalories}
-                    onChange={(e) => setNutritionCalories(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Calories"
+                            value={nutritionCalories}
+                            onChange={(e) => setNutritionCalories(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Fat:</label>
-                <input
-                    type="number"
-                    placeholder="Fat (g)"
-                    value={nutritionFat}
-                    onChange={(e) => setNutritionFat(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Fat (g)"
+                            value={nutritionFat}
+                            onChange={(e) => setNutritionFat(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Protein:</label>
-                <input
-                    type="number"
-                    placeholder="Protein (g)"
-                    value={nutritionProtein}
-                    onChange={(e) => setNutritionProtein(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Protein (g)"
+                            value={nutritionProtein}
+                            onChange={(e) => setNutritionProtein(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Carbs:</label>
-                <input
-                    type="number"
-                    placeholder="Carbs (g)"
-                    value={nutritionCarbs}
-                    onChange={(e) => setNutritionCarbs(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Carbs (g)"
+                            value={nutritionCarbs}
+                            onChange={(e) => setNutritionCarbs(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
             </div>
+            <p className="nutrition-note">
+                These values are automatically calculated based on your ingredients.
+                You can manually adjust them if needed.
+            </p>
         </div>,
         <div key="step4">
             <h3>Steps:</h3>

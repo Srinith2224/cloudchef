@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RecipeForm.css'; // Import CSS file for styling
 
@@ -18,6 +18,7 @@ const RecipeForm = () => {
     const [image, setImage] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false); // State for success modal
     const [successMessage, setSuccessMessage] = useState(''); // State for success message
+    const [calculatingNutrition, setCalculatingNutrition] = useState(false); // State for tracking if nutrition is being calculated
 
     const navigate = useNavigate(); // Initialize useNavigate hook
 
@@ -109,6 +110,43 @@ const RecipeForm = () => {
         setShowSuccessModal(false);
         navigate('/my-recipes'); // Redirect to "My Recipes" page after acknowledging success
     };
+
+    useEffect(() => {
+        const calculateNutrition = async () => {
+            if (ingredients.length === 0 || !ingredients[0].name) return;
+            
+            setCalculatingNutrition(true);
+            try {
+                const response = await fetch('/api/recipes/calculate-nutrition', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ ingredients })
+                });
+                
+                if (response.ok) {
+                    const nutritionData = await response.json();
+                    setNutritionCalories(nutritionData.calories);
+                    setNutritionFat(nutritionData.fat);
+                    setNutritionProtein(nutritionData.protein);
+                    setNutritionCarbs(nutritionData.carbs);
+                }
+            } catch (error) {
+                console.error('Error calculating nutrition:', error);
+            } finally {
+                setCalculatingNutrition(false);
+            }
+        };
+        
+        // Add debounce to prevent too many API calls
+        const timer = setTimeout(() => {
+            calculateNutrition();
+        }, 1000);
+        
+        return () => clearTimeout(timer);
+    }, [ingredients]);
 
     const stepsContent = [
         <div key="step1">
@@ -217,38 +255,69 @@ const RecipeForm = () => {
             <h3>Nutrition:</h3>
             <div className="nutrition-section">
                 <label>Calories:</label>
-                <input
-                    type="number"
-                    placeholder="Calories"
-                    value={nutritionCalories}
-                    onChange={(e) => setNutritionCalories(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Calories"
+                            value={nutritionCalories}
+                            onChange={(e) => setNutritionCalories(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Fat:</label>
-                <input
-                    type="number"
-                    placeholder="Fat (g)"
-                    value={nutritionFat}
-                    onChange={(e) => setNutritionFat(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Fat (g)"
+                            value={nutritionFat}
+                            onChange={(e) => setNutritionFat(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Protein:</label>
-                <input
-                    type="number"
-                    placeholder="Protein (g)"
-                    value={nutritionProtein}
-                    onChange={(e) => setNutritionProtein(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Protein (g)"
+                            value={nutritionProtein}
+                            onChange={(e) => setNutritionProtein(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
+                
                 <label>Carbs:</label>
-                <input
-                    type="number"
-                    placeholder="Carbs (g)"
-                    value={nutritionCarbs}
-                    onChange={(e) => setNutritionCarbs(parseInt(e.target.value, 10))}
-                    required
-                />
+                <div className="nutrition-value">
+                    {calculatingNutrition ? (
+                        <span className="calculating">Calculating...</span>
+                    ) : (
+                        <input
+                            type="number"
+                            placeholder="Carbs (g)"
+                            value={nutritionCarbs}
+                            onChange={(e) => setNutritionCarbs(parseInt(e.target.value, 10))}
+                            readOnly={ingredients.length > 0}
+                        />
+                    )}
+                </div>
             </div>
+            <p className="nutrition-note">
+                These values are automatically calculated based on your ingredients.
+                
+            </p>
         </div>,
         <div key="step4">
             <h3>Steps:</h3>
