@@ -1,10 +1,22 @@
 const Cart = require('../models/CartModel');
 const mongoose = require('mongoose');
 
+// Example cart schema
+const cartItemSchema = new mongoose.Schema({
+    ingredient: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    unit: { type: String, default: '' } // Add unit field
+});
+
+const cartSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    items: [cartItemSchema]
+});
+
 // Add an item to the cart
 const addItemToCart = async (req, res) => {
     const userId = req.userId;
-    const { ingredient, quantity } = req.body;
+    const { ingredient, quantity, unit } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(404).json({ error: 'Invalid user ID' });
@@ -17,7 +29,7 @@ const addItemToCart = async (req, res) => {
             // If no cart exists, create a new one with the item
             const newCart = await Cart.create({
                 userId,
-                items: [{ ingredient, quantity: parseInt(quantity, 10) }]
+                items: [{ ingredient, quantity: parseInt(quantity, 10), unit }]
             });
             return res.status(200).json(newCart.items[0]); // Return the newly added item
         }
@@ -26,10 +38,15 @@ const addItemToCart = async (req, res) => {
 
         if (existingItem) {
             // Update the quantity of the existing item
-            existingItem.quantity = parseInt(existingItem.quantity, 10) + parseInt(quantity, 10);
+            existingItem.quantity = parseInt(quantity, 10);
+            existingItem.unit = unit; // Add unit update
         } else {
             // Add the new item to the cart
-            cart.items.push({ ingredient, quantity: parseInt(quantity, 10) });
+            cart.items.push({ 
+                ingredient, 
+                quantity: parseInt(quantity, 10),
+                unit // Include unit
+            });
         }
 
         await cart.save();
@@ -57,7 +74,8 @@ const addMultipleItemsToCart = async (req, res) => {
                 userId,
                 items: ingredients.map(ingredient => ({
                     ingredient: ingredient.name,
-                    quantity: parseInt(ingredient.quantity, 10)
+                    quantity: parseInt(ingredient.quantity, 10),
+                    unit: ingredient.unit || '' // Include unit
                 }))
             });
             return res.status(200).json(newCart);
@@ -70,7 +88,7 @@ const addMultipleItemsToCart = async (req, res) => {
             if (existingItem) {
                 existingItem.quantity = parseInt(existingItem.quantity, 10) + parseInt(ingredient.quantity, 10);
             } else {
-                cart.items.push({ ingredient: ingredient.name, quantity: parseInt(ingredient.quantity, 10) });
+                cart.items.push({ ingredient: ingredient.name, quantity: parseInt(ingredient.quantity, 10), unit: ingredient.unit || '' });
             }
         });
 

@@ -13,6 +13,7 @@ const recipeSchema = new Schema({
         image: { type: String },
         name: { type: String },
         quantity: { type: String },
+        unit: { type: String, default: '' },
         alternate: [{ type: String }]
     }],
     nutrition: {
