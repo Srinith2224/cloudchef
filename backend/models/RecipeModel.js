@@ -1,52 +1,104 @@
 const mongoose = require('mongoose');
+
 const Schema = mongoose.Schema;
 
-const recipeSchema = new Schema({
-    title: { type: String, required: true },
-    mainImage: { type: String },
-    description: { type: String },
+const RecipeSchema = new Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    mainImage: {
+        type: String
+    },
+    description: {
+        type: String,
+        required: true
+    },
     totalTime: {
-        hours: { type: Number },
-        minutes: { type: Number }
+        hours: {
+            type: Number,
+            default: 0
+        },
+        minutes: {
+            type: Number,
+            default: 0
+        }
     },
     ingredients: [{
-        image: { type: String },
-        name: { type: String },
-        quantity: { type: String },
-        unit: { type: String, default: '' },
-        alternate: [{ type: String }]
+        name: {
+            type: String,
+            required: true
+        },
+        quantity: {
+            type: String,
+            required: true
+        },
+        unit: {
+            type: String
+        }
     }],
     nutrition: {
-        calories: { type: Number },
-        fat: { type: Number },
-        protein: { type: Number },
-        carbs: { type: Number }
+        calories: {
+            type: Number
+        },
+        fat: {
+            type: Number
+        },
+        protein: {
+            type: Number
+        },
+        carbs: {
+            type: Number
+        }
     },
     steps: [{
-        stepNumber: { type: Number },
-        image: { type: String },
-        text: { type: String },
-        ingredients: [{ type: String }],
-        timer: { type: Number }
+        stepNumber: {
+            type: Number
+        },
+        text: {
+            type: String,
+            required: true
+        },
+        image: {
+            type: String
+        },
+        video: {
+            type: String
+        },
+        ingredient: {
+            type: String
+        },
+        quantity: {
+            type: String
+        },
+        alternate: {
+            type: String
+        },
+        timer: {
+            type: Number
+        }
     }],
     createdBy: {
-        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true }
+        _id: {
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'User',
+            required: true
+        },
+        firstName: { 
+            type: String, 
+            required: true 
+        },
+        lastName: { 
+            type: String, 
+            required: true 
+        }
     },
-    ratings: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        rating: { type: Number },
-        comment: { type: String },
-        commentImage: { type: String }
-    }],
-    averageRating: { type: Number },
-    createdAt: { type: Date, default: Date.now },
-    tags: [{ type: String }],
-    sharedCount: { type: Number }
+    tags: [{
+        type: String
+    }]
 }, { timestamps: true });
 
-recipeSchema.index({ title: 'text' });
-recipeSchema.index({ tags: 1 });
+RecipeSchema.index({ title: 'text' });
+RecipeSchema.index({ tags: 1 });
 
-module.exports = mongoose.model('Recipe', recipeSchema);
+module.exports = mongoose.model('Recipe', RecipeSchema);

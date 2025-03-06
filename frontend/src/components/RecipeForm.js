@@ -68,6 +68,23 @@ const RecipeForm = () => {
         setImage(e.target.files[0]);
     };
 
+    // Add file upload handling for step images and videos
+    const handleStepImageChange = (index, e) => {
+        if (e.target.files && e.target.files[0]) {
+            const newSteps = [...steps];
+            newSteps[index].imageFile = e.target.files[0];
+            setSteps(newSteps);
+        }
+    };
+
+    const handleStepVideoChange = (index, e) => {
+        if (e.target.files && e.target.files[0]) {
+            const newSteps = [...steps];
+            newSteps[index].videoFile = e.target.files[0];
+            setSteps(newSteps);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -81,9 +98,32 @@ const RecipeForm = () => {
         formData.append('nutrition[fat]', nutritionFat);
         formData.append('nutrition[protein]', nutritionProtein);
         formData.append('nutrition[carbs]', nutritionCarbs);
-        formData.append('steps', JSON.stringify(steps));
+        
+        // Append step data with file references
+        const stepsForSubmission = steps.map((step, index) => {
+            const { imageFile, videoFile, ingredients, ...stepData } = step; // Remove ingredients array
+            return {
+                ...stepData,
+                // Ensure text field is included
+                text: step.description || step.text || '',
+                // Keep existing image/video paths if they exist
+                image: step.image || '',
+                video: step.video || ''
+            };
+        });
+        formData.append('steps', JSON.stringify(stepsForSubmission));
         formData.append('tags', JSON.stringify(tags));
         if (image) formData.append('mainImage', image);
+        
+        // Append step files with index in the field name
+        steps.forEach((step, index) => {
+            if (step.imageFile) {
+                formData.append(`stepImage-${index}`, step.imageFile);
+            }
+            if (step.videoFile) {
+                formData.append(`stepVideo-${index}`, step.videoFile);
+            }
+        });
 
         try {
             const response = await fetch('/api/recipes', {
@@ -95,6 +135,7 @@ const RecipeForm = () => {
             });
 
             if (response.ok) {
+                const data = await response.json();
                 setSuccessMessage('Recipe added successfully');
                 setShowSuccessModal(true);
             } else {
@@ -348,6 +389,26 @@ const RecipeForm = () => {
                         value={step.alternate}
                         onChange={(e) => handleStepChange(index, 'alternate', e.target.value)}
                     />
+                    
+                    {/* Add media upload sections */}
+                    <div className="step-media">
+                        <h5>Step Image:</h5>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleStepImageChange(index, e)}
+                        />
+                    </div>
+                    
+                    <div className="step-media">
+                        <h5>Step Video:</h5>
+                        <input
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => handleStepVideoChange(index, e)}
+                        />
+                    </div>
+                    
                     <button type="button" onClick={() => handleDeleteStep(index)}>Delete</button>
                 </div>
             ))}

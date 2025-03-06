@@ -240,3 +240,118 @@
     border-color: rgba(50, 205, 50, 0.8);
     box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
 }
+
+/* Step-by-step mode styling */
+.steps-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.step-by-step-btn {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.step-by-step-btn:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.step-by-step-view {
+    background-color:var(--secondary);
+    border: 1px solid var(--accent);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.step-counter {
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.current-step {
+    padding: 10px;
+}
+
+.current-step h4 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+}
+
+.step-ingredients, .step-alternate {
+    background-color: var(--secondary);
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    margin: 15px 0;
+    border-left: 4px solid var(--accent);
+}
+
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.step-navigation button {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.step-navigation button:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-2px);
+}
+
+.step-navigation button:disabled {
+    background-color: var(--button-hover-bg);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.steps-list li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.step-video-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px; /* Set a maximum width for the video */
+    margin: 15px auto; /* Center the video and add some margin */
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.step-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--border-radius);
+}
+
+/* Video controls styling */
+.step-video::-webkit-media-controls {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.step-video::-webkit-media-controls-panel {
+    padding: 5px;
+}

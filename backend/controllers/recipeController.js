@@ -50,7 +50,7 @@ const getRecipe = async (req, res) => {
 const createRecipe = async (req, res) => {
     const { title, description, tags } = req.body;
     const userId = req.userId;
-    const mainImage = req.file ? `/recipeImages/${req.file.filename}` : null;
+    let mainImage = null;
 
     // Parse totalTime and nutrition from form-data
     const totalTime = {
@@ -75,7 +75,30 @@ const createRecipe = async (req, res) => {
     try {
         ingredients = JSON.parse(req.body.ingredients);
         steps = JSON.parse(req.body.steps);
+        
+        // Remove ingredients array from each step
+        steps = steps.map(step => {
+            const { ingredients, ...stepData } = step;
+            return stepData;
+        });
+        
+        // Handle step media files
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => {
+                const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                const fileType = file.fieldname.split('-')[0]; // 'stepImage' or 'stepVideo'
+                
+                if (fileType === 'stepImage') {
+                    steps[stepIndex].image = `/recipeStepsImages/${file.filename}`;
+                } else if (fileType === 'stepVideo') {
+                    steps[stepIndex].video = `/recipeStepsVideos/${file.filename}`;
+                } else if (file.fieldname === 'mainImage') {
+                    mainImage = `/recipeImages/${file.filename}`;
+                }
+            });
+        }
     } catch (error) {
+        console.error('Error parsing ingredients or steps:', error);
         return res.status(400).json({ error: 'Invalid ingredients or steps format' });
     }
 
@@ -145,34 +168,48 @@ const updateRecipe = async (req, res) => {
         return res.status(404).json({ error: 'No such recipe' });
     }
 
-    const updates = {
-        title: req.body.title,
-        description: req.body.description,
-        totalTime: {
-            hours: parseInt(req.body.totalTime.hours, 10),
-            minutes: parseInt(req.body.totalTime.minutes, 10)
-        },
-        ingredients: JSON.parse(req.body.ingredients),
-        steps: JSON.parse(req.body.steps),
-        nutrition: {
-            calories: parseInt(req.body.nutrition.calories, 10),
-            fat: parseInt(req.body.nutrition.fat, 10),
-            protein: parseInt(req.body.nutrition.protein, 10),
-            carbs: parseInt(req.body.nutrition.carbs, 10)
-        },
-        tags: req.body.tags
-    };
-    // Validate parsed values
-    if (isNaN(updates.totalTime.hours) || isNaN(updates.totalTime.minutes) || isNaN(updates.nutrition.calories) || isNaN(updates.nutrition.fat) || isNaN(updates.nutrition.protein) || isNaN(updates.nutrition.carbs)) {
-        return res.status(400).json({ error: 'Invalid totalTime or nutrition values' });
-    }
-
-    // Check if a new image file is uploaded
-    if (req.file) {
-        updates.mainImage = `/recipeImages/${req.file.filename}`;
-    }
-
     try {
+        // Parse steps data including any uploaded files
+        let steps = JSON.parse(req.body.steps);
+        
+        // Check if there are any step media files uploaded
+        if (req.files && req.files.length > 0) {
+            // Process each uploaded file
+            req.files.forEach(file => {
+                const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                const fileType = file.fieldname.split('-')[0]; // 'stepImage' or 'stepVideo'
+                
+                if (fileType === 'stepImage') {
+                    steps[stepIndex].image = `/recipeStepsImages/${file.filename}`;
+                } else if (fileType === 'stepVideo') {
+                    steps[stepIndex].video = `/recipeStepsVideos/${file.filename}`;
+                }
+            });
+        }
+
+        const updates = {
+            title: req.body.title,
+            description: req.body.description,
+            totalTime: {
+                hours: parseInt(req.body.totalTime.hours, 10),
+                minutes: parseInt(req.body.totalTime.minutes, 10)
+            },
+            ingredients: JSON.parse(req.body.ingredients),
+            steps: steps,
+            nutrition: {
+                calories: parseInt(req.body.nutrition.calories, 10),
+                fat: parseInt(req.body.nutrition.fat, 10),
+                protein: parseInt(req.body.nutrition.protein, 10),
+                carbs: parseInt(req.body.nutrition.carbs, 10)
+            },
+            tags: JSON.parse(req.body.tags)
+        };
+
+        // Check if a new main image file is uploaded
+        if (req.file) {
+            updates.mainImage = `/recipeImages/${req.file.filename}`;
+        }
+
         const recipe = await Recipe.findOneAndUpdate(
             { _id: id },
             { $set: updates },
@@ -186,7 +223,7 @@ const updateRecipe = async (req, res) => {
         res.status(200).json(recipe);
     } catch (error) {
         console.error('Error updating recipe:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: error.message });
     }
 };
 

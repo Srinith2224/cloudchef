@@ -120,3 +120,29 @@
     background-color: var(--button-hover-bg);
     border-color: var(--button-hover-border);
   }
+
+.step-media {
+    margin: 10px 0;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    background-color: var(--secondary);
+}
+
+.media-preview {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.media-preview img {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.media-preview video {
+    max-width: 300px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

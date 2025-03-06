@@ -13,6 +13,8 @@ const RecipeDetails = () => {
     const [successMessage, setSuccessMessage] = useState(''); // State for success message
     const [addedIngredients, setAddedIngredients] = useState([]); // State to track added ingredients
     const [showCalendarPopup, setShowCalendarPopup] = useState(false); // State for calendar popup
+    const [stepByStepMode, setStepByStepMode] = useState(false); // State for step-by-step mode
+    const [currentStepIndex, setCurrentStepIndex] = useState(0); // State for current step index
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -275,6 +277,30 @@ const RecipeDetails = () => {
         navigate(-1); // Go back to the previous page
     };
 
+    // Toggle step-by-step mode
+    const toggleStepByStepMode = () => {
+        setStepByStepMode(!stepByStepMode);
+        setCurrentStepIndex(0); // Reset to first step when toggling mode
+    };
+
+    // Navigate to next step
+    const nextStep = () => {
+        if (currentStepIndex < recipe.steps.length - 1) {
+            setCurrentStepIndex(currentStepIndex + 1);
+        } else {
+            // At last step
+            setSuccessMessage("Your dish is ready! 🎉");
+            setShowSuccessModal(true);
+        }
+    };
+
+    // Navigate to previous step
+    const prevStep = () => {
+        if (currentStepIndex > 0) {
+            setCurrentStepIndex(currentStepIndex - 1);
+        }
+    };
+
     if (!recipe) {
         return <p>Loading...</p>;
     }
@@ -350,26 +376,115 @@ const RecipeDetails = () => {
                 ) : (
                     <p>No nutrition information available.</p>
                 )}
-                <p><strong>Steps:</strong></p>
-                <ol>
-                    {recipe.steps.map((step, index) => (
-                        <li key={index}>
-                            {step.text}
-                            {step.image && <img src={`http://localhost:4000${step.image}`} alt={`Step ${step.stepNumber}`} className="step-image" />}
-                            {step.ingredients && step.ingredients.length > 0 && (
-                                <ul>
-                                    {step.ingredients.map((ing, ingIndex) => (
-                                        <li key={ingIndex}>{ing}</li>
-                                    ))}
-                                </ul>
-                            )}
-                            {step.timer && <p>Timer: {step.timer} minutes</p>}
-                        </li>
-                    ))}
-                </ol>
+                
+                {/* Steps section with step-by-step mode implementation */}
+                <div className="steps-section">
+                    <div className="steps-header">
+                        <h3>Steps:</h3>
+                        <button 
+                            className="step-by-step-btn" 
+                            onClick={toggleStepByStepMode}
+                        >
+                            {stepByStepMode ? "End Step-by-Step Mode" : "Step-by-Step Mode"}
+                        </button>
+                    </div>
+                    
+                    {stepByStepMode ? (
+                        <div className="step-by-step-view">
+                            <div className="step-counter">
+                                Step {currentStepIndex + 1} of {recipe.steps.length}
+                            </div>
+                            
+                            <div className="current-step">
+                                <h4>Step {currentStepIndex + 1}</h4>
+                                <p>{recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description}</p>
+                                
+                                {/* Display video if available */}
+                                {recipe.steps[currentStepIndex].video && (
+                                    <div className="step-video-container">
+                                        <video 
+                                            src={`http://localhost:4000${recipe.steps[currentStepIndex].video}`} 
+                                            controls
+                                            className="step-video"
+                                            poster={recipe.steps[currentStepIndex].image ? `http://localhost:4000${recipe.steps[currentStepIndex].image}` : ''}
+                                        >
+                                            Your browser does not support video playback.
+                                        </video>
+                                    </div>
+                                )}
+                                
+                                {/* Display image only if no video and image exists */}
+                                {!recipe.steps[currentStepIndex].video && recipe.steps[currentStepIndex].image && (
+                                    <img 
+                                        src={`http://localhost:4000${recipe.steps[currentStepIndex].image}`} 
+                                        alt={`Step ${currentStepIndex + 1}`} 
+                                        className="step-image"
+                                    />
+                                )}
+                                
+                                {recipe.steps[currentStepIndex].ingredients && recipe.steps[currentStepIndex].ingredients.length > 0 && (
+                                    <div className="step-ingredients">
+                                        <h5>Ingredients for this step:</h5>
+                                        <ul>
+                                            {recipe.steps[currentStepIndex].ingredients.map((ing, idx) => (
+                                                <li key={idx}>{ing}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                
+                                {/* Support for single ingredient format */}
+                                {recipe.steps[currentStepIndex].ingredient && (
+                                    <div className="step-ingredients">
+                                        <h5>Ingredients for this step:</h5>
+                                        <p>{recipe.steps[currentStepIndex].ingredient} 
+                                           {recipe.steps[currentStepIndex].quantity && ` - ${recipe.steps[currentStepIndex].quantity}`}
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {recipe.steps[currentStepIndex].alternate && (
+                                    <div className="step-alternate">
+                                        <h5>Alternative ingredient:</h5>
+                                        <p>{recipe.steps[currentStepIndex].alternate}</p>
+                                    </div>
+                                )}
+                                
+                                {recipe.steps[currentStepIndex].timer && (
+                                    <div className="step-timer">
+                                        <h5>Timer:</h5>
+                                        <p>{recipe.steps[currentStepIndex].timer} minutes</p>
+                                    </div>
+                                )}
+                                
+                                <div className="step-navigation">
+                                    <button 
+                                        onClick={prevStep} 
+                                        disabled={currentStepIndex === 0}
+                                    >
+                                        Previous
+                                    </button>
+                                    <button onClick={nextStep}>
+                                        {currentStepIndex === recipe.steps.length - 1 ? "Finish" : "Next"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <ol className="steps-list">
+                            {recipe.steps.map((step, index) => (
+                                <li key={index}>
+                                    {step.text || step.description}
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                </div>
+                
                 <p><strong>Created by:</strong> {recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
                 <p><strong>Created on:</strong> {new Date(recipe.createdAt).toLocaleDateString()}</p>
             </div>
+            
             {user && user.userId === recipe.createdBy._id ? (
                 <div className="button-group">
                     <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>Update</button>

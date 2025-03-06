@@ -139,9 +139,30 @@ const UpdateRecipe = () => {
         setImage(e.target.files[0]);
     };
 
+    // Add file handling for step media
+    const handleStepImageChange = (index, e) => {
+        if (e.target.files && e.target.files[0]) {
+            const newSteps = [...steps];
+            newSteps[index].imageFile = e.target.files[0];
+            // Preview the selected image
+            newSteps[index].imagePreview = URL.createObjectURL(e.target.files[0]);
+            setSteps(newSteps);
+        }
+    };
+
+    const handleStepVideoChange = (index, e) => {
+        if (e.target.files && e.target.files[0]) {
+            const newSteps = [...steps];
+            newSteps[index].videoFile = e.target.files[0];
+            // Preview the selected video
+            newSteps[index].videoPreview = URL.createObjectURL(e.target.files[0]);
+            setSteps(newSteps);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        
         const formData = new FormData();
         formData.append('title', title);
         formData.append('description', description);
@@ -152,7 +173,27 @@ const UpdateRecipe = () => {
         formData.append('nutrition[fat]', nutritionFat);
         formData.append('nutrition[protein]', nutritionProtein);
         formData.append('nutrition[carbs]', nutritionCarbs);
-        formData.append('steps', JSON.stringify(steps));
+        
+        // Prepare steps for submission, keeping existing media paths
+        const stepsForSubmission = steps.map((step, index) => {
+            const { imageFile, videoFile, imagePreview, videoPreview, ...stepData } = step;
+            return stepData;
+        });
+        
+        formData.append('steps', JSON.stringify(stepsForSubmission));
+        
+        // Append media files
+        if (image) formData.append('mainImage', image);
+        
+        steps.forEach((step, index) => {
+            if (step.imageFile) {
+                formData.append(`stepImage-${index}`, step.imageFile);
+            }
+            if (step.videoFile) {
+                formData.append(`stepVideo-${index}`, step.videoFile);
+            }
+        });
+        
         formData.append('tags', JSON.stringify(tags));
         if (image) formData.append('mainImage', image);
 
@@ -383,6 +424,42 @@ const UpdateRecipe = () => {
                         value={step.alternate}
                         onChange={(e) => handleStepChange(index, 'alternate', e.target.value)}
                     />
+                    <div className="step-media">
+                        <h5>Step Image:</h5>
+                        {(step.image || step.imagePreview) && (
+                            <div className="media-preview">
+                                <img 
+                                    src={step.imagePreview || `http://localhost:4000${step.image}`}
+                                    alt={`Step ${index + 1} preview`}
+                                />
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleStepImageChange(index, e)}
+                        />
+                    </div>
+                    
+                    <div className="step-media">
+                        <h5>Step Video:</h5>
+                        {(step.video || step.videoPreview) && (
+                            <div className="media-preview">
+                                <video 
+                                    src={step.videoPreview || `http://localhost:4000${step.video}`}
+                                    controls
+                                    width="300"
+                                >
+                                    Your browser doesn't support video playback.
+                                </video>
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => handleStepVideoChange(index, e)}
+                        />
+                    </div>
                     <button type="button" onClick={() => handleDeleteStep(index)}>Delete</button>
                 </div>
             ))}
