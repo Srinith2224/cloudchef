@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecipesContext } from "../hooks/useRecipesContext";
 import Lottie from 'react-lottie';
 import animationData from '../assets/cooking-background.json';
 import './Auth.css'; 
 import googleIcon from '../assets/google.png';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 
 const Auth = () => {
     
@@ -16,6 +18,7 @@ const Auth = () => {
     const [lastName, setLastName] = useState('');
     const [error, setError] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [googleClientId, setGoogleClientId] = useState('');
 
     const navigate = useNavigate();
 
@@ -49,6 +52,43 @@ const Auth = () => {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            const response = await fetch('/api/google-signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    token: credentialResponse.credential 
+                })
+            });
+
+            const json = await response.json();
+
+            if (!response.ok) {
+                setError(json.error);
+            } else {
+                // Save user to local storage
+                localStorage.setItem('user', JSON.stringify(json));
+                localStorage.setItem('token', json.token);
+                
+                // Update auth context
+                dispatch({ type: 'LOGIN', payload: json });
+                
+                // Show success modal
+                setShowSuccessModal(true);
+            }
+        } catch (error) {
+            setError('Failed to authenticate with Google');
+            console.error(error);
+        }
+    };
+
+    const handleGoogleFailure = () => {
+        setError('Google sign-in was unsuccessful');
+    };
+
     const handleOkClick = () => {
         setShowSuccessModal(false);
         if (isLogin) {
@@ -57,6 +97,22 @@ const Auth = () => {
             setIsLogin(true);
         }
     };
+
+    useEffect(() => {
+        const fetchGoogleClientId = async () => {
+            try {
+                const response = await fetch('/api/google-client-id');
+                const data = await response.json();
+                if (data.clientId) {
+                    setGoogleClientId(data.clientId);
+                }
+            } catch (error) {
+                console.error('Error fetching Google Client ID:', error);
+            }
+        };
+        
+        fetchGoogleClientId();
+    }, []);
 
     const defaultOptions = {
         loop: true,
@@ -123,13 +179,23 @@ const Auth = () => {
                             <a href="/forgot-password">Forgot password?</a>
                         </div>
                     )}
-                    <button type="submit">{isLogin ? 'Sign in' : 'Register'}</button>
-                    {isLogin && (
-    <button type="button" className="google-signin">
-        <img src={googleIcon} alt="Google Icon" className="google-icon" />
-        Sign in with Google
-    </button>
-)}
+                    <button type="submit" className="auth-button">
+                        {isLogin ? 'Sign in' : 'Register'}
+                    </button>
+                    {isLogin && googleClientId && (
+                        <div className="google-login-container">
+                            <GoogleOAuthProvider clientId={googleClientId}>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleFailure}
+                                    shape="rectangular"
+                                    text="signin_with"
+                                    size="large"
+                                    width="100%"
+                                />
+                            </GoogleOAuthProvider>
+                        </div>
+                    )}
                     <p className="toggle-link">
                         {isLogin ? "Don’t have an account? " : "Already have an account? "}
                         <a href="#" onClick={(e) => { e.preventDefault(); setIsLogin(!isLogin); }}>

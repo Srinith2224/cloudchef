@@ -9,6 +9,7 @@ const Profile = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [profilePhoto, setProfilePhoto] = useState(null);
+    const [profilePhotoFile, setProfilePhotoFile] = useState(null); // State to store the file for upload
     const [about, setAbout] = useState('');
     const [region, setRegion] = useState('');
     const [error, setError] = useState(null);
@@ -27,9 +28,21 @@ const Profile = () => {
                 const data = await response.json();
                 if (response.ok) {
                     setEmail(data.email);
-                    setProfilePhoto(data.profilePhoto ? `http://localhost:4000${data.profilePhoto}` : null);
-                    setAbout(data.about);
-                    setRegion(data.region);
+                    
+                    // Fix the profile photo URL handling
+                    if (data.profilePhoto) {
+                        // Check if profilePhoto is a full URL or just a path
+                        if (data.profilePhoto.startsWith('http')) {
+                            setProfilePhoto(data.profilePhoto);
+                        } else {
+                            setProfilePhoto(`http://localhost:4000${data.profilePhoto}`);
+                        }
+                    } else {
+                        setProfilePhoto('/default-avatar.png'); // Use a default avatar
+                    }
+                    
+                    setAbout(data.about || '');
+                    setRegion(data.region || '');
                 } else {
                     setError(data.error);
                 }
@@ -63,12 +76,18 @@ const Profile = () => {
         });
     };
 
+    // Update the handlePhotoUpload function
     const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setProfilePhoto(file);
+            // Create a temporary URL for the file to display the preview
+            const imageUrl = URL.createObjectURL(file);
+            setProfilePhoto(imageUrl); // Set the preview image
+            setProfilePhotoFile(file); // Store the file for upload
         }
     };
+
+    // Update the handleUpdateProfile function
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
@@ -76,9 +95,9 @@ const Profile = () => {
         const formData = new FormData();
         formData.append('email', email);
         if (password) formData.append('password', password);
-        if (profilePhoto instanceof File) formData.append('profilePhoto', profilePhoto);
-        formData.append('about', about);
-        formData.append('region', region);
+        if (profilePhotoFile) formData.append('profilePhoto', profilePhotoFile); // Use the file, not the URL
+        formData.append('about', about || '');
+        formData.append('region', region || '');
 
         try {
             const response = await fetch(`/api/users/${user.userId}`, {
@@ -94,14 +113,20 @@ const Profile = () => {
             if (!response.ok) {
                 setError(json.error);
             } else {
+                // Update auth context with new user info
+                const updatedUser = {
+                    ...user,
+                    firstName: json.firstName || user.firstName,
+                    lastName: json.lastName || user.lastName,
+                    email: json.email || user.email,
+                    profilePhoto: json.profilePhoto || user.profilePhoto
+                };
+                
                 dispatch({
                     type: 'LOGIN',
-                    payload: {
-                        ...json,
-                        userId: json._id,
-                        token: localStorage.getItem('token') // keep the existing token
-                    }
+                    payload: updatedUser
                 });
+                
                 setError(null);
                 setShowUpdateSuccessModal(true);
             }
@@ -122,7 +147,15 @@ const Profile = () => {
                     <form onSubmit={handleUpdateProfile} className="profile-form">
                         <div className="profile-photo-container">
                             <div className="profile-photo">
-                                <img src={profilePhoto || 'default-photo.jpg'} alt="Profile" />
+                                {/* Fix the image source */}
+                                <img 
+                                    src={profilePhoto || '/default-avatar.png'} 
+                                    alt="Profile" 
+                                    onError={(e) => {
+                                        e.target.onerror = null; 
+                                        e.target.src = '/default-avatar.png';
+                                    }} 
+                                />
                                 <label htmlFor="upload-photo" className="upload-photo-label">Update Photo</label>
                                 <input
                                     type="file"

@@ -130,7 +130,7 @@
 }
 
 /* Google Sign-In Button */
-.google-signin {
+.google-login-container {
     background-color: #4285F4;
     color: #fff;
     border: none;
@@ -146,7 +146,7 @@
     justify-content: center;
 }
 
-.google-signin:hover {
+.google-login-container:hover {
     background-color: #357ae8;
     transform: translateY(-2px);
 }
