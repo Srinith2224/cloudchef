@@ -1,9 +1,199 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
-import './RecipeDetails.css'; // Import the CSS file
-import CalendarPopup from '../components/CalendarPopup'; // Import the CalendarPopup component
+import CalendarPopup from '../components/CalendarPopup';
+import './RecipeDetails.css';
 
+// Component for the immersive step-by-step mode
+const ImmersiveStepMode = ({ recipe, onExit }) => {
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    
+    const totalSteps = recipe.steps.length;
+    const currentStep = recipe.steps[currentStepIndex];
+    const isLastStep = currentStepIndex === totalSteps - 1;
+    const isFirstStep = currentStepIndex === 0;
+    const progress = ((currentStepIndex + 1) / totalSteps) * 100;
+    
+    // Handle keyboard navigation
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === 'ArrowRight' && !isLastStep) {
+            handleNextStep();
+        } else if (e.key === 'ArrowLeft' && !isFirstStep) {
+            handlePrevStep();
+        } else if (e.key === 'Escape') {
+            onExit();
+        }
+    }, [currentStepIndex, totalSteps]);
+    
+    useEffect(() => {
+        // Add keyboard event listener
+        window.addEventListener('keydown', handleKeyDown);
+        
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
+    
+    const handleNextStep = () => {
+        if (isLastStep) {
+            setSuccessMessage("Your dish is ready! 🎉");
+            setShowSuccessModal(true);
+        } else {
+            setCurrentStepIndex(prev => prev + 1);
+        }
+    };
+    
+    const handlePrevStep = () => {
+        if (!isFirstStep) {
+            setCurrentStepIndex(prev => prev - 1);
+        }
+    };
+    
+    const handleOkClick = () => {
+        setShowSuccessModal(false);
+        if (isLastStep) {
+            onExit();
+        }
+    };
+    
+    return (
+        <div className="immersive-step-mode">
+            <div className="immersive-step-header">
+                <div className="immersive-step-title">
+                    {recipe.title}
+                </div>
+                <div className="immersive-step-title">
+                    Step {currentStepIndex + 1} of {totalSteps}
+                </div>
+                <button className="immersive-step-exit" onClick={onExit}>
+                    Exit
+                </button>
+            </div>
+            
+            <div className="progress-bar-container">
+                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+            </div>
+            
+            <div className="immersive-step-content">
+                <div className="immersive-step-body">
+                    <div className="immersive-step-title-container">
+                        <h2>Step {currentStepIndex + 1}</h2>
+                        <p className="immersive-step-description">
+                            {currentStep.text || currentStep.description}
+                        </p>
+                    </div>
+                    
+                    <div className="immersive-media-section">
+                        <div className="immersive-media-wrapper">
+                            {/* Display video if available */}
+                            {currentStep.video && (
+                                <video 
+                                    className="immersive-media"
+                                    src={`http://localhost:4000${currentStep.video}`} 
+                                    controls
+                                    poster={currentStep.image ? `http://localhost:4000${currentStep.image}` : ''}
+                                >
+                                    Your browser does not support video playback.
+                                </video>
+                            )}
+                            
+                            {/* Display image only if no video and image exists */}
+                            {!currentStep.video && currentStep.image && (
+                                <img 
+                                    className="immersive-media"
+                                    src={`http://localhost:4000${currentStep.image}`} 
+                                    alt={`Step ${currentStepIndex + 1}`} 
+                                />
+                            )}
+                        </div>
+                        
+                        {/* Step counter below media */}
+                        <div className="step-counter-indicator">
+                            Step instruction: {currentStep.text || currentStep.description}
+                        </div>
+                        
+                        {/* Step ingredients info */}
+                        {(currentStep.ingredients && currentStep.ingredients.length > 0) || 
+                         (currentStep.ingredient) || 
+                         (currentStep.alternate) || 
+                         (currentStep.timer) ? (
+                            <div className="immersive-step-info">
+                                {currentStep.ingredients && currentStep.ingredients.length > 0 && (
+                                    <>
+                                        <h4>Ingredients for this step:</h4>
+                                        <ul>
+                                            {currentStep.ingredients.map((ing, idx) => (
+                                                <li key={idx}>{ing}</li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                                
+                                {/* Support for single ingredient format */}
+                                {currentStep.ingredient && (
+                                    <>
+                                        <h4>Ingredients for this step:</h4>
+                                        <p>{currentStep.ingredient} 
+                                           {currentStep.quantity && ` - ${currentStep.quantity}`}
+                                        </p>
+                                    </>
+                                )}
+                                
+                                {currentStep.alternate && (
+                                    <>
+                                        <h4>Alternative ingredient:</h4>
+                                        <p>{currentStep.alternate}</p>
+                                    </>
+                                )}
+                                
+                                {currentStep.timer && (
+                                    <>
+                                        <h4>Timer:</h4>
+                                        <p>{currentStep.timer} minutes</p>
+                                    </>
+                                )}
+                            </div>
+                        ) : null}
+                    </div>
+                    
+                    <div className="immersive-navigation-container">
+                        <div className="immersive-navigation">
+                            <button 
+                                className="immersive-nav-button"
+                                onClick={handlePrevStep}
+                                disabled={isFirstStep}
+                            >
+                                <span className="material-icons">arrow_back</span> Previous Step
+                            </button>
+                            <button 
+                                className={`immersive-nav-button ${isLastStep ? 'finish-pulse' : ''}`}
+                                onClick={handleNextStep}
+                            >
+                                {isLastStep ? "Finish" : "Next Step"} <span className="material-icons">arrow_forward</span>
+                            </button>
+                        </div>
+                        
+                        <div className="keyboard-shortcuts">
+                            Keyboard shortcuts: ← Previous Step | → Next Step | ESC Exit
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {showSuccessModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h4>{successMessage}</h4>
+                        <button onClick={handleOkClick}>OK</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Main RecipeDetails component
 const RecipeDetails = () => {
     const { id } = useParams();
     const { user, dispatch } = useRecipesContext();
@@ -300,6 +490,11 @@ const RecipeDetails = () => {
             setCurrentStepIndex(currentStepIndex - 1);
         }
     };
+
+    // If in step-by-step mode, render the immersive experience
+    if (stepByStepMode && recipe) {
+        return <ImmersiveStepMode recipe={recipe} onExit={toggleStepByStepMode} />;
+    }
 
     if (!recipe) {
         return <p>Loading...</p>;
