@@ -1,7 +1,7 @@
 .cart {
-    max-width: 800px;
+    padding: 30px 20px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
     background-color: var(--secondary);
     border-radius: var(--border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -9,157 +9,420 @@
 }
 
 .cart h1 {
-    font-size: 2em;
-    
-    margin-bottom: 20px;
     text-align: center;
-}
-.add-ingredient-btn {
-    display: inline-block;
-    background-color: var(--button-bg);
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color var(--transition);
-    margin-bottom: 20px; /* Add margin-bottom to create space */
+    margin-bottom: 40px;
+    color: var(--primary);
+    font-size: 2.2rem;
+    position: relative;
+    padding-bottom: 15px;
 }
 
+.cart h1:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+/* Button styling */
+.add-ingredient-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 12px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: block;
+    margin: 0 auto 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.add-ingredient-btn:before {
+    content: '+';
+    font-size: 1.3rem;
+    font-weight: bold;
+    line-height: 0;
+}
+
+.add-ingredient-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Cart table styling */
 .cart-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.cart-table th, .cart-table td {
-    border: 1px solid var(--accent);
-    padding: 12px;
-    text-align: center;
-    font-size: 1em;
+    margin: 0 auto;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .cart-table th {
-    background-color: var(--secondary);
-    color: #fff;
-    font-weight: bold;
+    background-color: var(--accent);
+    color: black;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    padding: 15px;
+    text-align: left;
 }
 
 .cart-table td {
     background-color: var(--secondary);
     color: var(--primary);
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 1rem;
+    vertical-align: middle;
 }
 
+.cart-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Center "No items" message */
+.cart-table tr td[colspan="4"] {
+    text-align: center;
+    padding: 30px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* Quantity controls */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+}
+
+.quantity-controls button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 0;
+    padding: 0;
+}
+
+.quantity-controls button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: scale(1.1);
+}
+
+.quantity-controls span {
+    min-width: 30px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Delete button */
 .cart-table .delete-btn {
-    background-color: transparent;
+    background: transparent;
     border: none;
     cursor: pointer;
-    color: #dc3545;
-    font-size: 1.5em;
-    transition: color var(--transition), transform var(--transition);
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+    width: 40px;
+    height: 40px;
 }
 
 .cart-table .delete-btn .material-icons {
-    font-size: 24px;
     color: #dc3545;
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+}
+
+.cart-table .delete-btn:hover {
+    background-color: rgba(220, 53, 69, 0.15);
+    transform: translateY(-2px);
 }
 
 .cart-table .delete-btn:hover .material-icons {
-    color: #c82333;
-    transform: translateY(-2px);
-}
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px); /* Add blur effect */
-    z-index: 1000;
+    color: #ff3547;
+    transform: rotate(12deg) scale(1.15);
 }
 
+.cart-table .delete-btn:after {
+    content: 'Remove';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px) scale(0.8);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.cart-table .delete-btn:hover:after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(0.8);
+}
+
+/* Popup styling */
 .popup {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(5px); /* Add blur effect */
+    backdrop-filter: blur(5px);
     z-index: 1000;
+    animation: fadeIn 0.3s ease;
 }
 
 .popup-content {
-    background: var(--secondary);
-    padding: 20px;
+    background-color: var(--secondary);
+    padding: 30px;
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 50%; /* Adjust the width to make the popup message shorter */
-    max-width: 300px; /* Set a maximum width for the popup */
-    margin: 0 auto; /* Center the popup */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    animation: scaleIn 0.3s ease;
+    position: relative;
 }
 
 .popup-content h2 {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     color: var(--primary);
+    text-align: center;
+    font-size: 1.6rem;
 }
 
 .popup-content input[type="text"],
 .popup-content input[type="number"] {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1em;
-    width: 100%; /* Make the input boxes full width */
-    margin-bottom: 10px;
-    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.popup-content input:focus,
+.popup-content select:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(50, 205, 50, 0.2);
+}
+
+.popup-content select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    background-color: rgba(30, 30, 30, 0.9); /* Darker background */
+    color: var(--primary);
+    font-size: 1rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 15px;
+    padding-right: 40px;
+    transition: all 0.3s ease;
+}
+
+.popup-content select:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(50, 205, 50, 0.2);
+    background-color: rgba(20, 20, 20, 0.95); /* Even darker when focused */
+}
+
+.popup-content select option {
+    background-color: #1a1a1a; /* Dark background for options */
+    color: var(--primary);
+    padding: 12px;
+    font-size: 1rem;
+}
+
+.popup-content select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .popup-content button {
-    
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 24px;
+    border-radius: 30px; /* Rounded buttons */
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease;
-    margin: 5px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 100px;
+    font-weight: 500;
+}
+
+.popup-content button:first-of-type {
+    background-color: var(--accent);
+    color: black;
+    box-shadow: 0 4px 10px rgba(50, 205, 50, 0.2);
+}
+
+.popup-content button:last-of-type {
+    background-color: rgba(40, 40, 40, 0.9); /* Darker background for cancel */
+    color: var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .popup-content button:hover {
-    background-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
-.quantity-controls {
+
+.popup-content button:first-of-type:hover {
+    background-color: #2bb240; /* Slightly lighter accent on hover */
+    box-shadow: 0 5px 15px rgba(50, 205, 50, 0.3);
+}
+
+.popup-content button:last-of-type:hover {
+    background-color: rgba(60, 60, 60, 0.9); /* Lighter on hover */
+}
+
+.popup-actions {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 20px; /* Increase the gap as needed */
+    gap: 15px;
+    margin-top: 25px;
 }
 
-.quantity-controls button {
-    
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-}
-
-.quantity-controls span {
-    min-width: 20px;
+/* Empty cart message */
+.empty-cart {
     text-align: center;
+    padding: 40px 20px;
+    background-color: var(--secondary);
+    border-radius: var(--border-radius);
+    margin-top: 20px;
+}
+
+.empty-cart .material-icons {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-cart p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .cart-table th {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+    
+    .cart-table td {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .quantity-controls {
+        gap: 8px;
+    }
+    
+    .quantity-controls button {
+        width: 25px;
+        height: 25px;
+    }
+
+    .cart-table .delete-btn:after {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-table thead {
+        display: none;
+    }
+    
+    .cart-table, 
+    .cart-table tbody, 
+    .cart-table tr, 
+    .cart-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .cart-table tr {
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .cart-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .cart-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 600;
+        color: var(--accent);
+    }
+    
+    .cart-table td:last-child {
+        border-bottom: none;
+    }
 }

@@ -161,47 +161,53 @@ const Cart = () => {
                             <option value="piece">piece</option>
                             <option value="slice">slice</option>
                         </select>
-                        <button onClick={handleAddItem}>Add</button>
-                        <button onClick={() => setShowPopup(false)}>Cancel</button>
+                        <div className="popup-actions">
+                            <button onClick={handleAddItem}>Add</button>
+                            <button onClick={() => setShowPopup(false)}>Cancel</button>
+                        </div>
                     </div>
                 </div>
             )}
-            <table className="cart-table">
-                <thead>
-                    <tr>
-                        <th>Ingredient</th>
-                        <th>Quantity</th>
-                        <th>Unit</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cartItems.length > 0 ? (
-                        cartItems.map((item, index) => (
+            {cartItems.length > 0 ? (
+                <table className="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {cartItems.map((item, index) => (
                             <tr key={index}>
-                                <td>{item.ingredient}</td>
-                                <td>
+                                <td data-label="Ingredient">{item.ingredient}</td>
+                                <td data-label="Quantity">
                                     <div className="quantity-controls">
                                         <button onClick={() => handleQuantityChange(item._id, item.quantity - 1)}>-</button>
                                         <span>{item.quantity}</span>
                                         <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)}>+</button>
                                     </div>
                                 </td>
-                                <td>{item.unit}</td>
-                                <td>
+                                <td data-label="Unit">{item.unit}</td>
+                                <td data-label="Actions">
                                     <button className="delete-btn" onClick={() => handleDelete(item._id)}>
                                         <span className="material-icons">delete</span>
                                     </button>
                                 </td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4">No items in the cart.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <div className="empty-cart">
+                    <span className="material-icons">shopping_cart</span>
+                    <p>Your cart is empty</p>
+                    <button className="add-ingredient-btn" onClick={() => setShowPopup(true)}>
+                        Add Your First Ingredient
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
