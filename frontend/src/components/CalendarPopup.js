@@ -4,37 +4,41 @@ import 'react-datepicker/dist/react-datepicker.css';
 import './CalendarPopup.css';
 
 const CalendarPopup = ({ onSubmit, onClose }) => {
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedMealTime, setSelectedMealTime] = useState('Dinner');
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (selectedDate) {
-            onSubmit(selectedDate.toISOString().split('T')[0]);
-        }
+    const handleSubmit = () => {
+        // Pass both the date and meal time to the parent component
+        onSubmit(selectedDate, selectedMealTime);
     };
 
     return (
-        <div className="calendar-popup">
-            <div className="calendar-popup-content">
-                <h4>Schedule This Meal</h4>
-                <form onSubmit={handleSubmit}>
-                    <div className="date-picker-container">
-                        <label htmlFor="date">Select Date:</label>
-                        <DatePicker
-                            selected={selectedDate}
-                            onChange={(date) => setSelectedDate(date)}
-                            minDate={new Date()}
-                            dateFormat="yyyy-MM-dd"
-                            className="custom-date-picker"
-                            placeholderText="Select a date"
-                            wrapperClassName="date-picker-wrapper"
-                        />
-                    </div>
-                    <div className="calendar-popup-buttons">
-                        <button type="submit">Done</button>
-                        <button type="button" onClick={onClose}>Cancel</button>
-                    </div>
-                </form>
+        <div className="calendar-popup-overlay" onClick={onClose}>
+            <div className="calendar-popup" onClick={e => e.stopPropagation()}>
+                <button className="close-btn" onClick={onClose}>×</button>
+                <h3>Schedule Recipe</h3>
+                <DatePicker
+                    selected={selectedDate}
+                    onChange={date => setSelectedDate(date)}
+                    inline
+                    minDate={new Date()}
+                />
+                <div className="meal-time-selector">
+                    <label>Meal Type:</label>
+                    <select 
+                        value={selectedMealTime}
+                        onChange={(e) => setSelectedMealTime(e.target.value)}
+                    >
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                        <option value="Snack">Snack</option>
+                    </select>
+                </div>
+                <div className="calendar-popup-buttons">
+                    <button className="cancel-btn" onClick={onClose}>Cancel</button>
+                    <button className="schedule-btn" onClick={handleSubmit}>Schedule</button>
+                </div>
             </div>
         </div>
     );

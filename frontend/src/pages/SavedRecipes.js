@@ -6,6 +6,7 @@ import './SavedRecipes.css'; // Import the CSS file for styling
 const SavedRecipes = () => {
     const { user } = useRecipesContext();
     const [savedRecipes, setSavedRecipes] = useState([]);
+    const [unsaveMessage, setUnsaveMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,7 +32,7 @@ const SavedRecipes = () => {
         fetchSavedRecipes();
     }, [user.userId]);
 
-    const handleDelete = async (recipeId, e) => {
+    const handleUnsave = async (recipeId, e) => {
         e.stopPropagation(); // Prevent navigating to the recipe details page
         try {
             const response = await fetch('/api/users/delete-saved-recipe', {
@@ -45,18 +46,30 @@ const SavedRecipes = () => {
 
             if (response.ok) {
                 setSavedRecipes(savedRecipes.filter(recipe => recipe._id !== recipeId));
-                alert('Recipe removed from saved recipes successfully');
+                setUnsaveMessage('Recipe unsaved successfully');
+                
+                // Clear message after 3 seconds
+                setTimeout(() => {
+                    setUnsaveMessage('');
+                }, 3000);
             } else {
-                console.error('Failed to delete saved recipe');
+                console.error('Failed to unsave recipe');
             }
         } catch (error) {
-            console.error('Error deleting saved recipe:', error);
+            console.error('Error unsaving recipe:', error);
         }
     };
 
     return (
-        <div className="saved-recipes">
+        <div className="saved-recipes-container">
             <h1>Saved Recipes</h1>
+            
+            {unsaveMessage && (
+                <div className="unsave-message">
+                    {unsaveMessage}
+                </div>
+            )}
+            
             <div className="recipes-grid">
                 {savedRecipes.length > 0 ? (
                     savedRecipes.map((recipe) => (
@@ -64,17 +77,59 @@ const SavedRecipes = () => {
                             key={recipe._id} 
                             className="recipe-item" 
                             onClick={() => navigate(`/recipe/${recipe._id}`)}
-                            style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '20px' }}
                         >
-                            {recipe.mainImage && (
-                                <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} style={{ width: '100%', borderRadius: '8px' }} />
-                            )}
-                            <h4>{recipe.title}</h4>
-                            <button className="delete-btn" onClick={(e) => handleDelete(recipe._id, e)}>Delete</button>
+                            <div className="recipe-image-container">
+                                {recipe.mainImage ? (
+                                    <img 
+                                        src={`http://localhost:4000${recipe.mainImage}`} 
+                                        alt={recipe.title}
+                                    />
+                                ) : (
+                                    <div className="placeholder-image">
+                                        <span className="material-icons">restaurant_menu</span>
+                                    </div>
+                                )}
+                                <button 
+                                    className="unsave-button"
+                                    onClick={(e) => handleUnsave(recipe._id, e)}
+                                    title="Remove from favorites"
+                                >
+                                    <span className="material-icons">bookmark_remove</span>
+                                </button>
+                                <div className="saved-tag">
+                                    <span className="material-icons">bookmark</span>
+                                    Saved
+                                </div>
+                            </div>
+                            <div className="recipe-content">
+                                <h4>{recipe.title}</h4>
+                                <div className="recipe-meta">
+                                    <div>
+                                        <span className="material-icons">schedule</span>
+                                        {recipe.totalTime ? 
+                                            `${recipe.totalTime.hours}h ${recipe.totalTime.minutes}m` : 
+                                            'N/A'
+                                        }
+                                    </div>
+                                    <div>
+                                        <span className="material-icons">restaurant_menu</span>
+                                        {recipe.ingredients?.length || 0} items
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ))
                 ) : (
-                    <p>No saved recipes available.</p>
+                    <div className="no-recipes">
+                        <span className="material-icons no-recipes-icon">bookmark_border</span>
+                        <p>You haven't saved any recipes yet</p>
+                        <button 
+                            className="browse-recipes-btn" 
+                            onClick={() => navigate('/welcome')}  // Change from '/' to '/welcome'
+                        >
+                            Discover Recipes
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

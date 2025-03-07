@@ -52,8 +52,6 @@ const Welcome = () => {
 
     return (
         <div className="welcome-container">
-            
-            
             <div className="search-bar">
                 <div className="search-input-container">
                     <input
@@ -69,28 +67,52 @@ const Welcome = () => {
                 </div>
                 <p>Explore and share your favorite recipes.</p>
             </div>
+            
             <div className="button-group">
                 <button onClick={() => handleCuisineSearch('Indian')}>Indian</button>
                 <button onClick={() => handleCuisineSearch('Chinese')}>Chinese</button>
                 <button onClick={() => handleCuisineSearch('Italian')}>Italian</button>
                 <button onClick={() => handleCuisineSearch('Mexican')}>Mexican</button>
                 <button onClick={() => handleCuisineSearch('American')}>American</button>
-                <button onClick={() => handleCuisineSearch('BreakFast')}>BreakFast</button>
+                <button onClick={() => handleCuisineSearch('BreakFast')}>Breakfast</button>
                 <button onClick={() => handleCuisineSearch('Lunch')}>Lunch</button>
                 <button onClick={() => handleCuisineSearch('Dessert')}>Dessert</button>
             </div>
+            
             <div className="recipes-grid">
                 {recipes.map((recipe) => (
                     <div 
                         key={recipe._id} 
                         className="recipe-item" 
                         onClick={() => navigate(`/recipe/${recipe._id}`)}
-                        style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '20px' }}
                     >
-                        {recipe.mainImage && (
-                            <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} style={{ width: '100%', borderRadius: '8px' }} />
-                        )}
-                        <h4>{recipe.title}</h4>
+                        <div className="recipe-image-container">
+                            {recipe.mainImage ? (
+                                <img 
+                                    src={`http://localhost:4000${recipe.mainImage}`} 
+                                    alt={recipe.title}
+                                />
+                            ) : (
+                                <div className="placeholder-image">
+                                    <span className="material-icons">restaurant_menu</span>
+                                </div>
+                            )}
+                            {recipe.tags && recipe.tags.length > 0 && (
+                                <div className="cuisine-tag">
+                                    <span className="material-icons">restaurant</span>
+                                    {recipe.tags[0]}
+                                </div>
+                            )}
+                        </div>
+                        <div className="recipe-content">
+                            <h4>{recipe.title}</h4>
+                            <div className="recipe-meta">
+                                <div>
+                                    <span className="material-icons">schedule</span>
+                                    {recipe.totalTime ? `${recipe.totalTime.hours}h ${recipe.totalTime.minutes}m` : 'N/A'}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>

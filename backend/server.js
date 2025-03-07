@@ -30,6 +30,9 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/recipe-image-generation', recipeImageGenerationRoutes);
 
+// Check that this route is properly registered
+app.use('/api/calendar', require('./routes/calendar'));
+
 // Serve static files from recipeImages
 app.use('/recipeImages', express.static(path.join(__dirname, 'recipeImages')));
 app.use('/recipeStepsImages', express.static(path.join(__dirname, 'recipeStepsImages')));

@@ -431,26 +431,44 @@ const RecipeDetails = () => {
         setShowCalendarPopup(true);
     };
 
-    const handleCalendarSubmit = async (date) => {
+    const handleCalendarSubmit = async (date, mealTime = 'Dinner') => {
         try {
+            console.log('Scheduling recipe:', id, 'for date:', date, 'as:', mealTime);
+            
+            // Make sure date is a proper Date object
+            const dateObj = new Date(date);
+            const formattedDate = dateObj.toISOString();
+            
             const response = await fetch('/api/calendar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ recipeId: id, date })
+                body: JSON.stringify({ 
+                    recipeId: id, 
+                    date: formattedDate,
+                    userId: user.userId,
+                    mealTime: mealTime // Use the selected meal time
+                })
             });
-    
+
+            const responseData = await response.json();
+            console.log('Schedule response:', responseData);
+        
             if (response.ok) {
-                setSuccessMessage('Recipe scheduled successfully');
+                setSuccessMessage(`Recipe scheduled successfully as ${mealTime}!`);
                 setShowSuccessModal(true);
                 setShowCalendarPopup(false);
             } else {
-                console.error('Failed to schedule recipe');
+                console.error('Failed to schedule recipe:', responseData.error || 'Unknown error');
+                setSuccessMessage('Failed to schedule recipe. Please try again.');
+                setShowSuccessModal(true);
             }
         } catch (error) {
             console.error('Error scheduling recipe:', error);
+            setSuccessMessage('Error scheduling recipe. Please try again.');
+            setShowSuccessModal(true);
         }
     };
 

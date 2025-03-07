@@ -40,6 +40,25 @@ const MyRecipes = () => {
         navigate(`/recipe/${id}`);
     };
 
+    const handleDelete = async (id) => {
+        try {
+            const response = await fetch(`/api/recipes/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            setRecipes(recipes.filter(recipe => recipe._id !== id));
+        } catch (error) {
+            console.error('Error deleting recipe:', error);
+        }
+    };
+
     return (
         <div className="my-recipes">
             <h1>My Recipes</h1>
@@ -50,16 +69,55 @@ const MyRecipes = () => {
                             key={recipe._id} 
                             className="recipe-item" 
                             onClick={() => handleRecipeClick(recipe._id)}
-                            style={{ cursor: 'pointer', textAlign: 'center', marginBottom: '20px' }}
                         >
-                            {recipe.mainImage && (
-                                <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} style={{ width: '100%', borderRadius: '8px' }} />
-                            )}
-                            <h4>{recipe.title}</h4>
+                            <div className="recipe-image-container">
+                                {recipe.mainImage ? (
+                                    <img 
+                                        src={`http://localhost:4000${recipe.mainImage}`} 
+                                        alt={recipe.title} 
+                                    />
+                                ) : (
+                                    <div className="placeholder-image">
+                                        <span className="material-icons">restaurant_menu</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="recipe-content">
+                                <h4>{recipe.title}</h4>
+                                <div className="recipe-actions">
+                                    <button 
+                                        className="action-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/update-recipe/${recipe._id}`);
+                                        }}
+                                    >
+                                        <span className="material-icons">edit</span> Edit
+                                    </button>
+                                    <button 
+                                        className="action-btn delete-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(recipe._id);
+                                        }}
+                                    >
+                                        <span className="material-icons">delete</span> Delete
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     ))
                 ) : (
-                    <p>No recipes available.</p>
+                    <div className="no-recipes">
+                        <span className="material-icons no-recipes-icon">menu_book</span>
+                        <p>You haven't created any recipes yet.</p>
+                        <button 
+                            className="browse-recipes-btn" 
+                            onClick={() => navigate('/welcome')}  // Change from '/' to '/welcome'
+                        >
+                            Discover Recipes
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

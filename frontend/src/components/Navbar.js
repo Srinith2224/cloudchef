@@ -70,7 +70,7 @@ const Navbar = () => {
                             <span className="material-icons">shopping_cart</span>
                         </Link>
                         <Link to="/scheduled-meals" className="nav-link">
-                            <span className="material-icons">schedule</span>
+                            <span className="material-icons">calendar_today</span>
                         </Link>
                         {profilePhoto ? (
             <Link to="/profile" className="nav-link">
