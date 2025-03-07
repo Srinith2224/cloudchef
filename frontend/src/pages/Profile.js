@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
-import './Profile.css'; // Import the CSS file for styling
+import './Profile.css';
 
 const Profile = () => {
     const { user, dispatch } = useRecipesContext();
     const navigate = useNavigate();
+    const [activeSection, setActiveSection] = useState('profile');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [profilePhoto, setProfilePhoto] = useState(null);
-    const [profilePhotoFile, setProfilePhotoFile] = useState(null); // State to store the file for upload
+    const [profilePhoto, setProfilePhoto] = useState('');
+    const [profilePhotoFile, setProfilePhotoFile] = useState(null);
     const [about, setAbout] = useState('');
     const [region, setRegion] = useState('');
     const [error, setError] = useState(null);
-    const [activeSection, setActiveSection] = useState('profile'); // State to track active section
-    const [showLogoutSuccessModal, setShowLogoutSuccessModal] = useState(false); // State for logout success modal
-    const [showUpdateSuccessModal, setShowUpdateSuccessModal] = useState(false); // State for update success modal
+    const [showLogoutSuccessModal, setShowLogoutSuccessModal] = useState(false);
+    const [showUpdateSuccessModal, setShowUpdateSuccessModal] = useState(false);
+    const [notificationSettings, setNotificationSettings] = useState({
+        emailNotifications: false,
+        mealPlanReminders: false,
+        newRecipeAlerts: false
+    });
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -56,27 +61,6 @@ const Profile = () => {
         }
     }, [user]);
 
-    const handleLogout = () => {
-        fetch('/api/logout', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        }).then(response => {
-            if (response.ok) {
-                dispatch({ type: 'LOGOUT' });
-                localStorage.removeItem('token');
-                navigate('/auth'); // Navigate to Auth page
-                setShowLogoutSuccessModal(true); // Show the logout success modal
-            } else {
-                console.error('Failed to log out');
-            }
-        }).catch(error => {
-            console.error('Error logging out:', error);
-        });
-    };
-
-    // Update the handlePhotoUpload function
     const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -87,15 +71,13 @@ const Profile = () => {
         }
     };
 
-    // Update the handleUpdateProfile function
-
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
 
         const formData = new FormData();
         formData.append('email', email);
         if (password) formData.append('password', password);
-        if (profilePhotoFile) formData.append('profilePhoto', profilePhotoFile); // Use the file, not the URL
+        if (profilePhotoFile) formData.append('profilePhoto', profilePhotoFile);
         formData.append('about', about || '');
         formData.append('region', region || '');
 
@@ -122,6 +104,8 @@ const Profile = () => {
                     profilePhoto: json.profilePhoto || user.profilePhoto
                 };
                 
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                
                 dispatch({
                     type: 'LOGIN',
                     payload: updatedUser
@@ -135,9 +119,37 @@ const Profile = () => {
         }
     };
 
+    const handleLogout = () => {
+        fetch('/api/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        }).then(response => {
+            if (response.ok) {
+                dispatch({ type: 'LOGOUT' });
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/auth');
+                setShowLogoutSuccessModal(true);
+            } else {
+                console.error('Failed to log out');
+            }
+        }).catch(error => {
+            console.error('Error logging out:', error);
+        });
+    };
+
     const handleOkClick = () => {
         setShowLogoutSuccessModal(false);
         setShowUpdateSuccessModal(false);
+    };
+
+    const handleToggleNotification = (setting) => {
+        setNotificationSettings(prev => ({
+            ...prev,
+            [setting]: !prev[setting]
+        }));
     };
 
     const renderSection = () => {
@@ -147,7 +159,6 @@ const Profile = () => {
                     <form onSubmit={handleUpdateProfile} className="profile-form">
                         <div className="profile-photo-container">
                             <div className="profile-photo">
-                                {/* Fix the image source */}
                                 <img 
                                     src={profilePhoto || '/default-avatar.png'} 
                                     alt="Profile" 
@@ -156,34 +167,46 @@ const Profile = () => {
                                         e.target.src = '/default-avatar.png';
                                     }} 
                                 />
-                                <label htmlFor="upload-photo" className="upload-photo-label">Update Photo</label>
+                                <label htmlFor="upload-photo" className="upload-photo-label">
+                                    Update Photo
+                                </label>
                                 <input
                                     type="file"
                                     id="upload-photo"
                                     className="upload-photo-input"
                                     onChange={handlePhotoUpload}
+                                    accept="image/*"
                                 />
                             </div>
                         </div>
                         <div className="profile-info">
-                            <label>First Name:</label>
-                            <input
-                                type="text"
-                                value={user.firstName || ''}
-                                readOnly
-                            />
-                            <label>Last Name:</label>
-                            <input
-                                type="text"
-                                value={user.lastName || ''}
-                                readOnly
-                            />
-                            <label>About:</label>
-                            <textarea
-                                value={about}
-                                onChange={(e) => setAbout(e.target.value)}
-                            />
-                            <button type="submit">Update Profile</button>
+                            <div className="input-group">
+                                <label>First Name</label>
+                                <input
+                                    type="text"
+                                    value={user?.firstName || ''}
+                                    readOnly
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label>Last Name</label>
+                                <input
+                                    type="text"
+                                    value={user?.lastName || ''}
+                                    readOnly
+                                />
+                            </div>
+                            <div className="input-group full-width">
+                                <label>About Me</label>
+                                <textarea
+                                    value={about}
+                                    onChange={(e) => setAbout(e.target.value)}
+                                    placeholder="Tell us a bit about yourself and your cooking interests..."
+                                />
+                            </div>
+                            <div className="button-group">
+                                <button type="submit" className="update-button">Update Profile</button>
+                            </div>
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
@@ -192,20 +215,27 @@ const Profile = () => {
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
                         <div className="profile-info">
-                            <label>Email:</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                            <label>Password:</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                            <button type="submit">Update Security</button>
+                            <div className="input-group full-width">
+                                <label>Email Address</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group full-width">
+                                <label>Update Password</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Leave blank to keep current password"
+                                />
+                            </div>
+                            <div className="button-group">
+                                <button type="submit" className="update-button">Update Security</button>
+                            </div>
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
@@ -214,13 +244,18 @@ const Profile = () => {
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
                         <div className="profile-info">
-                            <label>Region:</label>
-                            <input
-                                type="text"
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                            />
-                            <button type="submit">Update Location</button>
+                            <div className="input-group full-width">
+                                <label>Your Region</label>
+                                <input
+                                    type="text"
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                    placeholder="e.g., North America, Europe, Asia..."
+                                />
+                            </div>
+                            <div className="button-group">
+                                <button type="submit" className="update-button">Update Location</button>
+                            </div>
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
@@ -229,13 +264,48 @@ const Profile = () => {
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
                         <div className="profile-info">
-                            <label>Notifications:</label>
-                            <input
-                                type="text"
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                            />
-                            <button type="submit">Update Notifications</button>
+                            <div className="input-group full-width">
+                                <div className="toggle-container">
+                                    <label className="toggle-switch">
+                                        <input 
+                                            type="checkbox"
+                                            checked={notificationSettings.emailNotifications}
+                                            onChange={() => handleToggleNotification('emailNotifications')}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                        <span className="toggle-label">Email Notifications</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="input-group full-width">
+                                <div className="toggle-container">
+                                    <label className="toggle-switch">
+                                        <input 
+                                            type="checkbox"
+                                            checked={notificationSettings.mealPlanReminders}
+                                            onChange={() => handleToggleNotification('mealPlanReminders')}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                        <span className="toggle-label">Meal Plan Reminders</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="input-group full-width">
+                                <div className="toggle-container">
+                                    <label className="toggle-switch">
+                                        <input 
+                                            type="checkbox"
+                                            checked={notificationSettings.newRecipeAlerts}
+                                            onChange={() => handleToggleNotification('newRecipeAlerts')}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                        <span className="toggle-label">New Recipe Alerts</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="button-group">
+                                <button type="submit" className="update-button">Save Preferences</button>
+                            </div>
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
@@ -248,14 +318,37 @@ const Profile = () => {
     return (
         <div className="profile-container">
             <div className="sidebar">
-                <h3>Account Information</h3>
+                <h3>Account Settings</h3>
                 <ul>
-                    <li onClick={() => setActiveSection('profile')}>Profile Settings</li>
-                    <li onClick={() => setActiveSection('security')}>Security</li>
-                    <li onClick={() => setActiveSection('location')}>Location</li>
-                    <li onClick={() => setActiveSection('notifications')}>Notifications</li>
+                    <li 
+                        className={activeSection === 'profile' ? 'active' : ''} 
+                        onClick={() => setActiveSection('profile')}
+                    >
+                        <span className="material-icons">person</span>Profile
+                    </li>
+                    <li 
+                        className={activeSection === 'security' ? 'active' : ''} 
+                        onClick={() => setActiveSection('security')}
+                    >
+                        <span className="material-icons">security</span>Security
+                    </li>
+                    <li 
+                        className={activeSection === 'location' ? 'active' : ''} 
+                        onClick={() => setActiveSection('location')}
+                    >
+                        <span className="material-icons">location_on</span>Location
+                    </li>
+                    <li 
+                        className={activeSection === 'notifications' ? 'active' : ''} 
+                        onClick={() => setActiveSection('notifications')}
+                    >
+                        <span className="material-icons">notifications</span>Notifications
+                    </li>
                 </ul>
-                <button className="logout-button" onClick={handleLogout}>Logout</button>
+                <button className="logout-button" onClick={handleLogout}>
+                    <span className="material-icons">logout</span>
+                    Sign Out
+                </button>
             </div>
             <div className="profile-card">
                 <h2>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Settings</h2>

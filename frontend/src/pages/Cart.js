@@ -175,23 +175,33 @@ const Cart = () => {
                             <th>Ingredient</th>
                             <th>Quantity</th>
                             <th>Unit</th>
-                            <th>Actions</th>
+                            <th>Delete</th> {/* Changed from "Actions" to "Delete" */}
                         </tr>
                     </thead>
                     <tbody>
                         {cartItems.map((item, index) => (
                             <tr key={index}>
-                                <td data-label="Ingredient">{item.ingredient}</td>
+                                <td data-label="Ingredient">
+                                    <span className="ingredient-name">{item.ingredient}</span>
+                                </td>
                                 <td data-label="Quantity">
                                     <div className="quantity-controls">
-                                        <button onClick={() => handleQuantityChange(item._id, item.quantity - 1)}>-</button>
+                                        <button onClick={() => handleQuantityChange(item._id, item.quantity - 1)} title="Decrease quantity">
+                                            <span className="material-icons">remove</span>
+                                        </button>
                                         <span>{item.quantity}</span>
-                                        <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)}>+</button>
+                                        <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)} title="Increase quantity">
+                                            <span className="material-icons">add</span>
+                                        </button>
                                     </div>
                                 </td>
                                 <td data-label="Unit">{item.unit}</td>
-                                <td data-label="Actions">
-                                    <button className="delete-btn" onClick={() => handleDelete(item._id)}>
+                                <td data-label="Delete"> {/* Changed from "Actions" to "Delete" */}
+                                    <button 
+                                        className="delete-btn" 
+                                        onClick={() => handleDelete(item._id)}
+                                        title="Remove from cart"
+                                    >
                                         <span className="material-icons">delete</span>
                                     </button>
                                 </td>

@@ -143,55 +143,31 @@
 
 /* Delete button */
 .cart-table .delete-btn {
-    background: transparent;
+    background-color: rgba(220, 53, 69, 0.15);
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
-    padding: 8px;
-    border-radius: 50%;
+    padding: 8px 12px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
+    color: #dc3545;
+    gap: 5px;
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: auto;
+    height: auto;
 }
 
 .cart-table .delete-btn .material-icons {
     color: #dc3545;
-    font-size: 1.3rem;
-    transition: all 0.3s ease;
+    font-size: 1.2rem;
 }
 
-.cart-table .delete-btn:hover {
-    background-color: rgba(220, 53, 69, 0.15);
-    transform: translateY(-2px);
-}
 
-.cart-table .delete-btn:hover .material-icons {
-    color: #ff3547;
-    transform: rotate(12deg) scale(1.15);
-}
 
-.cart-table .delete-btn:after {
-    content: 'Remove';
-    position: absolute;
-    bottom: -20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px) scale(0.8);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.7rem;
-    opacity: 0;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    pointer-events: none;
-}
 
-.cart-table .delete-btn:hover:after {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(0.8);
-}
 
 /* Popup styling */
 .popup {

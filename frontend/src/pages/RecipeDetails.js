@@ -515,18 +515,77 @@ const RecipeDetails = () => {
 
     return (
         <div className="recipe-details">
-            <button className="close-btn" onClick={handleClose}>X</button>
-            {recipe.mainImage && (
-                <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} className="recipe-image" />
-            )}
-            <h2>{recipe.title}</h2>
+            <button className="close-btn" onClick={handleClose}>&times;</button>
+            
+            <div className="recipe-header">
+                {recipe.mainImage && (
+                    <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} className="recipe-image" />
+                )}
+                <h2>{recipe.title}</h2>
+            </div>
+            
             <div className="recipe-info">
-                <p><strong>Description:</strong> {recipe.description}</p>
-                <p><strong>Total Time:</strong> {recipe.totalTime.hours} hours {recipe.totalTime.minutes} minutes</p>
-                <p>
-                    <strong>Ingredients:</strong>
-                    <button className="add-all-to-cart-btn" onClick={handleAddAllToCart}>Add All to Cart</button>
-                </p>
+                <div className="info-card">
+                    <h3>Details</h3>
+                    
+                    {recipe.description && (
+                        <div className="info-item">
+                            <strong>Description:</strong>
+                            <span>{recipe.description}</span>
+                        </div>
+                    )}
+                    
+                    <div className="info-item">
+                        <strong>Total Time:</strong>
+                        <span>
+                            {recipe.totalTime.hours > 0 ? `${recipe.totalTime.hours}h ` : ''}
+                            {recipe.totalTime.minutes}m
+                        </span>
+                    </div>
+                    
+                    {recipe.tags && recipe.tags.length > 0 && (
+                        <div className="recipe-tags">
+                            <div className="info-item">
+                                <strong>Tags:</strong>
+                            </div>
+                            <div>
+                                {recipe.tags.map((tag, index) => (
+                                    <span key={index} className="tag">{tag}</span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="info-card">
+                    <h3>Nutrition Facts</h3>
+                    {recipe.nutrition ? (
+                        <table className="nutrition-table">
+                            <thead>
+                                <tr>
+                                    <th>Calories</th>
+                                    <th>Fat</th>
+                                    <th>Protein</th>
+                                    <th>Carbs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{recipe.nutrition.calories}</td>
+                                    <td>{recipe.nutrition.fat}g</td>
+                                    <td>{recipe.nutrition.protein}g</td>
+                                    <td>{recipe.nutrition.carbs}g</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No nutrition information available.</p>
+                    )}
+                </div>
+            </div>
+            
+            <div className="info-card">
+                <h3>Ingredients <button className="add-all-to-cart-btn" onClick={handleAddAllToCart}>Add All to Cart</button></h3>
                 <table className="ingredients-table">
                     <thead>
                         <tr>
@@ -546,14 +605,14 @@ const RecipeDetails = () => {
                                             className="add-to-cart-btn"
                                             onClick={() => handleRemoveFromCart(ingredient)}
                                         >
-                                            Remove from cart
+                                            <span className="material-icons">remove_shopping_cart</span> Remove
                                         </button>
                                     ) : (
                                         <button
                                             className="add-to-cart-btn"
                                             onClick={() => handleAddToCart(ingredient)}
                                         >
-                                            Add to Cart
+                                            <span className="material-icons">add_shopping_cart</span> Add
                                         </button>
                                     )}
                                 </td>
@@ -561,150 +620,129 @@ const RecipeDetails = () => {
                         ))}
                     </tbody>
                 </table>
-                <p><strong>Nutrition:</strong></p>
-                {recipe.nutrition ? (
-                    <table className="nutrition-table">
-                        <thead>
-                            <tr>
-                                <th>Calories</th>
-                                <th>Fat</th>
-                                <th>Protein</th>
-                                <th>Carbs</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{recipe.nutrition.calories}</td>
-                                <td>{recipe.nutrition.fat}</td>
-                                <td>{recipe.nutrition.protein}</td>
-                                <td>{recipe.nutrition.carbs}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No nutrition information available.</p>
-                )}
-                
-                {/* Steps section with step-by-step mode implementation */}
-                <div className="steps-section">
-                    <div className="steps-header">
-                        <h3>Steps:</h3>
-                        <button 
-                            className="step-by-step-btn" 
-                            onClick={toggleStepByStepMode}
-                        >
-                            {stepByStepMode ? "End Step-by-Step Mode" : "Step-by-Step Mode"}
-                        </button>
-                    </div>
-                    
-                    {stepByStepMode ? (
-                        <div className="step-by-step-view">
-                            <div className="step-counter">
-                                Step {currentStepIndex + 1} of {recipe.steps.length}
-                            </div>
-                            
-                            <div className="current-step">
-                                <h4>Step {currentStepIndex + 1}</h4>
-                                <p>{recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description}</p>
-                                
-                                {/* Display video if available */}
-                                {recipe.steps[currentStepIndex].video && (
-                                    <div className="step-video-container">
-                                        <video 
-                                            src={`http://localhost:4000${recipe.steps[currentStepIndex].video}`} 
-                                            controls
-                                            className="step-video"
-                                            poster={recipe.steps[currentStepIndex].image ? `http://localhost:4000${recipe.steps[currentStepIndex].image}` : ''}
-                                        >
-                                            Your browser does not support video playback.
-                                        </video>
-                                    </div>
-                                )}
-                                
-                                {/* Display image only if no video and image exists */}
-                                {!recipe.steps[currentStepIndex].video && recipe.steps[currentStepIndex].image && (
-                                    <img 
-                                        src={`http://localhost:4000${recipe.steps[currentStepIndex].image}`} 
-                                        alt={`Step ${currentStepIndex + 1}`} 
-                                        className="step-image"
-                                    />
-                                )}
-                                
-                                {recipe.steps[currentStepIndex].ingredients && recipe.steps[currentStepIndex].ingredients.length > 0 && (
-                                    <div className="step-ingredients">
-                                        <h5>Ingredients for this step:</h5>
-                                        <ul>
-                                            {recipe.steps[currentStepIndex].ingredients.map((ing, idx) => (
-                                                <li key={idx}>{ing}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                
-                                {/* Support for single ingredient format */}
-                                {recipe.steps[currentStepIndex].ingredient && (
-                                    <div className="step-ingredients">
-                                        <h5>Ingredients for this step:</h5>
-                                        <p>{recipe.steps[currentStepIndex].ingredient} 
-                                           {recipe.steps[currentStepIndex].quantity && ` - ${recipe.steps[currentStepIndex].quantity}`}
-                                        </p>
-                                    </div>
-                                )}
-                                
-                                {recipe.steps[currentStepIndex].alternate && (
-                                    <div className="step-alternate">
-                                        <h5>Alternative ingredient:</h5>
-                                        <p>{recipe.steps[currentStepIndex].alternate}</p>
-                                    </div>
-                                )}
-                                
-                                {recipe.steps[currentStepIndex].timer && (
-                                    <div className="step-timer">
-                                        <h5>Timer:</h5>
-                                        <p>{recipe.steps[currentStepIndex].timer} minutes</p>
-                                    </div>
-                                )}
-                                
-                                <div className="step-navigation">
-                                    <button 
-                                        onClick={prevStep} 
-                                        disabled={currentStepIndex === 0}
-                                    >
-                                        Previous
-                                    </button>
-                                    <button onClick={nextStep}>
-                                        {currentStepIndex === recipe.steps.length - 1 ? "Finish" : "Next"}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <ol className="steps-list">
-                            {recipe.steps.map((step, index) => (
-                                <li key={index}>
-                                    {step.text || step.description}
-                                </li>
-                            ))}
-                        </ol>
-                    )}
-                </div>
-                
-                <p><strong>Created by:</strong> {recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
-                <p><strong>Created on:</strong> {new Date(recipe.createdAt).toLocaleDateString()}</p>
             </div>
             
-            {/* Group all action buttons in a consistent row */}
+            <div className="steps-section">
+                <div className="steps-header">
+                    <h3>Steps</h3>
+                    <button 
+                        className="step-by-step-btn" 
+                        onClick={toggleStepByStepMode}
+                    >
+                        Start Step-by-Step Mode
+                    </button>
+                </div>
+                
+                {stepByStepMode ? (
+                    <div className="step-by-step-view">
+                        <div className="step-counter">
+                            Step {currentStepIndex + 1} of {recipe.steps.length}
+                        </div>
+                        
+                        <div className="current-step">
+                            <h4>{recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description}</h4>
+                            
+                            {recipe.steps[currentStepIndex].video && (
+                                <div className="step-video-container">
+                                    <video 
+                                        src={`http://localhost:4000${recipe.steps[currentStepIndex].video}`} 
+                                        controls
+                                        className="step-video"
+                                        poster={recipe.steps[currentStepIndex].image ? `http://localhost:4000${recipe.steps[currentStepIndex].image}` : ''}
+                                    >
+                                        Your browser does not support video playback.
+                                    </video>
+                                </div>
+                            )}
+                            
+                            {!recipe.steps[currentStepIndex].video && recipe.steps[currentStepIndex].image && (
+                                <img 
+                                    src={`http://localhost:4000${recipe.steps[currentStepIndex].image}`} 
+                                    alt={`Step ${currentStepIndex + 1}`} 
+                                    className="step-image"
+                                />
+                            )}
+                            
+                            {recipe.steps[currentStepIndex].ingredients && recipe.steps[currentStepIndex].ingredients.length > 0 && (
+                                <div className="step-ingredients">
+                                    <h5>Ingredients for this step:</h5>
+                                    <ul>
+                                        {recipe.steps[currentStepIndex].ingredients.map((ing, idx) => (
+                                            <li key={idx}>{ing}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            
+                            {recipe.steps[currentStepIndex].ingredient && (
+                                <div className="step-ingredients">
+                                    <h5>Ingredients for this step:</h5>
+                                    <p>{recipe.steps[currentStepIndex].ingredient} 
+                                       {recipe.steps[currentStepIndex].quantity && ` - ${recipe.steps[currentStepIndex].quantity}`}
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {recipe.steps[currentStepIndex].alternate && (
+                                <div className="step-alternate">
+                                    <h5>Alternative ingredient:</h5>
+                                    <p>{recipe.steps[currentStepIndex].alternate}</p>
+                                </div>
+                            )}
+                            
+                            {recipe.steps[currentStepIndex].timer && (
+                                <div className="step-timer">
+                                    <h5>Timer:</h5>
+                                    <p><span className="material-icons">timer</span> {recipe.steps[currentStepIndex].timer} minutes</p>
+                                </div>
+                            )}
+                            
+                            <div className="step-navigation">
+                                <button 
+                                    onClick={prevStep} 
+                                    disabled={currentStepIndex === 0}
+                                >
+                                    Previous
+                                </button>
+                                <button onClick={nextStep}>
+                                    {currentStepIndex === recipe.steps.length - 1 ? "Finish" : "Next"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <ol className="steps-list">
+                        {recipe.steps.map((step, index) => (
+                            <li key={index}>
+                                {step.text || step.description}
+                            </li>
+                        ))}
+                    </ol>
+                )}
+            </div>
+            
+            <div className="creator-info">
+                <div className="creator-detail">
+                    <span className="material-icons">person</span>
+                    <p><strong>Created by:</strong> {recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
+                </div>
+                <div className="creator-detail">
+                    <span className="material-icons">calendar_today</span>
+                    <p><strong>Created on:</strong> {new Date(recipe.createdAt).toLocaleDateString()}</p>
+                </div>
+            </div>
+            
             <div className="button-row">
                 {user && user.userId === recipe.createdBy._id ? (
                     <>
                         <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
                             <span className="material-icons">edit</span> Update
                         </button>
-                        <button className="btn delete-btn" onClick={handleDelete}>
-                            <span className="material-icons">delete</span> Delete
-                        </button>
                         <button className="btn schedule-btn" onClick={handleSchedule}>
                             <span className="material-icons">calendar_today</span> Schedule
+                        </button>
+                        <button className="btn delete-btn" onClick={handleDelete}>
+                            <span className="material-icons">delete</span> Delete
                         </button>
                     </>
                 ) : (

@@ -1,144 +1,531 @@
 .recipe-details {
-    position: relative; /* Ensure the close button is positioned relative to this container */
-    padding: 20px;
-    background: var(--background, #1e1e1e); /* Use background variable */
-    color: var(--primary, #ffffff); /* Use primary color variable */
-    border-radius: var(--border-radius, 8px); /* Use border radius variable */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
+    position: relative;
+    padding: 30px 20px 50px;
+    background: var(--background);
+    color: var(--primary);
+    max-width: 1000px;
     margin: 0 auto;
 }
 
 .recipe-details h2 {
-    font-size: 2em;
+    font-size: 2.5em;
     color: var(--primary);
     margin-bottom: 20px;
     text-align: center;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.recipe-details h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 
 .recipe-details p {
     font-size: 1.1em;
-    color: var(--primary);
+    color: rgba(255, 255, 255, 0.95); /* Brighter white for better contrast */
     line-height: 1.6;
     margin-bottom: 15px;
 }
 
 .recipe-details p strong {
-    color: var(--primary);
+    color: var(--accent); /* Using accent color for all labels */
+    font-weight: 600;
+    font-size: 1.05em; /* Slightly larger than normal text */
+    display: inline-block;
+    margin-right: 5px;
+    letter-spacing: 0.5px;
+    position: relative;
 }
 
-.recipe-details p:last-child {
-    margin-bottom: 0;
+/* Optional: Add subtle underline to labels */
+.recipe-details p strong::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: rgba(50, 205, 50, 0.3); /* Very subtle underline */
+}
+
+/* Improve information layout */
+.info-item {
+    margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: baseline;
+}
+
+.info-item strong {
+    grid-column: 1;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.info-item span {
+    grid-column: 2;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Tags styling */
+.recipe-tags {
+    margin-top: 15px;
+}
+
+.tag {
+    display: inline-block;
+    background-color: rgba(50, 205, 50, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(50, 205, 50, 0.3);
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.tag:hover {
+    background-color: rgba(50, 205, 50, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Recipe header area with image */
+.recipe-header {
+    position: relative;
+    margin-bottom: 30px;
 }
 
 .recipe-image {
     width: 100%;
-    max-width: 400px;
-    height: auto;
+    max-height: 400px;
     object-fit: cover;
     border-radius: var(--border-radius);
-    display: block;
-    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin-bottom: 30px;
 }
 
+/* Info cards layout */
 .recipe-info {
-    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-.step-image {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    object-fit: cover;
+.info-card {
+    background-color: rgba(25, 25, 25, 0.9); /* Slightly darker background */
     border-radius: var(--border-radius);
-    display: block;
-    margin: 10px 0;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
 }
 
+.info-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.95); /* Brighter white */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* More visible border */
+    padding-bottom: 10px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Tables styling */
 .ingredients-table, .nutrition-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Add border */
 }
 
-.ingredients-table th, .nutrition-table th, .ingredients-table td, .nutrition-table td {
-    border: 1px solid var(--accent);
-    padding: 8px;
+.ingredients-table th, .nutrition-table th, 
+.ingredients-table td, .nutrition-table td {
+    padding: 12px 15px;
     text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .ingredients-table th, .nutrition-table th {
-    background-color: var(--button-hover-bg);
+    background-color: var(--accent);
+    color: rgba(0, 0, 0, 0.9); /* Darker text on accent color */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.ingredients-table td, .nutrition-table td {
+    color: rgba(255, 255, 255, 0.95); /* Brighter white for table cells */
+}
+
+.ingredients-table tr:last-child td, 
+.nutrition-table tr:last-child td {
+    border-bottom: none;
+}
+
+.ingredients-table tr:nth-child(even), 
+.nutrition-table tr:nth-child(even) {
+    background-color: rgba(40, 40, 40, 0.6); /* Darker alternating rows */
+}
+
+.ingredients-table tr:hover, 
+.nutrition-table tr:hover {
+    background-color: rgba(60, 60, 60, 0.6); /* Slightly lighter on hover */
+}
+
+/* Button styling */
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 35px 0;
+    flex-wrap: wrap;
+}
+
+.add-all-to-cart-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    margin-left: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-all-to-cart-btn:before {
+    content: '+';
     font-weight: bold;
 }
 
-/* Add this CSS to create space between the buttons */
-.button-group {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px; /* Add space between buttons */
-    margin-top: 20px;
-}
-
-.add-to-cart-btn, .add-all-to-cart-btn, .save-btn, .unsave-btn {
-    background-color: var(--button-bg);
-    color: var(--primary);
-    border: 1px solid var(--button-border);
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color var(--transition);
-}
-
-.add-to-cart-btn:hover, .add-all-to-cart-btn:hover, .save-btn:hover, .unsave-btn:hover {
-    background-color: var(--button-hover-bg);
-    border-color: var(--button-hover-border);
-}
-
-.add-to-cart-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-.update-btn {
-    background-color: var(--button-bg);
-    color: var(--primary);
-    border: 1px solid var(--button-border);
-    padding: 12px 30px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color var(--transition), transform var(--transition);
-}
-
-.update-btn:hover {
+.add-all-to-cart-btn:hover {
     background-color: var(--button-hover-bg);
     border-color: var(--button-hover-border);
     transform: translateY(-2px);
 }
 
-.delete-btn {
-    background-color: transparent;
-    border: none;
+.add-to-cart-btn {
+    background-color: var(--secondary);
+    color: var(--primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 20px;
     cursor: pointer;
-    color: #dc3545;
-    font-size: 1.5em;
+    font-size: 0.8em;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.add-to-cart-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-1px);
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    min-width: 130px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
 }
 
-.delete-btn .material-icons {
-    font-size: 24px;
+.save-btn, .unsave-btn, .schedule-btn, .update-btn {
+    background-color: var(--button-bg);
+    color: var(--primary);
+    border: 1px solid var(--button-border);
+}
+
+.delete-btn {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid #dc3545;
     color: #dc3545;
 }
 
-.delete-btn:hover .material-icons {
-    color: #c82333;
+.btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+.delete-btn:hover {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #e84c5c;
+    border-color: #e84c5c;
+}
+
+.btn .material-icons {
+    font-size: 18px;
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    z-index: 5;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+    transform: rotate(90deg);
+}
+
+/* Steps section styling */
+.steps-section {
+    margin-top: 40px;
+    background-color: rgba(25, 25, 25, 0.9); /* Slightly darker background */
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.steps-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.steps-header h3 {
+    font-size: 1.6rem;
+    color: rgba(255, 255, 255, 0.95); /* Brighter white */
+    margin: 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.step-by-step-btn {
+    background-color: var(--primary);
+    color: black;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-by-step-btn:before {
+    content: '▶';
+    font-size: 0.8rem;
+}
+
+.step-by-step-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.steps-list {
+    list-style-position: inside;
+    counter-reset: step-counter;
+    padding-left: 0;
+}
+
+.steps-list li {
+    counter-increment: step-counter;
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: rgba(15, 15, 15, 0.6); /* Darker background */
+    border-radius: var(--border-radius);
+    position: relative;
+    padding-left: 45px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95); /* Brighter white for text */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.steps-list li:before {
+    content: counter(step-counter);
+    background-color: var(--accent);
+    color: black;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 50%;
+    position: absolute;
+    left: 10px;
+    top: 14px;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Step-by-Step view styling */
+.step-by-step-view {
+    background-color: rgba(30, 30, 30, 0.95); /* Slightly darker background */
+    border: 1px solid var(--accent);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.step-counter {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--accent); /* Use accent color for better visibility */
+    margin-bottom: 15px;
+    font-weight: 500;
+    background-color: rgba(0, 0, 0, 0.3); /* Darker background for contrast */
+    padding: 8px;
+    border-radius: 20px;
+}
+
+.current-step {
+    padding: 10px;
+}
+
+.current-step h4 {
+    color: rgba(255, 255, 255, 0.95); /* Brighter white for heading */
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--accent);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Text shadow for better readability */
+}
+
+.step-ingredients, .step-alternate, .step-timer {
+    background-color: rgba(15, 15, 15, 0.7); /* Darker background for these sections */
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin: 15px 0;
+    border-left: 3px solid var(--accent);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.step-ingredients h5, .step-alternate h5, .step-timer h5 {
+    margin-top: 0;
+    color: var(--accent);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.step-ingredients p, .step-alternate p, .step-timer p, 
+.step-ingredients li, .step-alternate li, .step-timer li {
+    color: rgba(255, 255, 255, 0.95); /* Brighter text */
+}
+
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.step-navigation button {
+    background-color: rgba(40, 40, 40, 0.95); /* Darker background */
+    color: rgba(255, 255, 255, 0.95); /* Brighter text */
+    border: 1px solid var(--button-border);
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.step-navigation button:first-child:before {
+    content: '←';
+}
+
+.step-navigation button:last-child:after {
+    content: '→';
+}
+
+.step-navigation button:hover {
+    background-color: rgba(60, 60, 60, 0.95); /* Lighter on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.step-navigation button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Media styling */
+.step-video-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.step-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--border-radius);
+}
+
+.step-video::-webkit-media-controls {
+    background-color: rgba(0, 0, 0, 0.7); /* Darker background for controls */
+}
+
+.step-image {
+    width: 100%;
+    max-width: 600px;
+    border-radius: var(--border-radius);
+    display: block;
+    margin: 20px auto;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal styling */
 .modal {
     position: fixed;
     top: 0;
@@ -150,44 +537,105 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(5px); /* Add blur effect */
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
     background-color: var(--secondary);
     padding: 40px;
     border-radius: var(--border-radius);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
     max-width: 500px;
     width: 90%;
     text-align: center;
-    animation: fadeIn var(--transition);
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content h4 {
     margin-bottom: 25px;
     font-size: 1.8em;
     color: var(--primary);
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .modal-content button {
     background-color: var(--button-bg);
     color: var(--primary);
     border: 1px solid var(--button-border);
-    padding: 12px 24px;
-    border-radius: var(--border-radius);
+    padding: 12px 30px;
+    border-radius: 30px;
     cursor: pointer;
     font-size: 1.1em;
-    transition: background-color var(--transition), transform var(--transition);
+    transition: all 0.3s ease;
+    min-width: 150px;
 }
 
 .modal-content button:hover {
     background-color: var(--button-hover-bg);
     border-color: var(--button-hover-border);
     transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Creator info section */
+.creator-info {
+    background-color: rgba(25, 25, 25, 0.9); /* Slightly darker background */
+    border-radius: var(--border-radius);
+    padding: 15px 20px;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.creator-detail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.creator-detail .material-icons {
+    color: var(--primary);
+    font-size: 20px;
+}
+
+.creator-detail p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9); /* Brighter text */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .recipe-details h2 {
+        font-size: 2em;
+    }
+    
+    .recipe-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .modal-content {
+        padding: 30px 20px;
+    }
+    
+    .steps-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -198,71 +646,8 @@
         transform: scale(1);
     }
 }
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: red;
-}
 
-.close-btn:hover {
-    color: red;
-}
-
-.btn {
-    padding: 10px 20px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color var(--transition), transform var(--transition);
-}
-
-.save-btn, .unsave-btn {
-    background-color: var(--button-bg);
-    color: var(--primary);
-    border: 1px solid var(--button-border);
-    margin-right: 10px; /* Add margin to the right */
-}
-
-.schedule-btn {
-    background-color: var(--button-bg);
-    color: var(--primary);
-    border: 1px solid var(--button-border);
-    margin-left: 10px; /* Add margin to the left */
-}
-
-.save-btn:hover, .unsave-btn:hover, .schedule-btn:hover {
-    background-color: var(--button-hover-bg);
-    border-color: rgba(50, 205, 50, 0.8);
-    box-shadow: 0 0 5px rgba(50, 205, 50, 0.8); /* Green glow */
-}
-
-/* Step-by-step mode styling */
-.steps-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.step-by-step-btn {
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.step-by-step-btn:hover {
-    background-color: var(--button-hover-bg);
-}
+/* Immersive step-by-step mode styling is kept unchanged */
 
 .step-by-step-view {
     background-color:var(--secondary);
