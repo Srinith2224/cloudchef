@@ -183,18 +183,35 @@ const Auth = () => {
                         {isLogin ? 'Sign in' : 'Register'}
                     </button>
                     {isLogin && googleClientId && (
-                        <div className="google-login-container">
-                            <GoogleOAuthProvider clientId={googleClientId}>
-                                <GoogleLogin
-                                    onSuccess={handleGoogleSuccess}
-                                    onError={handleGoogleFailure}
-                                    shape="rectangular"
-                                    text="signin_with"
-                                    size="large"
-                                    width="100%"
-                                />
-                            </GoogleOAuthProvider>
-                        </div>
+                        <>
+                            <div className="auth-separator">
+                                <span>OR</span>
+                            </div>
+                            <div className="google-login-container">
+                                <GoogleOAuthProvider clientId={googleClientId}>
+                                    <div className="google-login-button-wrapper">
+                                        <button type="button" className="custom-google-button">
+                                            <img 
+                                                src={googleIcon} 
+                                                alt="Google" 
+                                                className="google-icon" 
+                                            />
+                                            Sign in with Google
+                                        </button>
+                                        <GoogleLogin
+                                            onSuccess={handleGoogleSuccess}
+                                            onError={handleGoogleFailure}
+                                            useOneTap={false}
+                                            type="standard"
+                                            shape="rectangular"
+                                            theme="filled_black"
+                                            size="large"
+                                            width="400"
+                                        />
+                                    </div>
+                                </GoogleOAuthProvider>
+                            </div>
+                        </>
                     )}
                     <p className="toggle-link">
                         {isLogin ? "Don’t have an account? " : "Already have an account? "}

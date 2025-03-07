@@ -108,12 +108,7 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
                             )}
                         </div>
                         
-                        {/* Step counter below media */}
-                        <div className="step-counter-indicator">
-                            Step instruction: {currentStep.text || currentStep.description}
-                        </div>
-                        
-                        {/* Step ingredients info */}
+                        {/* Step ingredients info - removed the redundant step instruction */}
                         {(currentStep.ingredients && currentStep.ingredients.length > 0) || 
                          (currentStep.ingredient) || 
                          (currentStep.alternate) || 
@@ -680,21 +675,38 @@ const RecipeDetails = () => {
                 <p><strong>Created on:</strong> {new Date(recipe.createdAt).toLocaleDateString()}</p>
             </div>
             
-            {user && user.userId === recipe.createdBy._id ? (
-                <div className="button-group">
-                    <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>Update</button>
-                    <button className="btn delete-btn" onClick={handleDelete}>
-                        <span className="material-icons">delete</span>
-                    </button>
-                </div>
-            ) : (
-                isSaved ? (
-                    <button className="btn unsave-btn" onClick={handleUnsave}>Unsave</button>
+            {/* Group all action buttons in a consistent row */}
+            <div className="button-row">
+                {user && user.userId === recipe.createdBy._id ? (
+                    <>
+                        <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
+                            <span className="material-icons">edit</span> Update
+                        </button>
+                        <button className="btn delete-btn" onClick={handleDelete}>
+                            <span className="material-icons">delete</span> Delete
+                        </button>
+                        <button className="btn schedule-btn" onClick={handleSchedule}>
+                            <span className="material-icons">calendar_today</span> Schedule
+                        </button>
+                    </>
                 ) : (
-                    <button className="btn save-btn" onClick={handleSave}>Save</button>
-                )
-            )}
-            <button className="btn schedule-btn" onClick={handleSchedule}>Schedule</button>
+                    <>
+                        {isSaved ? (
+                            <button className="btn unsave-btn" onClick={handleUnsave}>
+                                <span className="material-icons">bookmark_remove</span> Unsave
+                            </button>
+                        ) : (
+                            <button className="btn save-btn" onClick={handleSave}>
+                                <span className="material-icons">bookmark_add</span> Save
+                            </button>
+                        )}
+                        <button className="btn schedule-btn" onClick={handleSchedule}>
+                            <span className="material-icons">calendar_today</span> Schedule
+                        </button>
+                    </>
+                )}
+            </div>
+            
             {showSuccessModal && (
                 <div className="modal">
                     <div className="modal-content">

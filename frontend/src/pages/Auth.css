@@ -129,7 +129,6 @@
     transform: translateY(-2px);
 }
 
-/* Google Sign-In Button */
 
 
 
@@ -207,4 +206,78 @@
 .modal-content button:hover {
     background-color: #66ff66;
     border-color: #66ff66;
+}
+
+/* Google Login Button Styling */
+.google-login-container {
+    margin-top: 15px;
+    position: relative;
+    width: 100%;
+}
+
+/* Add separator with text */
+.auth-separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #b2b2b2;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #444;
+}
+
+.auth-separator span {
+    padding: 0 10px;
+    font-size: 0.9em;
+}
+
+/* Custom Google button style to match primary sign-in button */
+.custom-google-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 30px;
+    background-color: var(--button-bg);
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 10px;
+    border: none;
+    font-family: inherit;
+}
+
+
+
+.custom-google-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-border);
+    transform: translateY(-2px);
+}
+
+.custom-google-button:focus {
+    outline: none;
+}
+
+/* Position the Google button invisible but clickable */
+.google-login-button-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.google-login-button-wrapper > div {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0;
+    pointer-events: all;
 }
