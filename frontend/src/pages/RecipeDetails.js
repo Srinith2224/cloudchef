@@ -238,15 +238,51 @@ const RecipeDetails = () => {
             }
         };
 
+        // Update this part - Add user ID to localStorage key
+        const checkCartItems = async () => {
+            try {
+                // Fetch actual cart items from server instead of relying only on localStorage
+                const response = await fetch('/api/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const cartData = await response.json();
+                    // Extract ingredient names from server response
+                    const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
+                    
+                    // Compare with recipe ingredients and mark those that are in the cart
+                    const addedIngs = recipe.ingredients
+                        .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
+                        .map(ing => ing.name);
+                    
+                    setAddedIngredients(addedIngs);
+                    
+                    // Store with user-specific key
+                    const userKey = `addedIngredients_${user.userId}_${id}`;
+                    localStorage.setItem(userKey, JSON.stringify(addedIngs));
+                }
+            } catch (error) {
+                console.error('Error checking cart items:', error);
+            }
+        };
+
         fetchRecipe();
         checkIfSaved();
 
-        // Load added ingredients from local storage
-        const storedAddedIngredients = localStorage.getItem(`addedIngredients_${id}`);
-        if (storedAddedIngredients) {
-            setAddedIngredients(JSON.parse(storedAddedIngredients));
+        // Replace this part
+        // const storedAddedIngredients = localStorage.getItem(`addedIngredients_${id}`);
+        // if (storedAddedIngredients) {
+        //     setAddedIngredients(JSON.parse(storedAddedIngredients));
+        // }
+        
+        // With this - load based on user-specific key
+        if (recipe) {  // Only check cart if recipe is loaded
+            checkCartItems();
         }
-    }, [id, user.userId]);
+    }, [id, user.userId, recipe]);  // Add recipe as dependency
 
     const handleAddToCart = async (ingredient) => {
         try {
@@ -268,7 +304,8 @@ const RecipeDetails = () => {
                 setShowSuccessModal(true);
                 const updatedAddedIngredients = [...addedIngredients, ingredient.name];
                 setAddedIngredients(updatedAddedIngredients);
-                localStorage.setItem(`addedIngredients_${id}`, JSON.stringify(updatedAddedIngredients));
+                // Use user-specific key
+                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(updatedAddedIngredients));
             } else {
                 console.error('Failed to add ingredient to cart');
             }
@@ -285,6 +322,11 @@ const RecipeDetails = () => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            
+            if (!cartResponse.ok) {
+                throw new Error('Failed to fetch cart items');
+            }
+            
             const cartData = await cartResponse.json();
             
             // Find the item in the cart that matches this ingredient
@@ -308,16 +350,25 @@ const RecipeDetails = () => {
             });
 
             if (response.ok) {
+                // Only update UI if the request was successful
                 setSuccessMessage('Ingredient removed from cart successfully');
                 setShowSuccessModal(true);
+                
+                // Update the local state to reflect the removal
                 const updatedAddedIngredients = addedIngredients.filter(item => item !== ingredient.name);
                 setAddedIngredients(updatedAddedIngredients);
-                localStorage.setItem(`addedIngredients_${id}`, JSON.stringify(updatedAddedIngredients));
+                
+                // Update localStorage to persist the state
+                // Use user-specific key here too
+                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(updatedAddedIngredients));
             } else {
-                console.error('Failed to remove ingredient from cart');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to remove ingredient from cart');
             }
         } catch (error) {
             console.error('Error removing ingredient from cart:', error);
+            setSuccessMessage(`Error: ${error.message}`);
+            setShowSuccessModal(true);
         }
     };
 
@@ -343,7 +394,8 @@ const RecipeDetails = () => {
                 setShowSuccessModal(true);
                 const allIngredientNames = recipe.ingredients.map(ingredient => ingredient.name);
                 setAddedIngredients(allIngredientNames);
-                localStorage.setItem(`addedIngredients_${id}`, JSON.stringify(allIngredientNames));
+                // Use user-specific key
+                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(allIngredientNames));
             } else {
                 console.error('Failed to add all ingredients to cart');
             }
