@@ -92,11 +92,8 @@ const Auth = () => {
 
     const handleOkClick = () => {
         setShowSuccessModal(false);
-        if (isLogin) {
-            navigate('/welcome');
-        } else {
-            setIsLogin(true);
-        }
+        // Always navigate to welcome page after successful authentication
+        navigate('/welcome');
     };
 
     useEffect(() => {
