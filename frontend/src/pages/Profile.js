@@ -43,7 +43,7 @@ const Profile = () => {
                             setProfilePhoto(`http://localhost:4000${data.profilePhoto}`);
                         }
                     } else {
-                        setProfilePhoto('/default-avatar.png'); // Use a default avatar
+                        setProfilePhoto(''); // Don't set a default avatar
                     }
                     
                     setAbout(data.about || '');
@@ -95,17 +95,23 @@ const Profile = () => {
             if (!response.ok) {
                 setError(json.error);
             } else {
+                // Use the existing token instead of expecting a new one
+                const token = localStorage.getItem('token');
+                
                 // Update auth context with new user info
                 const updatedUser = {
                     ...user,
                     firstName: json.firstName || user.firstName,
                     lastName: json.lastName || user.lastName,
                     email: json.email || user.email,
-                    profilePhoto: json.profilePhoto || user.profilePhoto
+                    profilePhoto: json.profilePhoto || user.profilePhoto,
+                    about: json.about || about,
+                    region: json.region || region
                 };
                 
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 
+                // Don't modify the token
                 dispatch({
                     type: 'LOGIN',
                     payload: updatedUser
@@ -116,6 +122,7 @@ const Profile = () => {
             }
         } catch (error) {
             setError('Failed to update profile');
+            console.error('Profile update error:', error);
         }
     };
 
@@ -160,13 +167,19 @@ const Profile = () => {
                         <div className="profile-photo-container">
                             <div className="profile-photo">
                                 <img 
-                                    src={profilePhoto || '/default-avatar.png'} 
+                                    src={profilePhoto} 
                                     alt="Profile" 
                                     onError={(e) => {
-                                        e.target.onerror = null; 
-                                        e.target.src = '/default-avatar.png';
+                                        e.target.onerror = null;
+                                        // Don't set a fallback image
                                     }} 
+                                    style={{ display: profilePhoto ? 'block' : 'none' }}
                                 />
+                                {!profilePhoto && (
+                                    <span className="material-icons profile-icon" style={{ fontSize: '180px', opacity: '0.5' }}>
+                                        account_circle
+                                    </span>
+                                )}
                                 <label htmlFor="upload-photo" className="upload-photo-label">
                                     Update Photo
                                 </label>
