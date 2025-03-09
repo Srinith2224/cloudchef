@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useRecipesContext } from "../hooks/useRecipesContext";
 import Lottie from 'react-lottie';
 import animationData from '../assets/cooking-background.json';
 import './Auth.css'; 
-import googleIcon from '../assets/google.png';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 
 const Auth = () => {
-    
     const { dispatch } = useRecipesContext();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
@@ -19,6 +16,9 @@ const Auth = () => {
     const [error, setError] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [googleClientId, setGoogleClientId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [showOtpForm, setShowOtpForm] = useState(false);
+    const [otp, setOtp] = useState('');
 
     const navigate = useNavigate();
 
@@ -41,14 +41,15 @@ const Auth = () => {
         if (!response.ok) {
             setError(json.error);
         } else {
-            if (isLogin) {
-                localStorage.setItem('token', json.token);
-                dispatch({ type: 'LOGIN', payload: json });
-                setShowSuccessModal(true);
-            } else {
-                setShowSuccessModal(true);
-            }
-            setError(null);
+            // Save user to local storage
+            localStorage.setItem('user', JSON.stringify(json));
+            localStorage.setItem('token', json.token);
+            
+            // Update auth context
+            dispatch({ type: 'LOGIN', payload: json });
+            
+            // Show success modal
+            setShowSuccessModal(true);
         }
     };
 
@@ -123,6 +124,78 @@ const Auth = () => {
         }
     };
 
+    const handleSendOTP = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
+    
+        try {
+            const response = await fetch('/api/otp/send-registration-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    email,
+                    password
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                setShowOtpForm(true);
+            } else {
+                setError(data.error || 'Failed to send OTP');
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleVerifyOTP = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
+    
+        try {
+            const response = await fetch('/api/otp/verify-registration-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    otp
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Save user to local storage
+                localStorage.setItem('user', JSON.stringify(data));
+                localStorage.setItem('token', data.token);
+                
+                // Update auth context
+                dispatch({ type: 'LOGIN', payload: data });
+                
+                // Show success modal
+                setShowSuccessModal(true);
+            } else {
+                setError(data.error || 'Verification failed');
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="auth-page">
             <div className="auth-animation">
@@ -131,10 +204,14 @@ const Auth = () => {
                 </div>
             </div>
             <div className="auth-container">
-                <form className="auth-form" onSubmit={handleSubmit}>
+                <form 
+                    className="auth-form" 
+                    onSubmit={isLogin ? handleSubmit : (showOtpForm ? handleVerifyOTP : handleSendOTP)}
+                >
                     <h2>{isLogin ? 'Welcome back' : 'Get Started'}</h2>
                     <p>{isLogin ? 'Welcome back! Please enter your details' : 'Please fill in the details to create an account'}</p>
-                    {!isLogin && (
+                    
+                    {!isLogin && !showOtpForm && (
                         <>
                             <label>First Name</label>
                             <input 
@@ -154,34 +231,51 @@ const Auth = () => {
                             />
                         </>
                     )}
-                    <label>Email</label>
-                    <input 
-                        type="email"
-                        placeholder="Enter your email"
-                        onChange={(e) => setEmail(e.target.value)}
-                        value={email}
-                        required
-                    />
-                    <label>Password</label>
-                    <input 
-                        type="password"
-                        placeholder="**********"
-                        onChange={(e) => setPassword(e.target.value)}
-                        value={password}
-                        required
-                    />
+                    {!showOtpForm && (
+                        <>
+                            <label>Email</label>
+                            <input 
+                                type="email"
+                                placeholder="Enter your email"
+                                onChange={(e) => setEmail(e.target.value)}
+                                value={email}
+                                required
+                            />
+                            <label>Password</label>
+                            <input 
+                                type="password"
+                                placeholder="**********"
+                                onChange={(e) => setPassword(e.target.value)}
+                                value={password}
+                                required
+                            />
+                        </>
+                    )}
                     {isLogin && (
                         <div className="auth-options">
                             <label>
                                 <input type="checkbox" />
                                 Remember&nbsp;me
                             </label>
-                            <a href="/forgot-password">Forgot password?</a>
+                            <Link to="/forgot-password">Forgot password?</Link>
                         </div>
                     )}
-                    <button type="submit" className="auth-button">
-                        {isLogin ? 'Sign in' : 'Register'}
+                    {!isLogin && showOtpForm && (
+                        <>
+                            <label>Enter OTP sent to your email:</label>
+                            <input 
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                required
+                            />
+                        </>
+                    )}
+                    
+                    <button type="submit" className="auth-button" disabled={isLoading}>
+                        {isLoading ? (showOtpForm ? 'Verifying...' : 'Sending...') : (isLogin ? 'Sign in' : (showOtpForm ? 'Verify OTP' : 'Send OTP'))}
                     </button>
+                    
                     {isLogin && googleClientId && (
                         <>
                             <div className="auth-separator">
@@ -189,33 +283,33 @@ const Auth = () => {
                             </div>
                             <div className="google-login-container">
                                 <GoogleOAuthProvider clientId={googleClientId}>
-                                    <div className="google-login-button-wrapper">
-                                        <button type="button" className="custom-google-button">
-                                            <img 
-                                                src={googleIcon} 
-                                                alt="Google" 
-                                                className="google-icon" 
-                                            />
-                                            Sign in with Google
-                                        </button>
-                                        <GoogleLogin
-                                            onSuccess={handleGoogleSuccess}
-                                            onError={handleGoogleFailure}
-                                            useOneTap={false}
-                                            type="standard"
-                                            shape="rectangular"
-                                            theme="filled_black"
-                                            size="large"
-                                            width="400"
-                                        />
-                                    </div>
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={handleGoogleFailure}
+                                        useOneTap={false}
+                                        theme="filled_black"
+                                        size="large"
+                                        text="signin_with"
+                                        width="100%"
+                                        logo_alignment="left"
+                                        shape="rectangular"
+                                    />
                                 </GoogleOAuthProvider>
                             </div>
                         </>
                     )}
                     <p className="toggle-link">
-                        {isLogin ? "Don’t have an account? " : "Already have an account? "}
-                        <a href="#" onClick={(e) => { e.preventDefault(); setIsLogin(!isLogin); }}>
+                        {isLogin ? "Don't have an account? " : "Already have an account? "}
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a 
+                            href="#" 
+                            onClick={(e) => { 
+                                e.preventDefault(); 
+                                setIsLogin(!isLogin); 
+                                setShowOtpForm(false);
+                                setError(null);
+                            }}
+                        >
                             {isLogin ? 'Sign up for free!' : 'Sign in'}
                         </a>
                     </p>

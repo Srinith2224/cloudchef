@@ -1,5 +1,5 @@
 const express = require('express');
-const { loginUser, registerUser, logoutUser, googleSignIn } = require('../controllers/authController');
+const { loginUser, registerUser, logoutUser, googleSignIn, getGoogleClientId } = require('../controllers/authController');
 const router = express.Router();
 
 router.post('/login', loginUser);
@@ -10,8 +10,6 @@ router.post('/logout', logoutUser); // Add logout route
 router.post('/google-signin', googleSignIn);
 
 // Add route to get Google Client ID
-router.get('/google-client-id', (req, res) => {
-  res.json({ clientId: process.env.GOOGLE_CLIENT_ID });
-});
+router.get('/google-client-id', getGoogleClientId);
 
 module.exports = router;

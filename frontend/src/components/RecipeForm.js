@@ -136,7 +136,7 @@ const RecipeForm = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setSuccessMessage('Recipe added successfully');
+                setSuccessMessage(`Recipe "${data.title}" added successfully`);
                 setShowSuccessModal(true);
             } else {
                 const errorData = await response.json();

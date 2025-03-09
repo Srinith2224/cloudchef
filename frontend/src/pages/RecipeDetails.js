@@ -11,51 +11,47 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
     const [successMessage, setSuccessMessage] = useState('');
     
     const totalSteps = recipe.steps.length;
-    const currentStep = recipe.steps[currentStepIndex];
-    const isLastStep = currentStepIndex === totalSteps - 1;
+    const currentStep = recipe.steps[currentStepIndex] || {};
     const isFirstStep = currentStepIndex === 0;
+    const isLastStep = currentStepIndex === totalSteps - 1;
     const progress = ((currentStepIndex + 1) / totalSteps) * 100;
     
-    // Handle keyboard navigation
-    const handleKeyDown = useCallback((e) => {
-        if (e.key === 'ArrowRight' && !isLastStep) {
-            handleNextStep();
-        } else if (e.key === 'ArrowLeft' && !isFirstStep) {
-            handlePrevStep();
-        } else if (e.key === 'Escape') {
-            onExit();
-        }
-    }, [currentStepIndex, totalSteps]);
-    
-    useEffect(() => {
-        // Add keyboard event listener
-        window.addEventListener('keydown', handleKeyDown);
-        
-        // Remove event listener on cleanup
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-    
-    const handleNextStep = () => {
+    const handleNextStep = useCallback(() => {
         if (isLastStep) {
             setSuccessMessage("Your dish is ready! 🎉");
             setShowSuccessModal(true);
         } else {
             setCurrentStepIndex(prev => prev + 1);
         }
-    };
+    }, [isLastStep]);
     
-    const handlePrevStep = () => {
+    const handlePrevStep = useCallback(() => {
         if (!isFirstStep) {
             setCurrentStepIndex(prev => prev - 1);
         }
-    };
+    }, [isFirstStep]);
     
-    const handleOkClick = () => {
+    const handleOkClick = useCallback(() => {
         setShowSuccessModal(false);
         if (isLastStep) {
             onExit();
         }
-    };
+    }, [isLastStep, onExit]);
+    
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === 'ArrowRight' && currentStepIndex < totalSteps - 1) {
+            handleNextStep();
+        } else if (e.key === 'ArrowLeft' && !isFirstStep) {
+            handlePrevStep();
+        } else if (e.key === 'Escape') {
+            onExit();
+        }
+    }, [currentStepIndex, totalSteps, handleNextStep, handlePrevStep, isFirstStep, onExit]);
+    
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
     
     return (
         <div className="immersive-step-mode">

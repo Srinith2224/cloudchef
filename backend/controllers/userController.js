@@ -4,6 +4,7 @@ const Recipe = require('../models/RecipeModel');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({

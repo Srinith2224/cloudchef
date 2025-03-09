@@ -15,6 +15,7 @@ import Cart from './pages/Cart';
 import ScheduledMeals from './pages/ScheduledMeals';
 import GenerateRecipe from './pages/GenerateRecipe';
 import RequireAuth from './components/RequireAuth';
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/cart" element={<RequireAuth><Cart /></RequireAuth>} />
             <Route path="/scheduled-meals" element={<RequireAuth><ScheduledMeals /></RequireAuth>} /> 
             <Route path="/generate-recipe" element={<RequireAuth><GenerateRecipe /></RequireAuth>} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Routes>
         </div>
       </Router>

@@ -11,6 +11,7 @@ const calendarRoutes = require('./routes/calendar');
 const cartRoutes = require('./routes/cart');
 const reportRoutes = require('./routes/reports');
 const recipeImageGenerationRoutes = require('./routes/recipeImageGeneration');
+const otpRoutes = require('./routes/otpRoutes');
 const Recipe = require('./models/RecipeModel');
 const app = express();
 
@@ -29,9 +30,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/recipe-image-generation', recipeImageGenerationRoutes);
-
-// Check that this route is properly registered
-app.use('/api/calendar', require('./routes/calendar'));
+app.use('/api/otp', otpRoutes);
 
 // Serve static files from recipeImages
 app.use('/recipeImages', express.static(path.join(__dirname, 'recipeImages')));
@@ -40,8 +39,6 @@ app.use('/recipeStepsVideos', express.static(path.join(__dirname, 'recipeStepsVi
 
 // Automated cleanup function
 async function cleanupUnusedFiles() {
-    
-    
     try {
         const recipes = await Recipe.find({});
         const referencedPaths = new Set();

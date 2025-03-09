@@ -117,4 +117,28 @@ const googleSignIn = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, logoutUser, googleSignIn };
+// Add this function after your googleSignIn function
+const getGoogleClientId = async (req, res) => {
+  try {
+    // Check if the Google Client ID is set in the environment
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    
+    if (!googleClientId) {
+      return res.status(500).json({ error: 'Google Client ID not configured' });
+    }
+    
+    res.status(200).json({ clientId: googleClientId });
+  } catch (error) {
+    console.error('Error getting Google client ID:', error);
+    res.status(500).json({ error: 'Failed to get Google client ID' });
+  }
+};
+
+// Make sure to export the function in your module.exports
+module.exports = {
+  loginUser,
+  registerUser,
+  logoutUser,
+  googleSignIn,
+  getGoogleClientId // Add this line
+};
