@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/UserModel');
 
-// This is what your middleware might look like
 const requireAuth = async (req, res, next) => {
     // Verify authorization
     const { authorization } = req.headers;
@@ -18,6 +17,8 @@ const requireAuth = async (req, res, next) => {
         
         // Find user
         req.userId = _id;
+        // Also set req.user to maintain compatibility with both patterns
+        req.user = { _id };
         next();
     } catch (error) {
         console.log('Token verification error:', error);

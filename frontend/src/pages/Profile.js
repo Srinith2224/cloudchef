@@ -21,6 +21,11 @@ const Profile = () => {
         mealPlanReminders: false,
         newRecipeAlerts: false
     });
+    const [showPasswordUpdateOtpForm, setShowPasswordUpdateOtpForm] = useState(false);
+    const [passwordUpdateOtp, setPasswordUpdateOtp] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -176,6 +181,128 @@ const Profile = () => {
         }));
     };
 
+    const handleSendPasswordUpdateOTP = async () => {
+        setError(null);
+        setSuccessMessage('');
+        setIsLoading(true);
+        
+        if (!password) {
+            setError('Please enter a new password');
+            setIsLoading(false);
+            return;
+        }
+    
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Authentication token missing. Please log in again.');
+                setIsLoading(false);
+                return;
+            }
+            
+            const response = await fetch('/api/otp/send-password-update-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                setShowPasswordUpdateOtpForm(true);
+                setSuccessMessage('Verification code sent to your email');
+                setNewPassword(password); // Pre-fill the confirmation field
+            } else {
+                setError(data.error || 'Failed to send verification code');
+            }
+        } catch (error) {
+            setError('Failed to send verification code');
+            console.error('Error sending OTP:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleSecuritySubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setSuccessMessage('');
+        setIsLoading(true);
+        
+        // If we're showing the OTP form, handle OTP verification
+        if (showPasswordUpdateOtpForm) {
+            if (password !== newPassword) {
+                setError('Passwords do not match');
+                setIsLoading(false);
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setError('Authentication token missing. Please log in again.');
+                    setIsLoading(false);
+                    return;
+                }
+                
+                const response = await fetch('/api/otp/verify-password-update-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email,
+                        otp: passwordUpdateOtp,
+                        newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setSuccessMessage('Password updated successfully');
+                    setShowPasswordUpdateOtpForm(false);
+                    setPassword('');
+                    setNewPassword('');
+                    setPasswordUpdateOtp('');
+                    
+                    // Update user in localStorage if needed
+                    const currentUser = JSON.parse(localStorage.getItem('user'));
+                    if (currentUser && data.email) {
+                        const updatedUser = {
+                            ...currentUser,
+                            email: data.email,
+                            profilePhoto: data.profilePhoto || currentUser.profilePhoto
+                        };
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+                        
+                        // Update context
+                        dispatch({
+                            type: 'LOGIN',
+                            payload: updatedUser
+                        });
+                    }
+                    
+                    setShowUpdateSuccessModal(true);
+                } else {
+                    setError(data.error || 'Failed to verify code');
+                }
+            } catch (error) {
+                setError('Failed to update password');
+                console.error('Error verifying OTP:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            // Just handle email update if no password change
+            handleUpdateProfile(e);
+        }
+    };
+
     const renderSection = () => {
         switch (activeSection) {
             case 'profile':
@@ -243,29 +370,87 @@ const Profile = () => {
                 );
             case 'security':
                 return (
-                    <form onSubmit={handleUpdateProfile} className="profile-form">
+                    <form onSubmit={handleSecuritySubmit} className="profile-form">
                         <div className="profile-info">
                             <div className="input-group full-width">
                                 <label>Email Address</label>
                                 <input
                                     type="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
+                                    readOnly
+                                    className="readonly-input"
                                 />
                             </div>
-                            <div className="input-group full-width">
-                                <label>Update Password</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Leave blank to keep current password"
-                                />
-                            </div>
-                            <div className="button-group">
-                                <button type="submit" className="update-button">Update Security</button>
-                            </div>
+                            
+                            {!showPasswordUpdateOtpForm ? (
+                                <>
+                                    <div className="input-group full-width">
+                                        <label>Update Password</label>
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="Enter new password"
+                                        />
+                                    </div>
+                                    <div className="button-group">
+                                        <button 
+                                            type="button" 
+                                            className="update-button"
+                                            onClick={handleSendPasswordUpdateOTP}
+                                            disabled={!password || isLoading}
+                                        >
+                                            {isLoading ? 'Sending...' : 'Update Password'}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                // OTP verification form remains unchanged
+                                <>
+                                    <div className="input-group full-width">
+                                        <label>Enter OTP sent to your email:</label>
+                                        <input 
+                                            type="text"
+                                            placeholder="Enter verification code"
+                                            value={passwordUpdateOtp}
+                                            onChange={(e) => setPasswordUpdateOtp(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="input-group full-width">
+                                        <label>Confirm New Password</label>
+                                        <input
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            placeholder="Re-enter your new password"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="button-group">
+                                        <button 
+                                            type="submit" 
+                                            className="update-button"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? 'Verifying...' : 'Verify & Update'}
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            className="cancel-button"
+                                            onClick={() => {
+                                                setShowPasswordUpdateOtpForm(false);
+                                                setPasswordUpdateOtp('');
+                                                setNewPassword('');
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                            
+                            {successMessage && <div className="success-message">{successMessage}</div>}
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
