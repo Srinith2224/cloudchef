@@ -82,11 +82,20 @@ const Profile = () => {
         formData.append('region', region || '');
 
         try {
+            // Get the token correctly from localStorage
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                setError('Authentication token missing. Please log in again.');
+                return;
+            }
+            
             const response = await fetch(`/api/users/${user.userId}`, {
                 method: 'PATCH',
                 body: formData,
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    // Make sure Authorization header is properly formatted
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -95,27 +104,29 @@ const Profile = () => {
             if (!response.ok) {
                 setError(json.error);
             } else {
-                // Use the existing token instead of expecting a new one
-                const token = localStorage.getItem('token');
-                
-                // Update auth context with new user info
+                // Store the EXACT same token that was used for the request
+                const currentUser = JSON.parse(localStorage.getItem('user'));
                 const updatedUser = {
-                    ...user,
-                    firstName: json.firstName || user.firstName,
-                    lastName: json.lastName || user.lastName,
-                    email: json.email || user.email,
-                    profilePhoto: json.profilePhoto || user.profilePhoto,
+                    ...currentUser,
+                    email: json.email || currentUser.email,
+                    profilePhoto: json.profilePhoto || currentUser.profilePhoto,
                     about: json.about || about,
                     region: json.region || region
                 };
                 
+                // Update user in localStorage without touching the token
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 
-                // Don't modify the token
+                // Update context with same approach
                 dispatch({
                     type: 'LOGIN',
                     payload: updatedUser
                 });
+                
+                // Update UI directly
+                setProfilePhoto(json.profilePhoto ? 
+                    (json.profilePhoto.startsWith('http') ? json.profilePhoto : `http://localhost:4000${json.profilePhoto}`)
+                    : profilePhoto);
                 
                 setError(null);
                 setShowUpdateSuccessModal(true);
@@ -150,6 +161,12 @@ const Profile = () => {
     const handleOkClick = () => {
         setShowLogoutSuccessModal(false);
         setShowUpdateSuccessModal(false);
+        
+        // Add debugging log to check token after update
+        if (showUpdateSuccessModal) {
+            const token = localStorage.getItem('token');
+            console.log('Token after profile update:', token ? 'Valid token exists' : 'No token found');
+        }
     };
 
     const handleToggleNotification = (setting) => {
