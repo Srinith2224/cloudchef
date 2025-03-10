@@ -494,11 +494,12 @@ const RecipeForm = () => {
                                 <td>
                                     <button
                                         type="button"
-                                        className="delete-btn"
+                                        className="recipe-delete-button ingredient-delete"
                                         onClick={() => handleDeleteIngredient(index)}
                                         disabled={ingredients.length <= 1}
+                                        title="Delete ingredient"
                                     >
-                                        Delete
+                                        <span className="material-icons">delete_outline</span>
                                     </button>
                                 </td>
                             </tr>
@@ -664,13 +665,15 @@ const RecipeForm = () => {
                         )}
                     </div>
                     
+                    
                     <button 
                         type="button" 
-                        className="delete-btn" 
+                        className="recipe-delete-button step-delete" 
                         onClick={() => handleDeleteStep(index)}
                         disabled={steps.length <= 1}
+                        title="Delete step"
                     >
-                        Delete Step
+                        <span className="material-icons">delete_outline</span> Remove Step
                     </button>
                 </div>
             ))}

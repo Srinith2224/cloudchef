@@ -143,31 +143,30 @@
 
 /* Delete button */
 .cart-table .delete-btn {
-    background-color: rgba(220, 53, 69, 0.15);
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 8px 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    color: #dc3545;
-    gap: 5px;
-    position: relative;
-    width: auto;
-    height: auto;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background-color: rgba(220, 53, 69, 0.5) !important; /* More visible red */
+    color: white !important;
+    border: 2px solid #dc3545 !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 8px !important;
+    z-index: 50 !important; /* Much higher z-index */
+    margin: 0 auto !important;
+    cursor: pointer !important;
+}
+
+.cart-table .delete-btn:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+    transform: translateY(-2px);
 }
 
 .cart-table .delete-btn .material-icons {
-    color: #dc3545;
-    font-size: 1.2rem;
+    font-size: 24px !important;
+    color: white !important;
+    display: block !important;
 }
-
-
-
-
 
 /* Popup styling */
 .popup {
@@ -400,5 +399,80 @@
     
     .cart-table td:last-child {
         border-bottom: none;
+    }
+}
+
+/* Add this at the end of your Cart.css file */
+.cart-table .delete-btn {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background-color: #dc3545 !important; /* Solid red background */
+    color: white !important;
+    border: none !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 8px !important;
+    z-index: 999 !important; /* Very high z-index */
+    cursor: pointer !important;
+    border-radius: 4px !important;
+}
+
+.cart-table .delete-btn .material-icons {
+    font-size: 20px !important;
+    color: white !important;
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Override any conflicting rules */
+.cart-table td:last-child {
+    text-align: center !important;
+}
+
+/* New cart delete button with higher specificity */
+.cart-table .cart-delete-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin: 0 auto;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 0;
+}
+
+.cart-table .cart-delete-button:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+}
+
+.cart-table .cart-delete-button .material-icons {
+    font-size: 20px;
+    color: white;
+}
+
+/* Ensure proper centering in the table cell */
+.cart-table td:last-child {
+    text-align: center;
+}
+
+/* Fix for mobile view */
+@media (max-width: 480px) {
+    .cart-table td[data-label="Delete"]:before {
+        content: "";
+        display: none;
+    }
+    
+    .cart-table td[data-label="Delete"] {
+        text-align: center;
+        padding-left: 15px;
     }
 }

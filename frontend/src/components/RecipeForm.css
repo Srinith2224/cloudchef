@@ -270,6 +270,30 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.ingredient-table .delete-btn {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.ingredient-table .delete-btn:hover {
+  background-color: rgba(220, 53, 69, 0.2);
+  transform: translateY(-2px);
+}
+
+.ingredient-table .delete-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .btn {
   padding: 12px 22px;
   height: 48px;
@@ -823,4 +847,73 @@ body {
   .navigation-buttons button {
     width: 100%;
   }
+}
+
+.step-item .delete-btn {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+}
+
+.step-item .delete-btn:hover {
+  background-color: rgba(220, 53, 69, 0.2);
+  transform: translateY(-2px);
+}
+
+.step-item .delete-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* New delete button styling */
+.recipe-delete-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.recipe-delete-button.ingredient-delete {
+  margin: 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.recipe-delete-button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.recipe-delete-button:disabled {
+  background-color: #e0e0e0;
+  color: #9e9e9e;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.recipe-delete-button .material-icons {
+  font-size: 18px;
 }

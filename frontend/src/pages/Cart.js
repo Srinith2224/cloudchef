@@ -196,13 +196,13 @@ const Cart = () => {
                                     </div>
                                 </td>
                                 <td data-label="Unit">{item.unit}</td>
-                                <td data-label="Delete"> {/* Changed from "Actions" to "Delete" */}
+                                <td data-label="Delete">
                                     <button 
-                                        className="delete-btn" 
+                                        className="cart-delete-button" 
                                         onClick={() => handleDelete(item._id)}
                                         title="Remove from cart"
                                     >
-                                        <span className="material-icons">delete</span>
+                                        <span className="material-icons">delete_outline</span>
                                     </button>
                                 </td>
                             </tr>

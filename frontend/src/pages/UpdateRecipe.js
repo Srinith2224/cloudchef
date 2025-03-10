@@ -315,7 +315,7 @@ const UpdateRecipe = () => {
                                         className="delete-btn"
                                         onClick={() => handleDeleteIngredient(index)}
                                     >
-                                        Delete
+                                        <span className="material-icons">delete</span>
                                     </button>
                                 </td>
                             </tr>
@@ -460,7 +460,13 @@ const UpdateRecipe = () => {
                             onChange={(e) => handleStepVideoChange(index, e)}
                         />
                     </div>
-                    <button type="button" onClick={() => handleDeleteStep(index)}>Delete</button>
+                    <button 
+                        type="button" 
+                        className="delete-btn" 
+                        onClick={() => handleDeleteStep(index)}
+                    >
+                        <span className="material-icons">delete</span> Delete
+                    </button>
                 </div>
             ))}
             <button type="button" onClick={handleAddStep}>Add Step</button>
