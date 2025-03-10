@@ -3,7 +3,7 @@
 
 /* layout */
 :root {
-  --primary: #ffffff;
+  --primary: #32cd32;
   --secondary: #1e1e1e;
   --accent: #3a3a3a;
   --background: #121212;
@@ -12,7 +12,7 @@
   --button-border: #444444;
   --button-hover-bg: #3a3a3a;
   --button-hover-border: #555555;
-  --border-radius: 4px;
+  --border-radius: 16px;
   --transition: 0.3s ease;
 }
 body {

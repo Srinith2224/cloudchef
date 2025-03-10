@@ -68,7 +68,7 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
             </div>
             
             <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+                <div className="step-progress-bar" style={{ width: `${progress}%` }}></div>
             </div>
             
             <div className="immersive-step-content">
