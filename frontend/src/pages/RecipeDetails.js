@@ -198,6 +198,58 @@ const RecipeDetails = () => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0); // State for current step index
     const navigate = useNavigate();
 
+    // Define checkIfSaved with useCallback (add this near your other state definitions)
+    const checkIfSaved = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                const isRecipeSaved = data.some(savedRecipe => savedRecipe._id === id);
+                setIsSaved(isRecipeSaved);
+            } else {
+                console.error('Failed to fetch saved recipes:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching saved recipes:', error);
+        }
+    }, [user, id]); // Add user and id as dependencies
+
+    // Define checkCartItems with useCallback
+    const checkCartItems = useCallback(async () => {
+        try {
+            // Fetch actual cart items from server instead of relying only on localStorage
+            const response = await fetch('/api/cart', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.ok) {
+                const cartData = await response.json();
+                // Extract ingredient names from server response
+                const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
+                
+                // Compare with recipe ingredients and mark those that are in the cart
+                const addedIngs = recipe.ingredients
+                    .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
+                    .map(ing => ing.name);
+                
+                setAddedIngredients(addedIngs);
+                
+                // Store with user-specific key
+                const userKey = `addedIngredients_${user?.userId}_${id}`;
+                localStorage.setItem(userKey, JSON.stringify(addedIngs));
+            }
+        } catch (error) {
+            console.error('Error checking cart items:', error);
+        }
+    }, [recipe, user, id]); // Add recipe, user, and id as dependencies
+
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
@@ -221,64 +273,13 @@ const RecipeDetails = () => {
         if (user && user.userId) {
             checkIfSaved();
         }
-    }, [id, user]);
-
-    const checkIfSaved = async () => {
-        try {
-            const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                const isRecipeSaved = data.some(savedRecipe => savedRecipe._id === id);
-                setIsSaved(isRecipeSaved);
-            } else {
-                console.error('Failed to fetch saved recipes:', data.message);
-            }
-        } catch (error) {
-            console.error('Error fetching saved recipes:', error);
-        }
-    };
-
-    // Update this part - Add user ID to localStorage key
-    const checkCartItems = async () => {
-        try {
-            // Fetch actual cart items from server instead of relying only on localStorage
-            const response = await fetch('/api/cart', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                const cartData = await response.json();
-                // Extract ingredient names from server response
-                const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
-                
-                // Compare with recipe ingredients and mark those that are in the cart
-                const addedIngs = recipe.ingredients
-                    .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
-                    .map(ing => ing.name);
-                
-                setAddedIngredients(addedIngs);
-                
-                // Store with user-specific key
-                const userKey = `addedIngredients_${user.userId}_${id}`;
-                localStorage.setItem(userKey, JSON.stringify(addedIngs));
-            }
-        } catch (error) {
-            console.error('Error checking cart items:', error);
-        }
-    };
+    }, [id, user, checkIfSaved]); // Add checkIfSaved to the dependency array
 
     useEffect(() => {
         if (recipe) {  // Only check cart if recipe is loaded
             checkCartItems();
         }
-    }, [recipe]);  // Add recipe as dependency
+    }, [recipe, checkCartItems]);  // Add checkCartItems to the dependency array
 
     const handleAddToCart = async (ingredient) => {
         try {
