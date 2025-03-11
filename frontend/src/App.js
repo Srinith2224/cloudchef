@@ -17,6 +17,7 @@ import GenerateRecipe from './pages/GenerateRecipe';
 import RequireAuth from './components/RequireAuth';
 import ForgotPassword from './pages/ForgotPassword';
 import AdminPanel from './components/AdminPanel';
+import UserProfile from './pages/UserProfile';
 import { useContext } from 'react';
 import { RecipesContext } from './context/RecipeContext'; // Correct import
 
@@ -44,6 +45,7 @@ function App() {
             <Route path="/scheduled-meals" element={<RequireAuth><ScheduledMeals /></RequireAuth>} /> 
             <Route path="/generate-recipe" element={<RequireAuth><GenerateRecipe /></RequireAuth>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/user/:id" element={<UserProfile />} />
             <Route 
               path="/admin/*" 
               element={

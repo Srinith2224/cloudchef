@@ -133,6 +133,26 @@ const Welcome = () => {
                                     {recipe.totalTime ? `${recipe.totalTime.hours}h ${recipe.totalTime.minutes}m` : 'N/A'}
                                 </div>
                             </div>
+                            {recipe && recipe.createdBy && (
+                                <Link to={`/user/${recipe.createdBy._id}`} className="recipe-author-link">
+                                    <div className="recipe-card-author">
+                                        {recipe.createdBy.profilePhoto ? (
+                                            <img 
+                                                src={recipe.createdBy.profilePhoto.startsWith('http') ? 
+                                                    recipe.createdBy.profilePhoto : 
+                                                    `http://localhost:4000${recipe.createdBy.profilePhoto}`} 
+                                                alt="Author" 
+                                                className="recipe-author-image"
+                                            />
+                                        ) : (
+                                            <div className="recipe-author-placeholder">
+                                                <span className="material-icons">account_circle</span>
+                                            </div>
+                                        )}
+                                        <span className="recipe-author-name">{recipe.createdBy.firstName}</span>
+                                    </div>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 ))}

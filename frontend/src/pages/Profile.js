@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
@@ -26,6 +27,12 @@ const Profile = () => {
     const [newPassword, setNewPassword] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({});
+    const [userRecipes, setUserRecipes] = useState([]);
+    const [showFollowersModal, setShowFollowersModal] = useState(false);
+    const [showFollowingModal, setShowFollowingModal] = useState(false);
+    const [followers, setFollowers] = useState([]);
+    const [following, setFollowing] = useState([]);
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -53,6 +60,27 @@ const Profile = () => {
                     
                     setAbout(data.about || '');
                     setRegion(data.region || '');
+                    
+                    // Fetch follower and following counts
+                    const profileResponse = await fetch(`/api/users/profile/${user.userId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (profileResponse.ok) {
+                        const profileData = await profileResponse.json();
+                        // Update user context with follower counts
+                        const updatedUser = {
+                            ...user,
+                            followerCount: profileData.followerCount || 0,
+                            followingCount: profileData.followingCount || 0
+                        };
+                        dispatch({
+                            type: 'LOGIN',
+                            payload: updatedUser
+                        });
+                    }
                 } else {
                     setError(data.error);
                 }
@@ -61,8 +89,45 @@ const Profile = () => {
             }
         };
 
+        const fetchUserRecipes = async () => {
+            try {
+                if (!user || !user.userId) return;
+                
+                const response = await fetch(`/api/recipes/user/${user.userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setUserRecipes(data);
+                    
+                    // Fetch user profile to get featuredRecipe if any
+                    const profileResponse = await fetch(`/api/users/profile/${user.userId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (profileResponse.ok) {
+                        const profileData = await profileResponse.json();
+                        if (profileData.featuredRecipe) {
+                            setFormData(prev => ({
+                                ...prev,
+                                featuredRecipe: profileData.featuredRecipe._id
+                            }));
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch recipes:', error);
+            }
+        };
+
         if (user && user.userId) {
             fetchUserInfo();
+            fetchUserRecipes();
         }
     }, [user]);
 
@@ -303,56 +368,162 @@ const Profile = () => {
         }
     };
 
+    const handleFeaturedRecipeChange = async (recipeId) => {
+        try {
+            const response = await fetch('/api/users/set-featured-recipe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ recipeId })
+            });
+            
+            if (response.ok) {
+                setSuccessMessage('Featured recipe updated successfully');
+                setShowUpdateSuccessModal(true);
+            } else {
+                setError('Failed to update featured recipe');
+            }
+        } catch (error) {
+            setError('Failed to update featured recipe');
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        
+        if (name === 'featuredRecipe') {
+            handleFeaturedRecipeChange(value);
+        }
+    };
+
+    const fetchFollowers = async () => {
+        try {
+            const response = await fetch(`/api/users/${user.userId}/followers`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch followers');
+            }
+            
+            const data = await response.json();
+            setFollowers(data);
+            setShowFollowersModal(true);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const fetchFollowing = async () => {
+        try {
+            const response = await fetch(`/api/users/${user.userId}/following`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch following');
+            }
+            
+            const data = await response.json();
+            setFollowing(data);
+            setShowFollowingModal(true);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const navigateToProfile = (userId) => {
+        setShowFollowersModal(false);
+        setShowFollowingModal(false);
+        navigate(`/user/${userId}`);
+    };
+
     const renderSection = () => {
         switch (activeSection) {
             case 'profile':
                 return (
                     <form onSubmit={handleUpdateProfile} className="profile-form">
-                        <div className="profile-photo-container">
-                            <div className="profile-photo">
-                                <img 
-                                    src={profilePhoto} 
-                                    alt="Profile" 
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        // Don't set a fallback image
-                                    }} 
-                                    style={{ display: profilePhoto ? 'block' : 'none' }}
-                                />
-                                {!profilePhoto && (
-                                    <span className="material-icons profile-icon" style={{ fontSize: '180px', opacity: '0.5' }}>
-                                        account_circle
-                                    </span>
-                                )}
-                                <label htmlFor="upload-photo" className="upload-photo-label">
-                                    Update Photo
-                                </label>
-                                <input
-                                    type="file"
-                                    id="upload-photo"
-                                    className="upload-photo-input"
-                                    onChange={handlePhotoUpload}
-                                    accept="image/*"
-                                />
+                        <div className="profile-header-container">
+                            <div className="profile-photo-container">
+                                <div className="profile-photo">
+                                    <img 
+                                        src={profilePhoto} 
+                                        alt="Profile" 
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                        }} 
+                                        style={{ display: profilePhoto ? 'block' : 'none' }}
+                                    />
+                                    {!profilePhoto && (
+                                        <span className="material-icons profile-icon" style={{ fontSize: '180px', opacity: '0.5' }}>
+                                            account_circle
+                                        </span>
+                                    )}
+                                    <label htmlFor="upload-photo" className="upload-photo-label">
+                                        Update Photo
+                                    </label>
+                                    <input
+                                        type="file"
+                                        id="upload-photo"
+                                        className="upload-photo-input"
+                                        onChange={handlePhotoUpload}
+                                        accept="image/*"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="profile-header-info">
+                                <div className="user-name-container">
+                                    <div className="input-group">
+                                        <label>First Name</label>
+                                        <input
+                                            type="text"
+                                            value={user?.firstName || ''}
+                                            readOnly
+                                            className="readonly-input"
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Last Name</label>
+                                        <input
+                                            type="text"
+                                            value={user?.lastName || ''}
+                                            readOnly
+                                            className="readonly-input"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="stats-container">
+                                    <div className="stat">
+                                        <span className="stat-value">{userRecipes?.length || 0}</span>
+                                        <span className="stat-label">Recipes</span>
+                                    </div>
+                                    
+                                    <div className="stat clickable" onClick={fetchFollowers}>
+                                        <span className="stat-value">{user?.followerCount || 0}</span>
+                                        <span className="stat-label">Followers</span>
+                                    </div>
+                                    
+                                    <div className="stat clickable" onClick={fetchFollowing}>
+                                        <span className="stat-value">{user?.followingCount || 0}</span>
+                                        <span className="stat-label">Following</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="profile-info">
-                            <div className="input-group">
-                                <label>First Name</label>
-                                <input
-                                    type="text"
-                                    value={user?.firstName || ''}
-                                    readOnly
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label>Last Name</label>
-                                <input
-                                    type="text"
-                                    value={user?.lastName || ''}
-                                    readOnly
-                                />
-                            </div>
+                        
+                        <div className="profile-content-container">
                             <div className="input-group full-width">
                                 <label>About Me</label>
                                 <textarea
@@ -361,9 +532,40 @@ const Profile = () => {
                                     placeholder="Tell us a bit about yourself and your cooking interests..."
                                 />
                             </div>
+                        
+                            <div className="featured-recipe-section">
+                                <h3>Featured Recipe</h3>
+                                <p>Select one of your recipes to feature on your profile:</p>
+                                
+                                {userRecipes && userRecipes.length > 0 ? (
+                                    <div className="featured-recipe-select">
+                                        <select
+                                            name="featuredRecipe"
+                                            id="featuredRecipe"
+                                            value={formData.featuredRecipe || ''}
+                                            onChange={handleChange}
+                                            className="form-control"
+                                        >
+                                            <option value="">-- None --</option>
+                                            {userRecipes.map(recipe => (
+                                                <option key={recipe._id} value={recipe._id}>
+                                                    {recipe.title}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <p className="no-recipes-message">
+                                        You haven't created any recipes yet.
+                                        <Link to="/add-recipe" className="create-recipe-link">Create your first recipe</Link>
+                                    </p>
+                                )}
+                            </div>
+                            
                             <div className="button-group">
                                 <button type="submit" className="update-button">Update Profile</button>
                             </div>
+                            
                             {error && <div className="error">{error}</div>}
                         </div>
                     </form>
@@ -586,6 +788,100 @@ const Profile = () => {
                     <div className="modal-content">
                         <h4>Update Successful</h4>
                         <button onClick={handleOkClick}>OK</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Followers Modal */}
+            {showFollowersModal && (
+                <div className="modal">
+                    <div className="modal-content follow-modal">
+                        <div className="modal-header">
+                            <h3>Followers</h3>
+                            <button className="close-modal" onClick={() => setShowFollowersModal(false)}>
+                                <span className="material-icons">close</span>
+                            </button>
+                        </div>
+                        
+                        <div className="follow-list">
+                            {followers.length > 0 ? (
+                                followers.map(follower => (
+                                    <div 
+                                        key={follower._id} 
+                                        className="follow-item"
+                                        onClick={() => navigateToProfile(follower._id)}
+                                    >
+                                        {follower.profilePhoto ? (
+                                            <img 
+                                                src={follower.profilePhoto.startsWith('http') ? 
+                                                    follower.profilePhoto : 
+                                                    `http://localhost:4000${follower.profilePhoto}`}
+                                                alt={`${follower.firstName}'s profile`}
+                                                className="follow-avatar"
+                                            />
+                                        ) : (
+                                            <div className="follow-avatar-placeholder">
+                                                <span className="material-icons">account_circle</span>
+                                            </div>
+                                        )}
+                                        <div className="follow-info">
+                                            <p className="follow-name">{follower.firstName} {follower.lastName}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="empty-follow-list">
+                                    <p>No followers yet</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Following Modal */}
+            {showFollowingModal && (
+                <div className="modal">
+                    <div className="modal-content follow-modal">
+                        <div className="modal-header">
+                            <h3>Following</h3>
+                            <button className="close-modal" onClick={() => setShowFollowingModal(false)}>
+                                <span className="material-icons">close</span>
+                            </button>
+                        </div>
+                        
+                        <div className="follow-list">
+                            {following.length > 0 ? (
+                                following.map(followedUser => (
+                                    <div 
+                                        key={followedUser._id} 
+                                        className="follow-item"
+                                        onClick={() => navigateToProfile(followedUser._id)}
+                                    >
+                                        {followedUser.profilePhoto ? (
+                                            <img 
+                                                src={followedUser.profilePhoto.startsWith('http') ? 
+                                                    followedUser.profilePhoto : 
+                                                    `http://localhost:4000${followedUser.profilePhoto}`}
+                                                alt={`${followedUser.firstName}'s profile`}
+                                                className="follow-avatar"
+                                            />
+                                        ) : (
+                                            <div className="follow-avatar-placeholder">
+                                                <span className="material-icons">account_circle</span>
+                                            </div>
+                                        )}
+                                        <div className="follow-info">
+                                            <p className="follow-name">{followedUser.firstName} {followedUser.lastName}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="empty-follow-list">
+                                    <p>Not following anyone yet</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

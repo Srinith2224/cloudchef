@@ -1,0 +1,534 @@
+.user-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    color: var(--text-primary);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+    background-color: var(--secondary);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image-container {
+    width: 150px;
+    height: 150px;
+    margin-right: 40px;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--primary);
+}
+
+.profile-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-light);
+}
+
+.profile-placeholder .material-icons {
+    font-size: 80px;
+    color: var(--text-secondary);
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-name-section h1 {
+    font-size: 2.2rem;
+    margin: 0;
+    margin-right: 20px;
+}
+
+.follow-button, .edit-profile-button {
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+.follow-button {
+    background-color: var(--primary);
+    color: white;
+}
+
+.follow-button.following {
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.follow-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edit-profile-button {
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.edit-profile-button:hover {
+    background-color: var(--bg-dark);
+}
+
+.stats-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 40px;
+}
+
+.stat.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.stat.clickable:hover {
+    transform: translateY(-3px);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.profile-location {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.profile-location .material-icons {
+    font-size: 18px;
+    margin-right: 5px;
+}
+
+.profile-bio {
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.featured-recipe {
+    margin-bottom: 40px;
+}
+
+.featured-recipe h3 {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    border-left: 4px solid var(--primary);
+    padding-left: 10px;
+}
+
+.featured-recipe-card {
+    background-color: var(--secondary);
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    height: 200px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.featured-recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.featured-recipe-card img {
+    width: 40%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured-recipe-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.featured-recipe-info h4 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.featured-recipe-info p {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.profile-content {
+    background-color: var(--secondary);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 30px;
+}
+
+.profile-tab {
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    margin-right: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.profile-tab .material-icons {
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+.profile-tab.active {
+    color: var(--primary);
+}
+
+.profile-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary);
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.recipe-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--bg-light);
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.recipe-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.recipe-placeholder {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-dark);
+}
+
+.recipe-placeholder .material-icons {
+    font-size: 50px;
+    color: var(--text-secondary);
+}
+
+.recipe-card-info {
+    padding: 15px;
+}
+
+.recipe-card-info h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+}
+
+.recipe-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.recipe-meta span {
+    display: flex;
+    align-items: center;
+}
+
+.recipe-meta .material-icons {
+    font-size: 16px;
+    margin-right: 4px;
+}
+
+.empty-state {
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.empty-state .material-icons {
+    font-size: 60px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.empty-state button {
+    padding: 12px 25px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.empty-state button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.success-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, 20px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--secondary);
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.follow-modal {
+    padding: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background-color: var(--secondary);
+    z-index: 10;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.close-modal .material-icons {
+    font-size: 24px;
+}
+
+.follow-list {
+    padding: 0 20px 20px 20px;
+}
+
+.follow-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.follow-item:last-child {
+    border-bottom: none;
+}
+
+.follow-item:hover {
+    background-color: var(--bg-light);
+}
+
+.follow-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.follow-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-light);
+    margin-right: 15px;
+}
+
+.follow-avatar-placeholder .material-icons {
+    font-size: 30px;
+    color: var(--text-secondary);
+}
+
+.follow-info {
+    flex: 1;
+}
+
+.follow-name {
+    margin: 0;
+    font-weight: 600;
+}
+
+.empty-follow-list {
+    padding: 30px 0;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .profile-image-container {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .profile-name-section {
+        flex-direction: column;
+    }
+    
+    .profile-name-section h1 {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .stats-container {
+        justify-content: center;
+    }
+    
+    .featured-recipe-card {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .featured-recipe-card img {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .profile-tab {
+        padding: 10px 15px;
+    }
+    
+    .recipes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .profile-content {
+        padding: 20px 15px;
+    }
+}

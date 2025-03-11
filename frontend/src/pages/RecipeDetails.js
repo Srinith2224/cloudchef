@@ -813,16 +813,43 @@ const RecipeDetails = () => {
                 )}
             </div>
             
-            <div className="creator-info">
-                <div className="creator-detail">
-                    <span className="material-icons">person</span>
-                    <p><strong>Created by:</strong> {recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
+            {recipe.createdBy && (
+                <div className="recipe-author-section">
+                    <h3 className="author-heading">
+                        <span className="material-icons">person</span> Created by
+                    </h3>
+                    <Link to={`/user/${recipe.createdBy._id}`} className="author-link">
+                        <div className="author-card">
+                            <div className="author-avatar">
+                                {recipe.createdBy.profilePhoto ? (
+                                    <img 
+                                        src={recipe.createdBy.profilePhoto.startsWith('http') ? 
+                                            recipe.createdBy.profilePhoto : 
+                                            `http://localhost:4000${recipe.createdBy.profilePhoto}`} 
+                                        alt={`${recipe.createdBy.firstName}'s profile`} 
+                                        className="author-image"
+                                    />
+                                ) : (
+                                    <div className="author-image-placeholder">
+                                        <span className="material-icons">account_circle</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="author-details">
+                                <p className="author-name">{recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
+                                <p className="recipe-date">
+                                    <span className="material-icons">event</span> 
+                                    {new Date(recipe.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <div className="author-view-profile">
+                                <span className="view-profile-text">View Profile</span>
+                                <span className="material-icons">arrow_forward</span>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
-                <div className="creator-detail">
-                    <span className="material-icons">calendar_today</span>
-                    <p><strong>Created on:</strong> {new Date(recipe.createdAt).toLocaleDateString()}</p>
-                </div>
-            </div>
+            )}
             
             <div className="button-row">
                 {renderActionButtons()}
