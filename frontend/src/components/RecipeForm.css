@@ -917,3 +917,10 @@ body {
 .recipe-delete-button .material-icons {
   font-size: 18px;
 }
+
+/* Ensure the step delete button is clearly visible */
+.step-item .recipe-delete-button {
+  margin: 20px auto 0;
+  width: auto;
+  padding: 10px 16px;
+}
