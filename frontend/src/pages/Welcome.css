@@ -281,3 +281,38 @@
   font-size: 50px;
   opacity: 0.3;
 }
+
+/* Add this to your existing Welcome.css file */
+
+.guest-banner {
+    background: linear-gradient(135deg, rgba(50, 205, 50, 0.1), rgba(0, 128, 0, 0.1));
+    border: 1px solid rgba(50, 205, 50, 0.3);
+    color: var(--text);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.guest-banner p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.guest-banner a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.guest-banner a:hover {
+    text-decoration: underline;
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

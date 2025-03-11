@@ -21,7 +21,7 @@ import { useContext } from 'react';
 import { RecipesContext } from './context/RecipeContext'; // Correct import
 
 function App() {
-  const { user } = useContext(RecipesContext); // Get user from context
+  const { user } = useContext(RecipesContext);
   
   return (
     <div className="App">
@@ -31,9 +31,10 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/Auth" element={<Auth />} />
-            <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
+            {/* Remove the RequireAuth wrapper from the Welcome route */}
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-            <Route path="/recipe/:id" element={<RecipeDetails />} /> {/* Made public */}
+            <Route path="/recipe/:id" element={<RecipeDetails />} />
             <Route path="/search-results" element={<RequireAuth><SearchResults /></RequireAuth>} />
             <Route path="/add-recipe" element={<RequireAuth><RecipeForm /></RequireAuth>} />
             <Route path="/my-recipes" element={<RequireAuth><MyRecipes /></RequireAuth>} />

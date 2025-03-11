@@ -17,7 +17,13 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
+        required: function() {
+            // Password is required only if the user doesn't have googleId
+            return !this.googleId;
+        }
+    },
+    googleId: {
+        type: String
     },
     profilePhoto: {
         type: String

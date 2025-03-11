@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import './Welcome.css';
 import searchIcon from '../assets/search-icon.png';
 
 const Welcome = () => {
-    const { dispatch } = useRecipesContext();
+    const { user, dispatch } = useRecipesContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [recipes, setRecipes] = useState([]);
     const navigate = useNavigate();
@@ -43,15 +43,36 @@ const Welcome = () => {
 
     const handleSearch = () => {
         if (searchQuery.trim()) {
-            navigate(`/search-results?query=${searchQuery}`);
+            if (user) {
+                navigate(`/search-results?query=${searchQuery}`);
+            } else {
+                // For guests, search within welcome page or show auth prompt
+                navigate(`/welcome?query=${searchQuery}`);
+            }
         }
     };
+    
     const handleCuisineSearch = (cuisine) => {
-        navigate(`/search-results?query=${cuisine}`);
+        if (user) {
+            navigate(`/search-results?query=${cuisine}`);
+        } else {
+            // For guests, search within welcome page or show auth prompt
+            navigate(`/welcome?query=${cuisine}`);
+        }
+    };
+
+    const handleRecipeClick = (recipeId) => {
+        navigate(`/recipe/${recipeId}`);
     };
 
     return (
         <div className="welcome-container">
+            {!user && (
+                <div className="guest-banner">
+                    <p>You're browsing as a guest. <Link to="/Auth">Sign in</Link> or <Link to="/Auth">create an account</Link> to create recipes, save favorites, and more!</p>
+                </div>
+            )}
+            
             <div className="search-bar">
                 <div className="search-input-container">
                     <input
@@ -84,7 +105,7 @@ const Welcome = () => {
                     <div 
                         key={recipe._id} 
                         className="recipe-item" 
-                        onClick={() => navigate(`/recipe/${recipe._id}`)}
+                        onClick={() => handleRecipeClick(recipe._id)}
                     >
                         <div className="recipe-image-container">
                             {recipe.mainImage ? (

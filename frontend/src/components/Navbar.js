@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext.js';
 import './Navbar.css'; // Assuming you have a CSS file for styling
 
@@ -7,6 +7,10 @@ const Navbar = () => {
     const { user } = useRecipesContext();
     const [profilePhoto, setProfilePhoto] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Check if we're on the landing page
+    const isLandingPage = location.pathname === '/';
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -39,7 +43,7 @@ const Navbar = () => {
     };
 
     return (
-        <header>
+        <header className={isLandingPage ? "transparent-header" : ""}>
             <div className="container">
                 <Link to={user ? "/welcome" : "/"} className="logo-container">
                     <img
@@ -49,7 +53,8 @@ const Navbar = () => {
                     />
                     <h1 className="logo-text">Cloud Chef</h1>
                 </Link>
-                {user && (
+                
+                {user ? (
                     <div className="nav-links">
                         <Link to="/welcome" className="nav-link">
                             <span className="material-icons">home</span> 
@@ -73,23 +78,36 @@ const Navbar = () => {
                             <span className="material-icons">calendar_today</span>
                         </Link>
                         {user && user.role === 'admin' && (
-                            <Link to="/admin">Admin Panel</Link>
+                            <Link to="/admin" className="nav-link admin-link">
+                                <span className="material-icons">admin_panel_settings</span>
+                            </Link>
                         )}
                         {profilePhoto ? (
-            <Link to="/profile" className="nav-link">
-              <img
-                src={profilePhoto}
-                alt="Profile"
-                className="profile-photo"
-                onClick={handleProfileClick}
-              />
-            </Link>
-          ) : (
-            <Link to="/profile" className="nav-link">
-              <span onClick={handleProfileClick} className="material-icons profile-icon">account_circle</span>
-            </Link>
-          )}
-        </div>
+                            <Link to="/profile" className="nav-link">
+                                <img
+                                    src={profilePhoto}
+                                    alt="Profile"
+                                    className="profile-photo"
+                                    onClick={handleProfileClick}
+                                />
+                            </Link>
+                        ) : (
+                            <Link to="/profile" className="nav-link">
+                                <span onClick={handleProfileClick} className="material-icons profile-icon">account_circle</span>
+                            </Link>
+                        )}
+                    </div>
+                ) : (
+                    <div className="nav-links">
+                        <Link to="/welcome" className="nav-link">
+                            <span className="material-icons">restaurant_menu</span>
+                            <span className="nav-text">Browse</span>
+                        </Link>
+                        <Link to="/Auth" className="nav-link">
+                            <span className="material-icons">login</span>
+                            <span className="nav-text">Sign In</span>
+                        </Link>
+                    </div>
                 )}
             </div>
         </header>

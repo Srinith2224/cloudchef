@@ -82,17 +82,19 @@ const googleSignIn = async (req, res) => {
     let user = await User.findOne({ email });
     
     if (!user) {
-      // Create a new user if they don't exist
+      // Create a new user with googleId (no password needed)
       user = await User.create({
         email,
         firstName: given_name || 'User',
         lastName: family_name || '',
         googleId: sub,
-        profilePhoto: picture || ''
+        profilePhoto: picture || '',
+        password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8) // Random password as fallback
       });
     } else if (!user.googleId) {
-      // Update existing user with Google ID if they don't have one
+      // Update existing user with Google ID
       user.googleId = sub;
+      
       if (picture && !user.profilePhoto) {
         user.profilePhoto = picture;
       }
