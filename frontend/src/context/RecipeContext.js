@@ -1,8 +1,8 @@
-import { createContext, useReducer } from "react";
+import React, { createContext, useReducer } from 'react';
 
-export const RecipesContext = createContext();
+const RecipesContext = createContext();
 
-export const recipesReducer = (state, action) => {
+const recipesReducer = (state, action) => {
     switch (action.type) {
         case 'SET_RECIPES':
             return {
@@ -25,9 +25,11 @@ export const recipesReducer = (state, action) => {
                 ...state,
                 user: {
                     email: action.payload.email,
+                    token: action.payload.token,
                     firstName: action.payload.firstName,
                     lastName: action.payload.lastName,
-                    userId: action.payload.userId
+                    userId: action.payload.userId,
+                    role: action.payload.role // Make sure to include role
                 }
             };
         case 'LOGOUT':
@@ -41,7 +43,7 @@ export const recipesReducer = (state, action) => {
     }
 };
 
-export const RecipesContextProvider = ({ children }) => {
+const RecipesContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(recipesReducer, {
         recipes: [],
         user: null
@@ -53,3 +55,5 @@ export const RecipesContextProvider = ({ children }) => {
         </RecipesContext.Provider>
     );
 };
+
+export { RecipesContext, RecipesContextProvider, recipesReducer };

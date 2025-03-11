@@ -32,6 +32,10 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/recipe-image-generation', recipeImageGenerationRoutes);
 app.use('/api/otp', otpRoutes);
 
+// Add this after your other route declarations (around line 31)
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
+
 // Serve static files from recipeImages
 app.use('/recipeImages', express.static(path.join(__dirname, 'recipeImages')));
 app.use('/recipeStepsImages', express.static(path.join(__dirname, 'recipeStepsImages')));

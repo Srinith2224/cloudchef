@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import Auth from './pages/Auth';
@@ -16,8 +16,13 @@ import ScheduledMeals from './pages/ScheduledMeals';
 import GenerateRecipe from './pages/GenerateRecipe';
 import RequireAuth from './components/RequireAuth';
 import ForgotPassword from './pages/ForgotPassword';
+import AdminPanel from './components/AdminPanel';
+import { useContext } from 'react';
+import { RecipesContext } from './context/RecipeContext'; // Correct import
 
 function App() {
+  const { user } = useContext(RecipesContext); // Get user from context
+  
   return (
     <div className="App">
       <Router>
@@ -28,7 +33,7 @@ function App() {
             <Route path="/Auth" element={<Auth />} />
             <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
             <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-            <Route path="/recipe/:id" element={<RequireAuth><RecipeDetails /></RequireAuth>} />
+            <Route path="/recipe/:id" element={<RecipeDetails />} /> {/* Made public */}
             <Route path="/search-results" element={<RequireAuth><SearchResults /></RequireAuth>} />
             <Route path="/add-recipe" element={<RequireAuth><RecipeForm /></RequireAuth>} />
             <Route path="/my-recipes" element={<RequireAuth><MyRecipes /></RequireAuth>} />
@@ -38,6 +43,14 @@ function App() {
             <Route path="/scheduled-meals" element={<RequireAuth><ScheduledMeals /></RequireAuth>} /> 
             <Route path="/generate-recipe" element={<RequireAuth><GenerateRecipe /></RequireAuth>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route 
+              path="/admin/*" 
+              element={
+                <RequireAuth>
+                  {user && user.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />}
+                </RequireAuth>
+              } 
+            />
           </Routes>
         </div>
       </Router>

@@ -1,0 +1,205 @@
+.admin-panel {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .admin-panel h1 {
+    color: var(--primary);
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .admin-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .admin-nav a {
+    background-color: var(--secondary);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .admin-nav a:hover {
+    background-color: var(--primary);
+    color: black;
+    transform: translateY(-2px);
+  }
+  
+  .admin-welcome {
+    text-align: center;
+    font-size: 1.5em;
+    margin-top: 50px;
+    color: var(--text-light);
+  }
+  
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .admin-table th, 
+  .admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .admin-table th {
+    background-color: var(--secondary);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  
+  .admin-table tr:hover {
+    background-color: rgba(50, 205, 50, 0.05);
+  }
+  
+  .admin-table select {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background);
+    color: var(--text);
+    cursor: pointer;
+  }
+  
+  .admin-user-management .delete-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .admin-user-management .delete-btn:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+  }
+
+.admin-actions-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.admin-delete-button,
+.admin-edit-button,
+.admin-view-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.admin-delete-button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.admin-edit-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.admin-edit-button:hover {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+}
+
+.admin-view-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.admin-view-button:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+}
+
+.admin-recipe-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.admin-recipe-no-image {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.admin-recipe-no-image .material-icons {
+  opacity: 0.5;
+}
+
+/* For confirmation modals */
+.admin-confirmation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.admin-confirmation-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.admin-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.admin-confirmation-actions button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-confirmation-actions .confirm {
+  background-color: #f44336;
+  color: white;
+}
+
+.admin-confirmation-actions .cancel {
+  background-color: #9e9e9e;
+  color: white;
+}

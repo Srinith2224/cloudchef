@@ -16,23 +16,23 @@ const loginUser = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ error: 'Invalid email or password' });
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(400).json({ error: 'Invalid email or password' });
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid password' });
         }
 
         const token = createToken(user._id);
-
-        // Include user ID in the response
-        res.status(200).json({ 
+        
+        res.status(200).json({
             email: user.email, 
-            token, 
+            token,
             firstName: user.firstName, 
             lastName: user.lastName,
-            userId: user._id // Add userId to the response
+            userId: user._id,
+            role: user.role // Add the role field here
         });
     } catch (error) {
         res.status(500).json({ error: error.message });

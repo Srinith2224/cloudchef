@@ -5,7 +5,14 @@ const recipeController = require('../controllers/recipeController');
 const requireAuth = require('../middleware/authMiddleware');
 const router = express.Router();
 
-router.use(requireAuth); // Apply auth middleware to all routes
+// Public routes that don't require authentication
+router.get('/', recipeController.getRecipes);
+router.get('/search', recipeController.searchRecipes);
+router.get('/:id', recipeController.getRecipe);
+
+// Protected routes that require authentication
+// Apply middleware to all routes below
+router.use(requireAuth);
 
 // Storage configuration for recipe main images
 const mainImageStorage = multer.diskStorage({
@@ -50,7 +57,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
 };
 
-// POST a new recipe with image upload
+// Rest of your routes with authentication
 router.post('/', (req, res, next) => {
     // Use multer with dynamic field handling
     const upload = multer({
@@ -71,7 +78,6 @@ router.post('/', (req, res, next) => {
     });
 }, recipeController.createRecipe);
 
-// UPDATE a recipe
 router.patch('/:id', (req, res, next) => {
     // Use multer with dynamic field handling
     const upload = multer({
@@ -92,10 +98,6 @@ router.patch('/:id', (req, res, next) => {
     });
 }, recipeController.updateRecipe);
 
-// Rest of your routes...
-router.get('/', recipeController.getRecipes);
-router.get('/search', recipeController.searchRecipes);
-router.get('/:id', recipeController.getRecipe);
 router.delete('/:id', recipeController.deleteRecipe);
 router.get('/user/:userId', recipeController.getRecipesByUserId);
 

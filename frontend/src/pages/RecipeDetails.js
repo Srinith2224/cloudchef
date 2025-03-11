@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import CalendarPopup from '../components/CalendarPopup';
 import './RecipeDetails.css';
@@ -201,11 +201,8 @@ const RecipeDetails = () => {
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const response = await fetch(`/api/recipes/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                // Public endpoint, no token needed
+                const response = await fetch(`/api/recipes/${id}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -218,71 +215,70 @@ const RecipeDetails = () => {
             }
         };
 
-        const checkIfSaved = async () => {
-            try {
-                const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    const isRecipeSaved = data.some(savedRecipe => savedRecipe._id === id);
-                    setIsSaved(isRecipeSaved);
-                } else {
-                    console.error('Failed to fetch saved recipes:', data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching saved recipes:', error);
-            }
-        };
-
-        // Update this part - Add user ID to localStorage key
-        const checkCartItems = async () => {
-            try {
-                // Fetch actual cart items from server instead of relying only on localStorage
-                const response = await fetch('/api/cart', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const cartData = await response.json();
-                    // Extract ingredient names from server response
-                    const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
-                    
-                    // Compare with recipe ingredients and mark those that are in the cart
-                    const addedIngs = recipe.ingredients
-                        .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
-                        .map(ing => ing.name);
-                    
-                    setAddedIngredients(addedIngs);
-                    
-                    // Store with user-specific key
-                    const userKey = `addedIngredients_${user.userId}_${id}`;
-                    localStorage.setItem(userKey, JSON.stringify(addedIngs));
-                }
-            } catch (error) {
-                console.error('Error checking cart items:', error);
-            }
-        };
-
         fetchRecipe();
-        checkIfSaved();
-
-        // Replace this part
-        // const storedAddedIngredients = localStorage.getItem(`addedIngredients_${id}`);
-        // if (storedAddedIngredients) {
-        //     setAddedIngredients(JSON.parse(storedAddedIngredients));
-        // }
         
-        // With this - load based on user-specific key
+        // Only check saved status if the user is logged in
+        if (user && user.userId) {
+            checkIfSaved();
+        }
+    }, [id, user]);
+
+    const checkIfSaved = async () => {
+        try {
+            const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                const isRecipeSaved = data.some(savedRecipe => savedRecipe._id === id);
+                setIsSaved(isRecipeSaved);
+            } else {
+                console.error('Failed to fetch saved recipes:', data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching saved recipes:', error);
+        }
+    };
+
+    // Update this part - Add user ID to localStorage key
+    const checkCartItems = async () => {
+        try {
+            // Fetch actual cart items from server instead of relying only on localStorage
+            const response = await fetch('/api/cart', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.ok) {
+                const cartData = await response.json();
+                // Extract ingredient names from server response
+                const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
+                
+                // Compare with recipe ingredients and mark those that are in the cart
+                const addedIngs = recipe.ingredients
+                    .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
+                    .map(ing => ing.name);
+                
+                setAddedIngredients(addedIngs);
+                
+                // Store with user-specific key
+                const userKey = `addedIngredients_${user.userId}_${id}`;
+                localStorage.setItem(userKey, JSON.stringify(addedIngs));
+            }
+        } catch (error) {
+            console.error('Error checking cart items:', error);
+        }
+    };
+
+    useEffect(() => {
         if (recipe) {  // Only check cart if recipe is loaded
             checkCartItems();
         }
-    }, [id, user.userId, recipe]);  // Add recipe as dependency
+    }, [recipe]);  // Add recipe as dependency
 
     const handleAddToCart = async (ingredient) => {
         try {
@@ -561,6 +557,53 @@ const RecipeDetails = () => {
         return <p>Loading...</p>;
     }
 
+    const renderActionButtons = () => {
+        if (!user) {
+            return (
+                <div className="guest-actions">
+                    <p>Sign in or create an account to save this recipe or add ingredients to your shopping list.</p>
+                    <div className="guest-buttons">
+                        <Link to="/auth" className="btn login-btn">Sign In</Link>
+                        <Link to="/auth" className="btn signup-btn">Create Account</Link>
+                    </div>
+                </div>
+            );
+        }
+        
+        if (user.userId === recipe.createdBy._id) {
+            return (
+                <>
+                    <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
+                        <span className="material-icons">edit</span> Update
+                    </button>
+                    <button className="btn schedule-btn" onClick={handleSchedule}>
+                        <span className="material-icons">calendar_today</span> Schedule
+                    </button>
+                    <button className="btn delete-btn" onClick={handleDelete}>
+                        <span className="material-icons">delete</span> Delete
+                    </button>
+                </>
+            );
+        }
+        
+        return (
+            <>
+                {isSaved ? (
+                    <button className="btn unsave-btn" onClick={handleUnsave}>
+                        <span className="material-icons">bookmark_remove</span> Unsave
+                    </button>
+                ) : (
+                    <button className="btn save-btn" onClick={handleSave}>
+                        <span className="material-icons">bookmark_add</span> Save
+                    </button>
+                )}
+                <button className="btn schedule-btn" onClick={handleSchedule}>
+                    <span className="material-icons">calendar_today</span> Schedule
+                </button>
+            </>
+        );
+    };
+
     return (
         <div className="recipe-details">
             <button className="close-btn" onClick={handleClose}>&times;</button>
@@ -781,34 +824,7 @@ const RecipeDetails = () => {
             </div>
             
             <div className="button-row">
-                {user && user.userId === recipe.createdBy._id ? (
-                    <>
-                        <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
-                            <span className="material-icons">edit</span> Update
-                        </button>
-                        <button className="btn schedule-btn" onClick={handleSchedule}>
-                            <span className="material-icons">calendar_today</span> Schedule
-                        </button>
-                        <button className="btn delete-btn" onClick={handleDelete}>
-                            <span className="material-icons">delete</span> Delete
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        {isSaved ? (
-                            <button className="btn unsave-btn" onClick={handleUnsave}>
-                                <span className="material-icons">bookmark_remove</span> Unsave
-                            </button>
-                        ) : (
-                            <button className="btn save-btn" onClick={handleSave}>
-                                <span className="material-icons">bookmark_add</span> Save
-                            </button>
-                        )}
-                        <button className="btn schedule-btn" onClick={handleSchedule}>
-                            <span className="material-icons">calendar_today</span> Schedule
-                        </button>
-                    </>
-                )}
+                {renderActionButtons()}
             </div>
             
             {showSuccessModal && (

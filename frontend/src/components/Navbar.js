@@ -72,6 +72,9 @@ const Navbar = () => {
                         <Link to="/scheduled-meals" className="nav-link">
                             <span className="material-icons">calendar_today</span>
                         </Link>
+                        {user && user.role === 'admin' && (
+                            <Link to="/admin">Admin Panel</Link>
+                        )}
                         {profilePhoto ? (
             <Link to="/profile" className="nav-link">
               <img
