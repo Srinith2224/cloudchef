@@ -59,7 +59,7 @@ input, textarea {
   color: var(--primary);
   padding: 10px;
   border-radius: var(--border-radius);
-  font-family: var(--font-family);
+  
   transition: border-color var(--transition);
 }
 
@@ -85,4 +85,25 @@ input:focus, textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--button-hover-bg);
+}
+
+/* Add this to fix centering of OK buttons in modals */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.modal-content h4, 
+.modal-content h3, 
+.modal-content p {
+  width: 100%;
+}
+
+/* For modals that already use flex but don't center */
+.modal-content button {
+  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
 }
