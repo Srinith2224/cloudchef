@@ -5,8 +5,9 @@ const { OAuth2Client } = require('google-auth-library');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const createToken = (id) => {
-    return jwt.sign({ _id: id }, process.env.SECRET, { expiresIn: '3d' });
+// Make sure token generation is consistent
+const createToken = (_id) => {
+  return jwt.sign({ _id }, process.env.SECRET, { expiresIn: '3d' });
 };
 
 // login function

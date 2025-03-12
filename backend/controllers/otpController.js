@@ -123,7 +123,13 @@ const verifyRegistrationOTP = async (req, res) => {
     // Remove OTP data
     delete otpStore[email];
     
-    res.status(200).json({ email, token });
+    res.status(200).json({ 
+      email, 
+      token,
+      userId: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName
+    });
   } catch (error) {
     console.error('Error verifying OTP:', error);
     res.status(500).json({ error: 'Failed to verify OTP' });

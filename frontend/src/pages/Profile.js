@@ -48,14 +48,13 @@ const Profile = () => {
                     
                     // Fix the profile photo URL handling
                     if (data.profilePhoto) {
-                        // Check if profilePhoto is a full URL or just a path
                         if (data.profilePhoto.startsWith('http')) {
                             setProfilePhoto(data.profilePhoto);
                         } else {
                             setProfilePhoto(`http://localhost:4000${data.profilePhoto}`);
                         }
                     } else {
-                        setProfilePhoto(''); // Don't set a default avatar
+                        setProfilePhoto(''); 
                     }
                     
                     setAbout(data.about || '');
@@ -70,19 +69,12 @@ const Profile = () => {
                     
                     if (profileResponse.ok) {
                         const profileData = await profileResponse.json();
-                        // Update user context with follower counts
-                        const updatedUser = {
-                            ...user,
-                            followerCount: profileData.followerCount || 0,
-                            followingCount: profileData.followingCount || 0
-                        };
-                        dispatch({
-                            type: 'LOGIN',
-                            payload: updatedUser
-                        });
+                        // Store data without triggering a context update
+                        if (user) {
+                            user.followerCount = profileData.followerCount || 0;
+                            user.followingCount = profileData.followingCount || 0;
+                        }
                     }
-                } else {
-                    setError(data.error);
                 }
             } catch (error) {
                 setError('Failed to fetch user information');
@@ -103,7 +95,6 @@ const Profile = () => {
                     const data = await response.json();
                     setUserRecipes(data);
                     
-                    // Fetch user profile to get featuredRecipe if any
                     const profileResponse = await fetch(`/api/users/profile/${user.userId}`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -129,7 +120,7 @@ const Profile = () => {
             fetchUserInfo();
             fetchUserRecipes();
         }
-    }, [user]);
+    }, [user.userId]);
 
     const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
@@ -141,6 +132,7 @@ const Profile = () => {
         }
     };
 
+    // Update to ensure proper token handling
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
 

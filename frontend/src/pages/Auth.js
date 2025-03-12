@@ -36,20 +36,27 @@ const Auth = () => {
             }
         });
 
-        const json = await response.json();
-
-        if (!response.ok) {
-            setError(json.error);
-        } else {
-            // Save user to local storage
-            localStorage.setItem('user', JSON.stringify(json));
-            localStorage.setItem('token', json.token);
+        if (response.ok) {
+            // Make sure token is correctly extracted and stored
+            const userData = await response.json();
+            
+            if (!userData.token) {
+                setError('Server response missing authentication token');
+                return;
+            }
+            
+            // Store token properly (make sure it's a string)
+            localStorage.setItem('token', userData.token);
+            localStorage.setItem('user', JSON.stringify(userData));
             
             // Update auth context
-            dispatch({ type: 'LOGIN', payload: json });
+            dispatch({ type: 'LOGIN', payload: userData });
             
             // Show success modal
             setShowSuccessModal(true);
+        } else {
+            const json = await response.json();
+            setError(json.error);
         }
     };
 
@@ -65,20 +72,27 @@ const Auth = () => {
                 })
             });
 
-            const json = await response.json();
-
-            if (!response.ok) {
-                setError(json.error);
-            } else {
-                // Save user to local storage
-                localStorage.setItem('user', JSON.stringify(json));
-                localStorage.setItem('token', json.token);
+            if (response.ok) {
+                // Make sure token is correctly extracted and stored
+                const userData = await response.json();
+                
+                if (!userData.token) {
+                    setError('Server response missing authentication token');
+                    return;
+                }
+                
+                // Store token properly (make sure it's a string)
+                localStorage.setItem('token', userData.token);
+                localStorage.setItem('user', JSON.stringify(userData));
                 
                 // Update auth context
-                dispatch({ type: 'LOGIN', payload: json });
+                dispatch({ type: 'LOGIN', payload: userData });
                 
                 // Show success modal
                 setShowSuccessModal(true);
+            } else {
+                const json = await response.json();
+                setError(json.error);
             }
         } catch (error) {
             setError('Failed to authenticate with Google');
@@ -100,9 +114,15 @@ const Auth = () => {
         const fetchGoogleClientId = async () => {
             try {
                 const response = await fetch('/api/google-client-id');
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
                 const data = await response.json();
                 if (data.clientId) {
                     setGoogleClientId(data.clientId);
+                    console.log('Successfully loaded Google Client ID');
+                } else {
+                    console.error('Google Client ID not returned from server');
                 }
             } catch (error) {
                 console.error('Error fetching Google Client ID:', error);
@@ -174,19 +194,22 @@ const Auth = () => {
             const data = await response.json();
             
             if (response.ok) {
-                // Save user to local storage
-                localStorage.setItem('user', JSON.stringify(data));
+                // Make sure data.token exists and is a valid string
+                if (!data.token) {
+                    setError('Server response missing authentication token');
+                    return;
+                }
+                
+                // Store the token
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data));
                 
-                // Update auth context
                 dispatch({ type: 'LOGIN', payload: data });
-                
-                // Show success modal
                 setShowSuccessModal(true);
             } else {
                 setError(data.error || 'Verification failed');
             }
-        } catch (err) {
+        } catch (error) {
             setError('An error occurred. Please try again.');
         } finally {
             setIsLoading(false);
