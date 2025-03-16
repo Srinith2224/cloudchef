@@ -97,10 +97,14 @@
     transform: translateY(-2px);
 }
 
-/* Recipe header area with image */
+/* Modify the recipe header area with image and title */
 .recipe-header {
     position: relative;
     margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: minmax(300px, 45%) 1fr;
+    gap: 30px;
+    align-items: center;
 }
 
 .recipe-image {
@@ -109,7 +113,35 @@
     object-fit: cover;
     border-radius: var(--border-radius);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    margin-bottom: 30px;
+}
+
+/* Add specific styling for the title in the header */
+.recipe-header h2 {
+    margin-top: 0;
+    text-align: left; /* Align text to the left when side by side */
+    padding-bottom: 15px;
+}
+
+.recipe-header h2:after {
+    left: 0;
+    transform: none; /* Adjust the decorative line to align left */
+}
+
+/* Media query for mobile views */
+@media (max-width: 768px) {
+    .recipe-header {
+        grid-template-columns: 1fr; /* Stack vertically on mobile */
+    }
+    
+    .recipe-header h2 {
+        text-align: center; /* Center align when stacked */
+        margin-top: 20px;
+    }
+    
+    .recipe-header h2:after {
+        left: 50%;
+        transform: translateX(-50%); /* Re-center the decorative line */
+    }
 }
 
 /* Info cards layout */
