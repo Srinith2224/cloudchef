@@ -1,51 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import { formatDistanceToNow } from 'date-fns';
+import StarRating from './StarRating'; // Import the standalone component
 import './RecipeRatings.css';
-
-// Star rating component
-const StarRating = ({ rating, size = "medium", interactive = false, onChange }) => {
-    const renderStars = () => {
-        const stars = [];
-        const fullStars = Math.floor(rating);
-        const halfStar = rating % 1 >= 0.5;
-
-        for (let i = 1; i <= 5; i++) {
-            if (interactive) {
-                stars.push(
-                    <span 
-                        key={i} 
-                        className={`star interactive ${size}`}
-                        onClick={() => onChange(i)}
-                        onMouseEnter={() => document.querySelectorAll('.star.interactive').forEach((star, index) => {
-                            if (index < i) star.classList.add('hover');
-                            else star.classList.remove('hover');
-                        })}
-                        onMouseLeave={() => document.querySelectorAll('.star.interactive').forEach(star => {
-                            star.classList.remove('hover');
-                        })}
-                    >
-                        {i <= fullStars ? "★" : "☆"}
-                    </span>
-                );
-            } else {
-                stars.push(
-                    <span key={i} className={`star ${size}`}>
-                        {i <= fullStars ? "★" : (i === fullStars + 1 && halfStar ? "★" : "☆")}
-                    </span>
-                );
-            }
-        }
-        return stars;
-    };
-
-    return (
-        <div className="star-rating">
-            {renderStars()}
-            {size !== "small" && rating > 0 && <span className="rating-value">({rating.toFixed(1)})</span>}
-        </div>
-    );
-};
 
 const RecipeRatings = ({ recipeId, creatorId }) => {
     const [ratings, setRatings] = useState({ ratingsWithComments: [], ratingCounts: [], avgRating: 0 });

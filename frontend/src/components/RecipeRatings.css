@@ -5,6 +5,9 @@
     margin-top: 30px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .recipe-ratings-container h3 {
@@ -21,47 +24,18 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Star Rating */
-.star-rating {
-    display: flex;
-    align-items: center;
-}
-
-.star {
-    color: #ffc107; /* Golden color for stars */
-    font-size: 24px;
-    line-height: 1;
-    transition: all 0.2s ease;
-}
-
-.star.small {
-    font-size: 16px;
-}
-
-.star.medium {
-    font-size: 24px;
-}
-
-.star.large {
-    font-size: 32px;
-}
-
-.star.interactive {
-    cursor: pointer;
-}
-
-.star.interactive:hover,
-.star.interactive.hover {
-    transform: scale(1.2);
-    color: #ffac07; /* Slightly darker gold for hover */
-}
-
-.rating-value {
-    margin-left: 8px;
-    font-size: 14px;
-    color: var(--primary);
-    opacity: 0.8;
-}
+/* Remove or comment out duplicate star rating styles from RecipeRatings.css */
+/* These should be managed by StarRating.css only */
+/*
+.star-rating { ... }
+.star { ... }
+.star.small { ... }
+.star.medium { ... }
+.star.large { ... }
+.star.interactive { ... }
+.star.interactive:hover, .star.interactive.hover { ... }
+.rating-value { ... }
+*/
 
 /* Rating Form */
 .rating-form-container {
@@ -277,5 +251,47 @@
     
     .rating-meta {
         align-items: flex-start;
+    }
+}
+
+/* Enhanced responsive styles */
+@media (max-width: 768px) {
+    .recipe-ratings-container {
+        padding: 15px;
+        width: 100%;
+    }
+    
+    .rating-form-container {
+        padding: 15px;
+    }
+    
+    .rating-stars-input {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .overall-rating {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .rating-bar {
+        flex-wrap: wrap;
+        max-width: 100%;
+    }
+    
+    .progress-bar-container {
+        max-width: 100%;
+    }
+    
+    .stars-label {
+        min-width: 45px;
+    }
+    
+    .rating-breakdown {
+        max-width: 100%;
+        overflow-x: hidden;
     }
 }
