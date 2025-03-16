@@ -506,10 +506,12 @@
     justify-content: space-between;
 }
 
+/* Modify the user-name-container grid layout */
 .user-name-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 30px; /* Increased from 20px for more spacing */
+    width: 100%; /* Ensure full width utilization */
 }
 
 .profile-content-container {
@@ -557,6 +559,7 @@
     
     .user-name-container {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
     
     .stats-container {
@@ -666,4 +669,31 @@
     padding: 30px 0;
     text-align: center;
     color: var(--text-secondary);
+}
+
+/* Fix for user-name-container layout */
+.user-name-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 30px; /* Increased from 20px for more spacing */
+    width: 100%; /* Ensure full width utilization */
+}
+
+/* Ensure input fields respect container boundaries */
+.user-name-container .input-group input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 992px) {
+    .user-name-container {
+        gap: 25px; /* Slightly reduced gap but still substantial */
+    }
+}
+
+@media (max-width: 768px) {
+    .user-name-container {
+        grid-template-columns: 1fr; /* Single column on mobile */
+        gap: 15px;
+    }
 }
