@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import { useNavigate } from 'react-router-dom';
 import './MyRecipes.css'; // Import the CSS file for styling
+import RecipeCard from '../components/RecipeCard'; // Fix the import path
 
 const MyRecipes = () => {
     const { user } = useRecipesContext();
@@ -36,10 +37,6 @@ const MyRecipes = () => {
         fetchUserRecipes();
     }, [user]);
 
-    const handleRecipeClick = (id) => {
-        navigate(`/recipe/${id}`);
-    };
-
     const handleDelete = async (id) => {
         try {
             const response = await fetch(`/api/recipes/${id}`, {
@@ -65,45 +62,27 @@ const MyRecipes = () => {
             <div className="recipes-grid">
                 {recipes.length > 0 ? (
                     recipes.map((recipe) => (
-                        <div 
-                            key={recipe._id} 
-                            className="recipe-item" 
-                            onClick={() => handleRecipeClick(recipe._id)}
-                        >
-                            <div className="recipe-image-container">
-                                {recipe.mainImage ? (
-                                    <img 
-                                        src={`http://localhost:4000${recipe.mainImage}`} 
-                                        alt={recipe.title} 
-                                    />
-                                ) : (
-                                    <div className="placeholder-image">
-                                        <span className="material-icons">restaurant_menu</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="recipe-content">
-                                <h4>{recipe.title}</h4>
-                                <div className="recipe-actions">
-                                    <button 
-                                        className="action-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(`/update-recipe/${recipe._id}`);
-                                        }}
-                                    >
-                                        <span className="material-icons">edit</span> Edit
-                                    </button>
-                                    <button 
-                                        className="action-btn delete-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(recipe._id);
-                                        }}
-                                    >
-                                        <span className="material-icons">delete</span> Delete
-                                    </button>
-                                </div>
+                        <div key={recipe._id} className="recipe-wrapper">
+                            <RecipeCard recipe={recipe} />
+                            <div className="recipe-actions">
+                                <button 
+                                    className="action-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/update-recipe/${recipe._id}`);
+                                    }}
+                                >
+                                    <span className="material-icons">edit</span> Edit
+                                </button>
+                                <button 
+                                    className="action-btn delete-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(recipe._id);
+                                    }}
+                                >
+                                    <span className="material-icons">delete</span> Delete
+                                </button>
                             </div>
                         </div>
                     ))

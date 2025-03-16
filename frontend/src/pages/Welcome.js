@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import './Welcome.css';
 import searchIcon from '../assets/search-icon.png';
+import RecipeCard from '../components/RecipeCard'; // Import the RecipeCard component
 
 const Welcome = () => {
     const { user, dispatch } = useRecipesContext();
@@ -61,10 +62,6 @@ const Welcome = () => {
         }
     };
 
-    const handleRecipeClick = (recipeId) => {
-        navigate(`/recipe/${recipeId}`);
-    };
-
     return (
         <div className="welcome-container">
             {!user && (
@@ -102,59 +99,7 @@ const Welcome = () => {
             
             <div className="recipes-grid">
                 {recipes.map((recipe) => (
-                    <div 
-                        key={recipe._id} 
-                        className="recipe-item" 
-                        onClick={() => handleRecipeClick(recipe._id)}
-                    >
-                        <div className="recipe-image-container">
-                            {recipe.mainImage ? (
-                                <img 
-                                    src={`http://localhost:4000${recipe.mainImage}`} 
-                                    alt={recipe.title}
-                                />
-                            ) : (
-                                <div className="placeholder-image">
-                                    <span className="material-icons">restaurant_menu</span>
-                                </div>
-                            )}
-                            {recipe.tags && recipe.tags.length > 0 && (
-                                <div className="cuisine-tag">
-                                    <span className="material-icons">restaurant</span>
-                                    {recipe.tags[0]}
-                                </div>
-                            )}
-                        </div>
-                        <div className="recipe-content">
-                            <h4>{recipe.title}</h4>
-                            <div className="recipe-meta">
-                                <div>
-                                    <span className="material-icons">schedule</span>
-                                    {recipe.totalTime ? `${recipe.totalTime.hours}h ${recipe.totalTime.minutes}m` : 'N/A'}
-                                </div>
-                            </div>
-                            {recipe && recipe.createdBy && (
-                                <Link to={`/user/${recipe.createdBy._id}`} className="recipe-author-link">
-                                    <div className="recipe-card-author">
-                                        {recipe.createdBy.profilePhoto ? (
-                                            <img 
-                                                src={recipe.createdBy.profilePhoto.startsWith('http') ? 
-                                                    recipe.createdBy.profilePhoto : 
-                                                    `http://localhost:4000${recipe.createdBy.profilePhoto}`} 
-                                                alt="Author" 
-                                                className="recipe-author-image"
-                                            />
-                                        ) : (
-                                            <div className="recipe-author-placeholder">
-                                                <span className="material-icons">account_circle</span>
-                                            </div>
-                                        )}
-                                        <span className="recipe-author-name">{recipe.createdBy.firstName}</span>
-                                    </div>
-                                </Link>
-                            )}
-                        </div>
-                    </div>
+                    <RecipeCard key={recipe._id} recipe={recipe} />
                 ))}
             </div>
         </div>

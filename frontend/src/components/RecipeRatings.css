@@ -1,0 +1,281 @@
+.recipe-ratings-container {
+    background-color: rgba(25, 25, 25, 0.9);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recipe-ratings-container h3 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+}
+
+.recipe-ratings-container h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Star Rating */
+.star-rating {
+    display: flex;
+    align-items: center;
+}
+
+.star {
+    color: #ffc107; /* Golden color for stars */
+    font-size: 24px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.star.small {
+    font-size: 16px;
+}
+
+.star.medium {
+    font-size: 24px;
+}
+
+.star.large {
+    font-size: 32px;
+}
+
+.star.interactive {
+    cursor: pointer;
+}
+
+.star.interactive:hover,
+.star.interactive.hover {
+    transform: scale(1.2);
+    color: #ffac07; /* Slightly darker gold for hover */
+}
+
+.rating-value {
+    margin-left: 8px;
+    font-size: 14px;
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+/* Rating Form */
+.rating-form-container {
+    background-color: rgba(30, 30, 30, 0.6);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.rating-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.rating-stars-input {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rating-stars-input label {
+    min-width: 100px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.rating-comment-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rating-comment-input label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.rating-comment-input textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.rating-comment-input textarea:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(50, 205, 50, 0.2);
+}
+
+.submit-rating-btn {
+    background-color: var(--accent);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.submit-rating-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    background-color: rgba(60, 220, 60, 0.9);
+}
+
+.submit-rating-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid #dc3545;
+}
+
+.success-message {
+    color: var(--accent);
+    background-color: rgba(50, 205, 50, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+/* Rating Summary */
+.ratings-summary {
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+}
+
+.rating-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rating-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stars-label {
+    width: 60px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.progress-bar-container {
+    flex-grow: 1;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #ffc107;
+    border-radius: 3px;
+}
+
+.count-label {
+    width: 30px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+/* Rating Comments List */
+.ratings-comments-list {
+    margin-top: 20px;
+}
+
+.rating-comment-item {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 15px;
+}
+
+.rating-comment-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.rating-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.rating-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.rating-author {
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.rating-date {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.rating-comment-text {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.no-ratings-message {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .rating-stars-input {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .submit-rating-btn {
+        width: 100%;
+    }
+    
+    .rating-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .rating-meta {
+        align-items: flex-start;
+    }
+}

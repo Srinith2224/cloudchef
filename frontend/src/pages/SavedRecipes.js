@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import { useNavigate } from 'react-router-dom';
+import RecipeCard from '../components/RecipeCard';
 import './SavedRecipes.css'; // Import the CSS file for styling
 
 const SavedRecipes = () => {
@@ -73,51 +74,11 @@ const SavedRecipes = () => {
             <div className="recipes-grid">
                 {savedRecipes.length > 0 ? (
                     savedRecipes.map((recipe) => (
-                        <div 
-                            key={recipe._id} 
-                            className="recipe-item" 
-                            onClick={() => navigate(`/recipe/${recipe._id}`)}
-                        >
-                            <div className="recipe-image-container">
-                                {recipe.mainImage ? (
-                                    <img 
-                                        src={`http://localhost:4000${recipe.mainImage}`} 
-                                        alt={recipe.title}
-                                    />
-                                ) : (
-                                    <div className="placeholder-image">
-                                        <span className="material-icons">restaurant_menu</span>
-                                    </div>
-                                )}
-                                <button 
-                                    className="unsave-button"
-                                    onClick={(e) => handleUnsave(recipe._id, e)}
-                                    title="Remove from favorites"
-                                >
-                                    <span className="material-icons">bookmark_remove</span>
-                                </button>
-                                <div className="saved-tag">
-                                    <span className="material-icons">bookmark</span>
-                                    Saved
-                                </div>
-                            </div>
-                            <div className="recipe-content">
-                                <h4>{recipe.title}</h4>
-                                <div className="recipe-meta">
-                                    <div>
-                                        <span className="material-icons">schedule</span>
-                                        {recipe.totalTime ? 
-                                            `${recipe.totalTime.hours}h ${recipe.totalTime.minutes}m` : 
-                                            'N/A'
-                                        }
-                                    </div>
-                                    <div>
-                                        <span className="material-icons">restaurant_menu</span>
-                                        {recipe.ingredients?.length || 0} items
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <RecipeCard 
+                            key={recipe._id}
+                            recipe={recipe}
+                            onUnsave={handleUnsave}
+                        />
                     ))
                 ) : (
                     <div className="no-recipes">

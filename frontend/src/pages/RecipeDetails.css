@@ -1158,3 +1158,31 @@
     }
 }
 
+/* Rating Section styling */
+.recipe-details .recipe-ratings-container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Style adjustments for mobile */
+@media (max-width: 768px) {
+    .recipe-ratings-container {
+        padding: 15px;
+    }
+    
+    .rating-form-container {
+        padding: 15px;
+    }
+}
+
+

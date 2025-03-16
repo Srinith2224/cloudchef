@@ -12,6 +12,8 @@ const cartRoutes = require('./routes/cart');
 const reportRoutes = require('./routes/reports');
 const recipeImageGenerationRoutes = require('./routes/recipeImageGeneration');
 const otpRoutes = require('./routes/otpRoutes');
+const adminRoutes = require('./routes/admin');
+const ratingRoutes = require('./routes/ratings');
 const Recipe = require('./models/RecipeModel');
 const app = express();
 
@@ -31,10 +33,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/recipe-image-generation', recipeImageGenerationRoutes);
 app.use('/api/otp', otpRoutes);
-
-// Add this after your other route declarations (around line 31)
-const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
+app.use('/api/ratings', ratingRoutes);
 
 // Serve static files from recipeImages
 app.use('/recipeImages', express.static(path.join(__dirname, 'recipeImages')));

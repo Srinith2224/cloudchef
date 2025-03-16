@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
+import RecipeCard from '../components/RecipeCard';
 import './UserProfile.css';
 
 const UserProfile = () => {
@@ -248,31 +249,7 @@ const UserProfile = () => {
                         {recipes.length > 0 ? (
                             <div className="recipes-grid">
                                 {recipes.map(recipe => (
-                                    <div 
-                                        key={recipe._id} 
-                                        className="recipe-card" 
-                                        onClick={() => navigate(`/recipe/${recipe._id}`)}
-                                    >
-                                        {recipe.mainImage ? (
-                                            <img 
-                                                src={`http://localhost:4000${recipe.mainImage}`}
-                                                alt={recipe.title}
-                                            />
-                                        ) : (
-                                            <div className="recipe-placeholder">
-                                                <span className="material-icons">restaurant_menu</span>
-                                            </div>
-                                        )}
-                                        <div className="recipe-card-info">
-                                            <h4>{recipe.title}</h4>
-                                            <div className="recipe-meta">
-                                                <span>
-                                                    <span className="material-icons">schedule</span>
-                                                    {recipe.totalTime.hours}h {recipe.totalTime.minutes}m
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <RecipeCard key={recipe._id} recipe={recipe} />
                                 ))}
                             </div>
                         ) : (

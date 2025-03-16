@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import CalendarPopup from '../components/CalendarPopup';
 import './RecipeDetails.css';
+import RecipeRatings from '../components/RecipeRatings';
 
 // Component for the immersive step-by-step mode
 const ImmersiveStepMode = ({ recipe, onExit }) => {
@@ -849,6 +850,13 @@ const RecipeDetails = () => {
                         </div>
                     </Link>
                 </div>
+            )}
+            
+            {recipe && (
+                <RecipeRatings 
+                    recipeId={id} 
+                    creatorId={recipe.createdBy?._id} 
+                />
             )}
             
             <div className="button-row">

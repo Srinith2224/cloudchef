@@ -1,0 +1,21 @@
+/* Add to your RecipeCard.css */
+.recipe-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.recipe-rating .star {
+    color: #ffc107;
+    font-size: 16px;
+}
+
+.recipe-rating .star.small {
+    font-size: 14px;
+}
+
+.rating-count {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
