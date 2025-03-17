@@ -316,3 +316,506 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Add new styles for the job portal filter layout */
+.welcome-container.with-sidebar {
+  max-width: 100%;
+  padding: 20px;
+  min-height: 100vh;
+  margin: -20px auto 0;
+}
+
+.welcome-content {
+  display: flex;
+  margin-top: 30px;
+  gap: 30px;
+  min-height: 60vh;
+}
+
+/* Filters sidebar */
+.filters-sidebar {
+  width: 250px;
+  background-color: var(--secondary);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 10px;
+}
+
+.filters-header h2 {
+  font-size: 1.4em;
+  margin: 0;
+  color: var(--primary);
+}
+
+.clear-filters-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 0;
+}
+
+.clear-filters-btn:hover {
+  text-decoration: underline;
+}
+
+.filter-section {
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Dropdown header styling */
+.filter-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  border-radius: 8px;
+  background-color: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.filter-dropdown-header:hover {
+  background-color: rgba(50, 50, 50, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.filter-dropdown-header.active {
+  background-color: rgba(50, 205, 50, 0.15);
+  border-color: rgba(50, 205, 50, 0.3);
+}
+
+.filter-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-icon {
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.filter-dropdown-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.filter-dropdown-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-count {
+  background-color: var(--primary);
+  color: #000;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75em;
+  padding: 0 5px;
+  font-weight: 600;
+}
+
+.dropdown-arrow {
+  color: var(--primary);
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+/* Dropdown content styling */
+.filter-dropdown-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  margin-top: 5px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-height: 200px;
+  overflow-y: auto;
+  animation: fadeInDropdown 0.2s ease;
+}
+
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filter-dropdown-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-dropdown-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.filter-dropdown-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Custom checkbox styling */
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--primary);
+  font-size: 0.9em;
+}
+
+.filter-checkbox:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.custom-checkbox {
+  position: relative;
+  height: 16px;
+  width: 16px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.filter-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 16px;
+  width: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-checkbox:hover .checkmark {
+  background-color: rgba(50, 205, 50, 0.1);
+  border-color: rgba(50, 205, 50, 0.3);
+}
+
+.filter-checkbox input:checked ~ .checkmark {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.check-icon {
+  color: #000;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.option-label {
+  line-height: 1.2;
+}
+
+/* Recipes container */
+.recipes-container {
+  flex-grow: 1;
+}
+
+.search-summary {
+  margin-bottom: 20px;
+}
+
+.search-summary h2 {
+  font-size: 1.5em;
+  color: var(--primary);
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-tag {
+  background-color: rgba(50, 205, 50, 0.15);
+  border: 1px solid rgba(50, 205, 50, 0.3);
+  color: var(--primary);
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-tag button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.filter-tag button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  background-color: var(--secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.no-results .material-icons {
+  font-size: 48px;
+  opacity: 0.7;
+  margin-bottom: 15px;
+  color: var(--primary);
+}
+
+.no-results p {
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+.reset-search-btn {
+  background-color: var(--accent);
+  color: var(--button-text);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: all 0.2s ease;
+}
+
+.reset-search-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  color: var(--primary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .welcome-content {
+    flex-direction: column;
+  }
+  
+  .filters-sidebar {
+    width: 100%;
+    max-height: none;
+    position: relative;
+    top: 0;
+    margin-bottom: 20px;
+  }
+  
+  .filter-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+/* Add to your Welcome.css file */
+
+/* Dropdown Filter Styles */
+.filter-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.filter-dropdown-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.filter-dropdown-header.active {
+    border-bottom-color: var(--accent);
+}
+
+.filter-dropdown-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.filter-dropdown-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.selected-count {
+    background-color: var(--accent);
+    color: #fff;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    padding: 0 6px;
+}
+
+.dropdown-arrow {
+    color: var(--accent);
+    font-size: 0.8em;
+    transition: transform 0.3s ease;
+}
+
+.filter-dropdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 5px;
+    background-color: var(--secondary);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-dropdown-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-dropdown-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.filter-dropdown-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.filter-dropdown-content .filter-checkbox {
+    padding: 8px 12px;
+    transition: background-color 0.2s;
+}
+
+.filter-dropdown-content .filter-checkbox:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Fix for filter sections spacing */
+.filter-section {
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Add these to your CSS */
+
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.no-results h3 {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    color: var(--primary);
+}
+
+.no-results p {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 20px;
+}
+
+.active-filters-summary {
+    background: rgba(40, 40, 40, 0.5);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px auto;
+    max-width: 400px;
+    text-align: left;
+}
+
+.filter-category {
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.reset-search-btn {
+    margin-top: 15px;
+    background-color: var(--primary);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-search-btn:hover {
+    background-color: #40e640;
+    transform: translateY(-2px);
+}

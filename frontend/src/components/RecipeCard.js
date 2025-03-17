@@ -78,9 +78,9 @@ const RecipeCard = ({ recipe, onUnsave }) => {
             <span className="material-icons">restaurant_menu</span>
             {recipe.ingredients?.length || 0} items
           </div>
-          <div className="steps-count">
-            <span className="material-icons">format_list_numbered</span>
-            {recipe.steps?.length || 0} steps
+          <div className="recipe-author">
+            <span className="material-icons">person</span>
+            {recipe.createdBy?.firstName || 'Unknown'}
           </div>
         </div>
       </div>
