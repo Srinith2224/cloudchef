@@ -924,3 +924,192 @@ body {
   width: auto;
   padding: 10px 16px;
 }
+
+/* Tag Categories */
+.tag-category {
+  margin-bottom: 24px;
+  background-color: rgba(30, 30, 30, 0.7);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tag-category h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 22px;
+}
+
+.tag-category h4:before {
+  content: "local_offer";
+  font-family: 'Material Icons';
+  font-size: 18px;
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* Preset Tags */
+.preset-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.preset-tag {
+  background-color: rgba(35, 35, 35, 0.8);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset-tag:hover {
+  background-color: rgba(40, 40, 40, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.preset-tag.selected {
+  background-color: rgba(32, 32, 32, 0.9);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--accent);
+  font-weight: 600;
+}
+
+.preset-tag.selected:before {
+  content: "✓";
+  margin-right: 5px;
+  font-size: 12px;
+}
+
+/* Selected Tags Section */
+.selected-tags-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: linear-gradient(to right, rgba(35, 35, 35, 0.9), rgba(30, 30, 30, 0.9));
+  border-radius: 12px;
+  border: 1px solid rgba(0, 203, 0, 0.67);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.selected-tags-section h4 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: var(--primary);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-tags-section h4:before {
+  content: "bookmark";
+  font-family: 'Material Icons';
+  color: var(--primary);
+  font-size: 20px;
+}
+
+/* Keep existing tag styles but enhanced */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(50, 205, 50, 0.1);
+  color: var(--primary);
+  font-size: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(50, 205, 50, 0.25);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tag:hover {
+  background: rgba(50, 205, 50, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tag span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag span:hover {
+  background: rgba(255, 72, 66, 0.15);
+  color: #ff4842;
+}
+
+/* Custom Tags Input */
+.tags-input-container {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.tags-input-container input {
+  flex-grow: 1;
+  margin-bottom: 0;
+  background-color: rgba(25, 25, 25, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--secondary);
+  padding: 10px 14px;
+}
+
+.add-tag-btn {
+  background-color: rgba(50, 205, 50, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(50, 205, 50, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-tag-btn:before {
+  content: "add";
+  font-family: 'Material Icons';
+  font-size: 18px;
+}
+
+.add-tag-btn:hover {
+  transform: translateY(-2px);
+  background-color: rgba(50, 205, 50, 0.25);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

@@ -390,6 +390,17 @@ const RecipeForm = () => {
         }
     }, [steps, stepPreviews]);
 
+    // Add this function to the component
+    const handleToggleTag = (tag) => {
+        if (tags.includes(tag)) {
+            // Remove tag if already selected
+            setTags(tags.filter(t => t !== tag));
+        } else {
+            // Add tag if not already selected
+            setTags([...tags, tag]);
+        }
+    };
+
     // Step content components remain the same
     const stepsContent = [
         // ...your existing step content components
@@ -686,25 +697,102 @@ const RecipeForm = () => {
         <div key="step5" className="form-step">
             <h3>Recipe Tags</h3>
             {error && <div className="error-message">{error}</div>}
-            <p>Add tags to help users find your recipe (e.g., dinner, vegan, quick, Italian, spicy)</p>
-            <div className="tags-input-container">
-                <input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagInputKeyDown}
-                    placeholder="Type tag and press Enter"
-                />
-                <button type="button" onClick={handleAddTag} className="add-tag-btn">Add Tag</button>
+            <p>Add tags to help users find your recipe. Select from common categories or add your own.</p>
+            
+            {/* Cuisine Type Tags */}
+            <div className="tag-category">
+                <h4>Cuisine Type:</h4>
+                <div className="preset-tags">
+                    {["Indian", "Chinese", "Italian", "Mexican", "American", "Thai", "Mediterranean", "Japanese"].map(cuisine => (
+                        <button 
+                            key={cuisine}
+                            type="button"
+                            className={`preset-tag ${tags.includes(cuisine) ? 'selected' : ''}`}
+                            onClick={() => handleToggleTag(cuisine)}
+                        >
+                            {cuisine}
+                        </button>
+                    ))}
+                </div>
             </div>
             
-            {tags.length > 0 && (
-                <div className="tags-container">
-                    {tags.map((tag, index) => (
-                        <div key={index} className="tag">
-                            {tag} <span onClick={() => handleRemoveTag(index)}>×</span>
-                        </div>
+            {/* Meal Type Tags */}
+            <div className="tag-category">
+                <h4>Meal Type:</h4>
+                <div className="preset-tags">
+                    {["Breakfast", "Lunch", "Dinner", "Appetizer", "Dessert", "Snack", "Brunch"].map(meal => (
+                        <button 
+                            key={meal}
+                            type="button"
+                            className={`preset-tag ${tags.includes(meal) ? 'selected' : ''}`}
+                            onClick={() => handleToggleTag(meal)}
+                        >
+                            {meal}
+                        </button>
                     ))}
+                </div>
+            </div>
+            
+            {/* Difficulty Tags */}
+            <div className="tag-category">
+                <h4>Difficulty:</h4>
+                <div className="preset-tags">
+                    {["Easy", "Medium", "Hard"].map(level => (
+                        <button 
+                            key={level}
+                            type="button"
+                            className={`preset-tag ${tags.includes(level) ? 'selected' : ''}`}
+                            onClick={() => handleToggleTag(level)}
+                        >
+                            {level}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            
+            {/* Dietary Tags */}
+            <div className="tag-category">
+                <h4>Dietary Preferences:</h4>
+                <div className="preset-tags">
+                    {["Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Keto", "Low-Carb", "High-Protein"].map(diet => (
+                        <button 
+                            key={diet}
+                            type="button"
+                            className={`preset-tag ${tags.includes(diet) ? 'selected' : ''}`}
+                            onClick={() => handleToggleTag(diet)}
+                        >
+                            {diet}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            
+            {/* Custom Tags */}
+            <div className="tag-category">
+                <h4>Custom Tags:</h4>
+                <div className="tags-input-container">
+                    <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={handleTagInputKeyDown}
+                        placeholder="Type custom tag and press Enter"
+                    />
+                    <button type="button" onClick={handleAddTag} className="add-tag-btn">Add Tag</button>
+                </div>
+            </div>
+            
+            {/* All Selected Tags */}
+            {tags.length > 0 && (
+                <div className="selected-tags-section">
+                    <h4>Selected Tags:</h4>
+                    <div className="tags-container">
+                        {tags.map((tag, index) => (
+                            <div key={index} className="tag">
+                                {tag} <span onClick={() => handleRemoveTag(index)}>×</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>,
