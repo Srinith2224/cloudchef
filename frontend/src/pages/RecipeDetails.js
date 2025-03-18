@@ -644,18 +644,6 @@ const RecipeDetails = () => {
                         </span>
                     </div>
                     
-                    {recipe.tags && recipe.tags.length > 0 && (
-                        <div className="recipe-tags">
-                            <div className="info-item">
-                                <strong>Tags:</strong>
-                            </div>
-                            <div>
-                                {recipe.tags.map((tag, index) => (
-                                    <span key={index} className="tag">{tag}</span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
                 
                 <div className="info-card">
@@ -821,6 +809,18 @@ const RecipeDetails = () => {
                     </ol>
                 )}
             </div>
+            
+            {/* Tags section with new class */}
+            {recipe.tags && recipe.tags.length > 0 && (
+                <div className="info-card tags-card">
+                    <h3>Tags</h3>
+                    <div className="recipe-tags tag-container">
+                        {recipe.tags.map((tag, index) => (
+                            <span key={index} className="tag">{tag}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
             
             {recipe.createdBy && (
                 <div className="recipe-author-section">

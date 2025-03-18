@@ -76,21 +76,26 @@
     color: rgba(255, 255, 255, 0.95);
 }
 
-/* Tags styling */
-.recipe-tags {
-    margin-top: 15px;
+
+/* Add to RecipeDetails.css */
+.tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;  /* Slightly larger gap between tags */
+    padding: 15px 0;
+}
+
+.tag-container .tag {
+    margin: 0;
 }
 
 .tag {
-    display: inline-block;
-    background-color: rgba(50, 205, 50, 0.15);
-    color: var(--primary);
+    background-color: rgba(50, 205, 50, 0.15);  /* Subtle background for tags */
     border: 1px solid rgba(50, 205, 50, 0.3);
-    padding: 5px 10px;
-    border-radius: 15px;
-    margin-right: 8px;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.95);
     transition: all 0.2s ease;
 }
 
@@ -141,6 +146,12 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* More visible border */
     padding-bottom: 10px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Make the tags container visually distinct */
+.info-card.tags-card {
+    margin-top: 30px;  /* Add top margin to create space */
+    background-color: rgba(25, 25, 25, 0.9);
 }
 
 /* Tables styling */
@@ -314,6 +325,7 @@
 /* Steps section styling */
 .steps-section {
     margin-top: 40px;
+    margin-bottom: 40px;  /* Add bottom margin to create space */
     background-color: rgba(25, 25, 25, 0.9); /* Slightly darker background */
     padding: 25px;
     border-radius: var(--border-radius);
