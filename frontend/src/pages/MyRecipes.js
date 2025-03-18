@@ -3,16 +3,19 @@ import { useRecipesContext } from '../hooks/useRecipesContext';
 import { useNavigate } from 'react-router-dom';
 import './MyRecipes.css'; // Import the CSS file for styling
 import RecipeCard from '../components/RecipeCard'; // Fix the import path
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const MyRecipes = () => {
     const { user } = useRecipesContext();
     const [recipes, setRecipes] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserRecipes = async () => {
             if (!user || !user.userId) {
                 console.error('User ID is not available');
+                setIsLoading(false);
                 return;
             }
 
@@ -31,6 +34,8 @@ const MyRecipes = () => {
                 setRecipes(data);
             } catch (error) {
                 console.error('Error fetching user recipes:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -59,6 +64,7 @@ const MyRecipes = () => {
     return (
         <div className="my-recipes">
             <h1>My Recipes</h1>
+            {isLoading && <LoadingAnimation message="Loading your recipes..." />}
             <div className="recipes-grid">
                 {recipes.length > 0 ? (
                     recipes.map((recipe) => (

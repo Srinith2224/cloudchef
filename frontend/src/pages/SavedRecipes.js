@@ -3,11 +3,13 @@ import { useRecipesContext } from '../hooks/useRecipesContext';
 import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import './SavedRecipes.css'; // Import the CSS file for styling
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const SavedRecipes = () => {
     const { user } = useRecipesContext();
     const [savedRecipes, setSavedRecipes] = useState([]);
     const [unsaveMessage, setUnsaveMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,6 +29,8 @@ const SavedRecipes = () => {
                 }
             } catch (error) {
                 console.error('Error fetching saved recipes:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -71,6 +75,8 @@ const SavedRecipes = () => {
                 </div>
             )}
             
+            {isLoading && <LoadingAnimation message="Loading your saved recipes..." />}
+
             <div className="recipes-grid">
                 {savedRecipes.length > 0 ? (
                     savedRecipes.map((recipe) => (

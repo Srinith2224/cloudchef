@@ -5,6 +5,11 @@ import RecipeCard from '../components/RecipeCard';
 import searchIcon from '../assets/search-icon.png';
 import './Welcome.css';
 
+// Import the Lottie animation player and your animation file
+import Lottie from 'react-lottie'; // Make sure this is installed
+import loadingAnimation from '../assets/loading-animation.json';
+import LoadingAnimation from '../components/LoadingAnimation';
+
 const Welcome = () => {
     const { user, recipes, dispatch } = useRecipesContext();
     const [searchQuery, setSearchQuery] = useState('');
@@ -362,6 +367,16 @@ const Welcome = () => {
         return results;
     }
 
+    // Add these default options for the Lottie animation
+    const defaultOptions = {
+        loop: true,
+        autoplay: true,
+        animationData: loadingAnimation,
+        rendererSettings: {
+            preserveAspectRatio: 'xMidYMid slice'
+        }
+    };
+
     return (
         <div className="welcome-container with-sidebar">
             {!user && (
@@ -418,7 +433,7 @@ const Welcome = () => {
                     </div>
                     
                     {loading ? (
-                        <div className="loading-spinner">Loading...</div>
+                        <LoadingAnimation message="Loading delicious recipes..." />
                     ) : filteredRecipes.length > 0 ? (
                         <div className="recipes-grid">
                             {filteredRecipes.map((recipe) => (

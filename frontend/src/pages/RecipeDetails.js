@@ -4,6 +4,7 @@ import { useRecipesContext } from '../hooks/useRecipesContext';
 import CalendarPopup from '../components/CalendarPopup';
 import './RecipeDetails.css';
 import RecipeRatings from '../components/RecipeRatings';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 // Component for the immersive step-by-step mode
 const ImmersiveStepMode = ({ recipe, onExit }) => {
@@ -197,6 +198,7 @@ const RecipeDetails = () => {
     const [showCalendarPopup, setShowCalendarPopup] = useState(false); // State for calendar popup
     const [stepByStepMode, setStepByStepMode] = useState(false); // State for step-by-step mode
     const [currentStepIndex, setCurrentStepIndex] = useState(0); // State for current step index
+    const [isLoading, setIsLoading] = useState(true); // State for loading animation
     const navigate = useNavigate();
 
     // Define checkIfSaved with useCallback (add this near your other state definitions)
@@ -265,6 +267,8 @@ const RecipeDetails = () => {
                 }
             } catch (error) {
                 console.error('Error fetching recipe:', error);
+            } finally {
+                setIsLoading(false); // Set loading to false after fetching
             }
         };
 
@@ -553,6 +557,10 @@ const RecipeDetails = () => {
     // If in step-by-step mode, render the immersive experience
     if (stepByStepMode && recipe) {
         return <ImmersiveStepMode recipe={recipe} onExit={toggleStepByStepMode} />;
+    }
+
+    if (isLoading) {
+        return <LoadingAnimation message="Loading recipe details..." />;
     }
 
     if (!recipe) {
