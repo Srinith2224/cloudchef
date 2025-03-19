@@ -101,6 +101,14 @@ router.patch('/:id', (req, res, next) => {
 router.delete('/:id', recipeController.deleteRecipe);
 router.get('/user/:userId', recipeController.getRecipesByUserId);
 router.post('/calculate-nutrition', requireAuth, recipeController.calculateNutrition);
+<<<<<<< HEAD
+=======
+
+const recipeGenerationController = require('../controllers/recipeGenerationController');
+
+// Make sure middleware is correctly referenced
+router.post('/generate-recipe', requireAuth, recipeGenerationController.generateRecipe);
+>>>>>>> main
 
 const recipeGenerationController = require('../controllers/recipeGenerationController');
 
