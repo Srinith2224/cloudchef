@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RecipeForm.css';
+import { getImageUrl } from '../utils/imageHelper';
 
 const RecipeForm = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -315,6 +316,25 @@ const RecipeForm = () => {
                 const data = await response.json();
                 setSuccessMessage(`"${data.title}" has been added successfully!`);
                 setShowSuccessModal(true);
+                
+                // Apply the same URL handling logic from UpdateRecipe.js
+                if (data.mainImage) {
+                    setImagePreview(data.mainImage.startsWith('http') ? 
+                        data.mainImage : 
+                        `http://localhost:4000${data.mainImage}`);
+                }
+                
+                if (data.steps && data.steps.length > 0) {
+                    const newPreviews = data.steps.map(step => ({
+                        image: step.image ? (step.image.startsWith('http') ? 
+                            step.image : 
+                            `http://localhost:4000${step.image}`) : null,
+                        video: step.video ? (step.video.startsWith('http') ? 
+                            step.video : 
+                            `http://localhost:4000${step.video}`) : null
+                    }));
+                    setStepPreviews(newPreviews);
+                }
             } else {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to add the recipe');
@@ -650,7 +670,10 @@ const RecipeForm = () => {
                         </div>
                         {stepPreviews[index]?.image && (
                             <div className="media-preview">
-                                <img src={stepPreviews[index].image} alt={`Step ${index + 1} preview`} />
+                                <img 
+                                    src={getImageUrl(stepPreviews[index].image)} 
+                                    alt={`Step ${index + 1} preview`} 
+                                />
                             </div>
                         )}
                     </div>
@@ -822,7 +845,7 @@ const RecipeForm = () => {
                 ) : (
                     <>
                         <img 
-                            src={imagePreview} 
+                            src={getImageUrl(imagePreview)} 
                             alt="Recipe preview" 
                             style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px' }} 
                         />

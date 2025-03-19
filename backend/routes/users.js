@@ -3,6 +3,7 @@ const { updateUserProfile, getUserById, saveRecipe, getSavedRecipes, deleteSaved
 const requireAuth = require('../middleware/authMiddleware');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const { uploadProfilePhoto } = require('../config/cloudinaryConfig');
 
 router.use(requireAuth); // Apply auth middleware to all routes
 
@@ -28,5 +29,28 @@ router.get('/profile/:id', userController.getUserProfile);
 router.get('/:id/followers', userController.getFollowers);
 router.get('/:id/following', userController.getFollowing);
 router.post('/set-featured-recipe', requireAuth, userController.setFeaturedRecipe);
+
+// Update profile photo route
+router.post('/profile/photo', requireAuth, uploadProfilePhoto.single('profilePhoto'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No profile photo provided' });
+    }
+    
+    const profilePhotoUrl = req.file.path;
+    
+    // Update user's profile with the Cloudinary URL
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePhoto: profilePhotoUrl },
+      { new: true }
+    ).select('-password');
+    
+    res.json({ user, imageUrl: profilePhotoUrl });
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 module.exports = router;

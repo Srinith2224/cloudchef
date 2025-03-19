@@ -49,9 +49,9 @@ const Profile = () => {
                     // Fix the profile photo URL handling
                     if (data.profilePhoto) {
                         if (data.profilePhoto.startsWith('http')) {
-                            setProfilePhoto(data.profilePhoto);
+                            setProfilePhoto(data.profilePhoto); // Cloudinary URL
                         } else {
-                            setProfilePhoto(`http://localhost:4000${data.profilePhoto}`);
+                            setProfilePhoto(`http://localhost:4000${data.profilePhoto}`); // Local URL
                         }
                     } else {
                         setProfilePhoto(''); 

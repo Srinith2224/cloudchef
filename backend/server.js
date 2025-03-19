@@ -22,6 +22,7 @@ app.use(cors());
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use('/profilePhotos', express.static(path.join(__dirname, 'profilePhotos')));
 
 // Routers

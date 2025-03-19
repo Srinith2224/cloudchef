@@ -5,6 +5,7 @@ import CalendarPopup from '../components/CalendarPopup';
 import './RecipeDetails.css';
 import RecipeRatings from '../components/RecipeRatings';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { getImageUrl } from '../utils/imageHelper';
 
 // Component for the immersive step-by-step mode
 const ImmersiveStepMode = ({ recipe, onExit }) => {
@@ -88,9 +89,9 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
                             {currentStep.video && (
                                 <video 
                                     className="immersive-media"
-                                    src={`http://localhost:4000${currentStep.video}`} 
+                                    src={getImageUrl(currentStep.video)} 
                                     controls
-                                    poster={currentStep.image ? `http://localhost:4000${currentStep.image}` : ''}
+                                    poster={currentStep.image ? getImageUrl(currentStep.image) : ''}
                                 >
                                     Your browser does not support video playback.
                                 </video>
@@ -100,7 +101,7 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
                             {!currentStep.video && currentStep.image && (
                                 <img 
                                     className="immersive-media"
-                                    src={`http://localhost:4000${currentStep.image}`} 
+                                    src={getImageUrl(currentStep.image)} 
                                     alt={`Step ${currentStepIndex + 1}`} 
                                 />
                             )}
@@ -189,7 +190,7 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
 // Main RecipeDetails component
 const RecipeDetails = () => {
     const { id } = useParams();
-    const { user, dispatch } = useRecipesContext();
+    const { user } = useRecipesContext();
     const [recipe, setRecipe] = useState(null);
     const [isSaved, setIsSaved] = useState(false); // State to track if the recipe is saved
     const [showSuccessModal, setShowSuccessModal] = useState(false); // State for success modal
@@ -407,27 +408,33 @@ const RecipeDetails = () => {
     };
 
     const handleDelete = async () => {
-        try {
-            const response = await fetch(`/api/recipes/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+        if (window.confirm('Are you sure you want to delete this recipe? This action cannot be undone.')) {
+            try {
+                const response = await fetch(`/api/recipes/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                setSuccessMessage(data.message); // Set success message from response
-                setShowSuccessModal(true); // Show success modal
-                dispatch({ type: 'DELETE_RECIPE', payload: id });
-                setTimeout(() => {
-                    navigate('/my-recipes'); // Navigate to My Recipes page after a delay
-                }, 2000); // Adjust the delay as needed
-            } else {
-                console.error('Failed to delete recipe');
+                if (response.ok) {
+                    setSuccessMessage('Recipe deleted successfully');
+                    setShowSuccessModal(true);
+                    
+                    // Set a short timeout before navigating away
+                    setTimeout(() => {
+                        navigate('/my-recipes');
+                    }, 1500);
+                } else {
+                    console.error('Failed to delete recipe');
+                    setSuccessMessage('Failed to delete recipe. Please try again.');
+                    setShowSuccessModal(true);
+                }
+            } catch (error) {
+                console.error('Error deleting recipe:', error);
+                setSuccessMessage('Error deleting recipe. Please try again.');
+                setShowSuccessModal(true);
             }
-        } catch (error) {
-            console.error('Error deleting recipe:', error);
         }
     };
 
@@ -567,6 +574,7 @@ const RecipeDetails = () => {
         return <p>Loading...</p>;
     }
 
+    // Look for the renderActionButtons function (around line 570-590)
     const renderActionButtons = () => {
         if (!user) {
             return (
@@ -586,16 +594,17 @@ const RecipeDetails = () => {
                     <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
                         <span className="material-icons">edit</span> Update
                     </button>
-                    <button className="btn schedule-btn" onClick={handleSchedule}>
-                        <span className="material-icons">calendar_today</span> Schedule
-                    </button>
                     <button className="btn delete-btn" onClick={handleDelete}>
                         <span className="material-icons">delete</span> Delete
+                    </button>
+                    <button className="btn schedule-btn" onClick={handleSchedule}>
+                        <span className="material-icons">calendar_today</span> Schedule
                     </button>
                 </>
             );
         }
         
+        // Rest of the function for non-owner users
         return (
             <>
                 {isSaved ? (
@@ -620,7 +629,11 @@ const RecipeDetails = () => {
             
             <div className="recipe-header">
                 {recipe.mainImage && (
-                    <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} className="recipe-image" />
+                    <img 
+                        src={getImageUrl(recipe.mainImage)} 
+                        alt={recipe.title} 
+                        className="recipe-detail-image" 
+                    />
                 )}
                 <h2>{recipe.title}</h2>
             </div>
@@ -734,10 +747,10 @@ const RecipeDetails = () => {
                             {recipe.steps[currentStepIndex].video && (
                                 <div className="step-video-container">
                                     <video 
-                                        src={`http://localhost:4000${recipe.steps[currentStepIndex].video}`} 
+                                        src={getImageUrl(recipe.steps[currentStepIndex].video)} 
                                         controls
                                         className="step-video"
-                                        poster={recipe.steps[currentStepIndex].image ? `http://localhost:4000${recipe.steps[currentStepIndex].image}` : ''}
+                                        poster={recipe.steps[currentStepIndex].image ? getImageUrl(recipe.steps[currentStepIndex].image) : ''}
                                     >
                                         Your browser does not support video playback.
                                     </video>
@@ -746,7 +759,7 @@ const RecipeDetails = () => {
                             
                             {!recipe.steps[currentStepIndex].video && recipe.steps[currentStepIndex].image && (
                                 <img 
-                                    src={`http://localhost:4000${recipe.steps[currentStepIndex].image}`} 
+                                    src={getImageUrl(recipe.steps[currentStepIndex].image)} 
                                     alt={`Step ${currentStepIndex + 1}`} 
                                     className="step-image"
                                 />
@@ -815,9 +828,18 @@ const RecipeDetails = () => {
                 <div className="info-card tags-card">
                     <h3>Tags</h3>
                     <div className="recipe-tags tag-container">
-                        {recipe.tags.map((tag, index) => (
-                            <span key={index} className="tag">{tag}</span>
-                        ))}
+                        {Array.isArray(recipe.tags) 
+                            ? recipe.tags.map((tag, index) => (
+                                <span key={index} className="tag">{tag}</span>
+                            ))
+                            : typeof recipe.tags === 'string' && recipe.tags.startsWith('[') 
+                                ? JSON.parse(recipe.tags).map((tag, index) => (
+                                    <span key={index} className="tag">{tag}</span>
+                                ))
+                                : recipe.tags.split(',').map((tag, index) => (
+                                    <span key={index} className="tag">{tag.trim()}</span>
+                                ))
+                        }
                     </div>
                 </div>
             )}
@@ -834,7 +856,7 @@ const RecipeDetails = () => {
                                     <img 
                                         src={recipe.createdBy.profilePhoto.startsWith('http') ? 
                                             recipe.createdBy.profilePhoto : 
-                                            `http://localhost:4000${recipe.createdBy.profilePhoto}`} 
+                                            getImageUrl(recipe.createdBy.profilePhoto)} 
                                         alt={`${recipe.createdBy.firstName}'s profile`} 
                                         className="author-image"
                                     />

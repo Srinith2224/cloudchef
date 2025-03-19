@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './UpdateRecipe.css'; // Using the same CSS as RecipeForm for consistency
+import { getImageUrl } from '../utils/imageHelper';
 
 const UpdateRecipe = () => {
     const { id } = useParams();
@@ -53,18 +54,24 @@ const UpdateRecipe = () => {
                     setNutritionFat(data.nutrition.fat);
                     setNutritionProtein(data.nutrition.protein);
                     setNutritionCarbs(data.nutrition.carbs);
-                    setSteps(data.steps);
+                    setSteps(data.steps.map(step => ({
+                        ...step,
+                        // Update the step image URL handling
+                        image: step.image ? (step.image.startsWith('http') ? step.image : getImageUrl(step.image)) : null,
+                        // Update the step video URL handling
+                        video: step.video ? (step.video.startsWith('http') ? step.video : getImageUrl(step.video)) : null
+                    })));
                     setTags(data.tags || []);
                     
                     // Set image preview from existing recipe
                     if (data.mainImage) {
-                        setImagePreview(`http://localhost:4000${data.mainImage}`);
+                        setImagePreview(getImageUrl(data.mainImage));
                     }
 
                     // Initialize step previews
                     const initialPreviews = data.steps.map(step => ({
-                        image: step.image ? `http://localhost:4000${step.image}` : null,
-                        video: step.video ? `http://localhost:4000${step.video}` : null
+                        image: step.image ? getImageUrl(step.image) : null,
+                        video: step.video ? getImageUrl(step.video) : null
                     }));
                     setStepPreviews(initialPreviews);
                 } else {
@@ -713,7 +720,7 @@ const UpdateRecipe = () => {
                         {(stepPreviews[index]?.image || step.image) && (
                             <div className="media-preview">
                                 <img 
-                                    src={stepPreviews[index]?.image || `http://localhost:4000${step.image}`} 
+                                    src={stepPreviews[index]?.image || getImageUrl(step.image)} 
                                     alt={`Step ${index + 1} preview`} 
                                 />
                             </div>
@@ -735,7 +742,7 @@ const UpdateRecipe = () => {
                         {step.video && !stepPreviews[index]?.video && (
                             <div className="media-preview">
                                 <video 
-                                    src={`http://localhost:4000${step.video}`}
+                                    src={getImageUrl(step.video)}
                                     controls
                                     width="300"
                                 >

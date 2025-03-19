@@ -1,13 +1,15 @@
 const Recipe = require('../models/RecipeModel');
 const mongoose = require('mongoose');
 const User = require('../models/UserModel');
-const multer = require('multer');
+// Remove or comment out the old multer config
+// const multer = require('multer');
 const path = require('path');
-const fs = require('fs'); // Import the fs module
-// Import nutrition service
+const fs = require('fs');
 const { getNutritionData } = require('../services/nutritionService');
+const { cloudinary } = require('../config/cloudinaryConfig');
 
-// Configure multer for file uploads
+// Comment out or remove the old multer config
+/*
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'recipeImages/');
@@ -18,6 +20,23 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+*/
+
+// Maintain the upload export for backward compatibility
+// This should be updated in other files to use the Cloudinary uploader
+const upload = require('../config/cloudinaryConfig').uploadRecipeImage;
+
+// Helper function to parse tags
+const parseTags = (tags) => {
+    if (typeof tags === 'string') {
+        try {
+            return JSON.parse(tags);
+        } catch {
+            return tags.split(',').map(tag => tag.trim());
+        }
+    }
+    return tags; // Already an array
+};
 
 // Get all recipes
 const getRecipes = async (req, res) => {
@@ -50,6 +69,8 @@ const getRecipe = async (req, res) => {
 const createRecipe = async (req, res) => {
     const { title, description, tags } = req.body;
     const userId = req.userId;
+    
+    // Initialize mainImage
     let mainImage = null;
 
     // Parse totalTime and nutrition from form-data
@@ -66,7 +87,9 @@ const createRecipe = async (req, res) => {
     };
 
     // Validate parsed values
-    if (isNaN(totalTime.hours) || isNaN(totalTime.minutes) || isNaN(nutrition.calories) || isNaN(nutrition.fat) || isNaN(nutrition.protein) || isNaN(nutrition.carbs)) {
+    if (isNaN(totalTime.hours) || isNaN(totalTime.minutes) || 
+        isNaN(nutrition.calories) || isNaN(nutrition.fat) || 
+        isNaN(nutrition.protein) || isNaN(nutrition.carbs)) {
         return res.status(400).json({ error: 'Invalid totalTime or nutrition values' });
     }
 
@@ -82,18 +105,26 @@ const createRecipe = async (req, res) => {
             return stepData;
         });
         
-        // Handle step media files
+        // IMPORTANT: Process uploaded files the same way as in updateRecipe
         if (req.files && req.files.length > 0) {
+            // First handle mainImage
+            const mainImageFile = req.files.find(file => file.fieldname === 'mainImage');
+            if (mainImageFile) {
+                mainImage = mainImageFile.path; // Cloudinary URL
+            }
+            
+            // Handle step images and videos
             req.files.forEach(file => {
-                const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                const fileType = file.fieldname.split('-')[0]; // 'stepImage' or 'stepVideo'
-                
-                if (fileType === 'stepImage') {
-                    steps[stepIndex].image = `/recipeStepsImages/${file.filename}`;
-                } else if (fileType === 'stepVideo') {
-                    steps[stepIndex].video = `/recipeStepsVideos/${file.filename}`;
-                } else if (file.fieldname === 'mainImage') {
-                    mainImage = `/recipeImages/${file.filename}`;
+                if (file.fieldname.startsWith('stepImage-')) {
+                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                    if (stepIndex >= 0 && stepIndex < steps.length) {
+                        steps[stepIndex].image = file.path; // Cloudinary URL
+                    }
+                } else if (file.fieldname.startsWith('stepVideo-')) {
+                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                    if (stepIndex >= 0 && stepIndex < steps.length) {
+                        steps[stepIndex].video = file.path; // Cloudinary URL
+                    }
                 }
             });
         }
@@ -121,7 +152,7 @@ const createRecipe = async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName
             },
-            tags
+            tags: parseTags(tags)
         });
 
         res.status(200).json(recipe);
@@ -144,14 +175,11 @@ const deleteRecipe = async (req, res) => {
             return res.status(404).json({ error: 'No such recipe' });
         }
 
-        // Delete the associated image file
-        if (recipe.mainImage) {
-            const imagePath = path.join(__dirname, '..', recipe.mainImage);
-            fs.unlink(imagePath, (err) => {
-                if (err) {
-                    // Handle error silently
-                }
-            });
+        // Delete image from Cloudinary if it exists
+        if (recipe.mainImage && recipe.mainImage.includes('cloudinary')) {
+            // Extract public_id from cloudinary URL
+            const publicId = recipe.mainImage.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`recipe-images/${publicId}`);
         }
 
         res.status(200).json({ message: 'Recipe deleted successfully' });
@@ -172,21 +200,7 @@ const updateRecipe = async (req, res) => {
         // Parse steps data including any uploaded files
         let steps = JSON.parse(req.body.steps);
         
-        // Check if there are any step media files uploaded
-        if (req.files && req.files.length > 0) {
-            // Process each uploaded file
-            req.files.forEach(file => {
-                const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                const fileType = file.fieldname.split('-')[0]; // 'stepImage' or 'stepVideo'
-                
-                if (fileType === 'stepImage') {
-                    steps[stepIndex].image = `/recipeStepsImages/${file.filename}`;
-                } else if (fileType === 'stepVideo') {
-                    steps[stepIndex].video = `/recipeStepsVideos/${file.filename}`;
-                }
-            });
-        }
-
+        // Initialize the updates object FIRST
         const updates = {
             title: req.body.title,
             description: req.body.description,
@@ -202,12 +216,22 @@ const updateRecipe = async (req, res) => {
                 protein: parseInt(req.body.nutrition.protein, 10),
                 carbs: parseInt(req.body.nutrition.carbs, 10)
             },
-            tags: JSON.parse(req.body.tags)
+            tags: parseTags(req.body.tags)
         };
-
-        // Check if a new main image file is uploaded
-        if (req.file) {
-            updates.mainImage = `/recipeImages/${req.file.filename}`;
+        
+        // THEN check for files and modify the updates object
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => {
+                if (file.fieldname === 'mainImage') {
+                    updates.mainImage = file.path; // Now this is safe
+                } else if (file.fieldname.startsWith('stepImage-')) {
+                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                    updates.steps[stepIndex].image = file.path;
+                } else if (file.fieldname.startsWith('stepVideo-')) {
+                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
+                    updates.steps[stepIndex].video = file.path;
+                }
+            });
         }
 
         const recipe = await Recipe.findOneAndUpdate(
@@ -348,6 +372,7 @@ module.exports = {
     updateRecipe,
     getRecipesByUserId,
     saveRecipe,
-    searchRecipes, // Add this line
-    calculateNutrition
+    searchRecipes,
+    calculateNutrition,
+    upload // Export for backwards compatibility
 };

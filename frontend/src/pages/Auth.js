@@ -22,41 +22,90 @@ const Auth = () => {
 
     const navigate = useNavigate();
 
+    const handleLogin = async (userData) => {
+        try {
+            // Make sure the token is a string before storing
+            if (typeof userData.token !== 'string') {
+                console.error('Invalid token format:', userData.token);
+                throw new Error('Invalid token format');
+            }
+            
+            // Store token correctly
+            localStorage.setItem('token', userData.token);
+            
+            // Store user info separately
+            localStorage.setItem('user', JSON.stringify({
+                userId: userData.userId,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                role: userData.role
+            }));
+            
+            // Update context
+            dispatch({ type: 'LOGIN', payload: userData });
+        } catch (error) {
+            console.error('Error storing authentication data:', error);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const user = isLogin ? { email, password } : { firstName, lastName, email, password };
-        const endpoint = isLogin ? '/api/login' : '/api/register';
-
-        const response = await fetch(endpoint, {
+        setIsLoading(true);
+        setError(null);
+      
+        try {
+          const user = isLogin ? { email, password } : { firstName, lastName, email, password };
+          const endpoint = isLogin ? '/api/login' : '/api/register';
+      
+          const response = await fetch(endpoint, {
             method: 'POST',
             body: JSON.stringify(user),
             headers: {
-                'Content-Type': 'application/json'
+              'Content-Type': 'application/json'
             }
-        });
-
-        if (response.ok) {
-            // Make sure token is correctly extracted and stored
-            const userData = await response.json();
-            
-            if (!userData.token) {
-                setError('Server response missing authentication token');
-                return;
+          });
+      
+          const data = await response.json();
+      
+          if (response.ok) {
+            // Validate the token before storing
+            if (!data.token || typeof data.token !== 'string') {
+              setError('Invalid authentication token received');
+              setIsLoading(false);
+              return;
             }
+      
+            // Store token
+            localStorage.setItem('token', data.token);
             
-            // Store token properly (make sure it's a string)
-            localStorage.setItem('token', userData.token);
+            // Store user data 
+            const userData = {
+              userId: data.userId,
+              email: data.email,
+              firstName: data.firstName,
+              lastName: data.lastName,
+              role: data.role || 'user'
+            };
+            
             localStorage.setItem('user', JSON.stringify(userData));
             
             // Update auth context
-            dispatch({ type: 'LOGIN', payload: userData });
+            dispatch({ 
+              type: 'LOGIN', 
+              payload: { ...userData, token: data.token }
+            });
             
             // Show success modal
             setShowSuccessModal(true);
-        } else {
-            const json = await response.json();
-            setError(json.error);
+          } else {
+            setError(data.error || 'Authentication failed');
+          }
+        } catch (error) {
+          setError('An unexpected error occurred. Please try again.');
+          console.error('Login error:', error);
+        } finally {
+          setIsLoading(false);
         }
     };
 
@@ -82,11 +131,7 @@ const Auth = () => {
                 }
                 
                 // Store token properly (make sure it's a string)
-                localStorage.setItem('token', userData.token);
-                localStorage.setItem('user', JSON.stringify(userData));
-                
-                // Update auth context
-                dispatch({ type: 'LOGIN', payload: userData });
+                await handleLogin(userData);
                 
                 // Show success modal
                 setShowSuccessModal(true);
@@ -201,10 +246,8 @@ const Auth = () => {
                 }
                 
                 // Store the token
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data));
+                await handleLogin(data);
                 
-                dispatch({ type: 'LOGIN', payload: data });
                 setShowSuccessModal(true);
             } else {
                 setError(data.error || 'Verification failed');

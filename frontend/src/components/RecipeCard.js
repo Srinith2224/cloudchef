@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import StarRating from './StarRating';
+//import StarRating from './StarRating';
 import './RecipeCard.css';
+import { getImageUrl } from '../utils/imageHelper';
 
 const RecipeCard = ({ recipe, onUnsave }) => {
   const navigate = useNavigate();
@@ -32,7 +33,11 @@ const RecipeCard = ({ recipe, onUnsave }) => {
     <div className="recipe-item" onClick={handleClick}>
       <div className="recipe-image-container">
         {recipe.mainImage ? (
-          <img src={`http://localhost:4000${recipe.mainImage}`} alt={recipe.title} />
+          <img 
+            src={getImageUrl(recipe.mainImage)} 
+            alt={recipe.title} 
+            className="recipe-image"
+          />
         ) : (
           <div className="placeholder-image">
             <span className="material-icons">restaurant_menu</span>

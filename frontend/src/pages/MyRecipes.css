@@ -102,11 +102,13 @@
 
 /* Action buttons for my recipes */
 .recipe-actions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
     display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 10px;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
 }
 
 .action-btn {
@@ -132,6 +134,31 @@
 
 .delete-btn:hover {
     color: #c82333;
+}
+
+.action-btn.delete-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.action-btn.delete-btn:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.action-btn.delete-btn .material-icons {
+    font-size: 18px;
 }
 
 /* No recipes state */
@@ -226,4 +253,45 @@
   right: 10px;
   display: flex;
   gap: 10px;
+}
+
+/* Make sure this is at the bottom of the file to override any conflicting styles */
+
+.recipe-wrapper {
+    position: relative;
+    overflow: visible !important;
+}
+
+.recipe-actions {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-btn.delete-btn {
+    background-color: #f44336 !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+    font-weight: bold !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.action-btn.delete-btn:hover {
+    background-color: #d32f2f !important;
+    transform: translateY(-2px) !important;
+}
+
+.action-btn.delete-btn .material-icons {
+    font-size: 18px !important;
 }

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
 import RecipeCard from '../components/RecipeCard';
 import './UserProfile.css';
+import { getImageUrl } from '../utils/imageHelper';
 
 const UserProfile = () => {
     const { id } = useParams();
@@ -148,11 +149,9 @@ const UserProfile = () => {
                 <div className="profile-image-container">
                     {profile.profilePhoto ? (
                         <img 
-                            src={profile.profilePhoto.startsWith('http') ? 
-                                profile.profilePhoto : 
-                                `http://localhost:4000${profile.profilePhoto}`}
-                            alt={`${profile.firstName}'s profile`}
-                            className="profile-image"
+                            src={getImageUrl(profile.profilePhoto)} 
+                            alt={`${profile.firstName} ${profile.lastName}`} 
+                            className="profile-photo"
                         />
                     ) : (
                         <div className="profile-placeholder">

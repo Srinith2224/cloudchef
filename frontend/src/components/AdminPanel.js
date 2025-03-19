@@ -217,7 +217,7 @@ const RecipeManagement = () => {
               <td>
                 {recipe.mainImage ? (
                   <img 
-                    src={`http://localhost:4000${recipe.mainImage}`} 
+                    src={recipe.mainImage.startsWith('http') ? recipe.mainImage : `http://localhost:4000${recipe.mainImage}`} 
                     alt={recipe.title}
                     className="admin-recipe-thumbnail"
                   />
