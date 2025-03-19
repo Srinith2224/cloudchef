@@ -65,32 +65,51 @@ async function testDetectIngredients(req, res) {
 
 async function generateRecipeFromImage(req, res) {
     try {
-        const imagePath = req.file.path; // Uploaded file path
+        const imagePath = req.file.path;
         const detectedIngredients = await detectIngredients(imagePath);
 
-        // Ensure detectedIngredients is an array and contains 'label' keys
         if (!Array.isArray(detectedIngredients) || detectedIngredients.length === 0) {
             return res.status(500).json({ error: 'No ingredients detected.' });
         }
 
-        const ingredients = detectedIngredients.map(item => item.label); // Adjust based on the response structure
-
+        const ingredients = detectedIngredients.map(item => item.label);
         const { servingSize, cuisine, difficulty, dietaryPreferences } = req.body;
 
-        const input = `Generate a detailed recipe with the following details:
-Ingredients (include quantities):
-${ingredients.join(', ')}
-Serving Size: ${servingSize}
-Cuisine: ${cuisine}
-Difficulty: ${difficulty}
-Dietary Preferences: ${dietaryPreferences}
-Instructions:`;
+        // The prompt that gives clear instructions to the model
+        const input = `You are a professional chef creating a recipe. 
+Based on these detected ingredients: ${ingredients.join(', ')}, create a complete recipe.
+
+The recipe must include:
+1. A creative recipe name
+2. A complete ingredients list with quantities
+3. Step-by-step cooking instructions
+
+Serving Size: ${servingSize || 2}
+Cuisine Type: ${cuisine || 'Any'}
+Difficulty Level: ${difficulty || 'Medium'}
+Dietary Restrictions: ${dietaryPreferences || 'None'}
+
+Format your response exactly as follows:
+Recipe Name: Cucumber French Loaf Delight
+Ingredients:
+- 2 cucumbers, sliced
+- 1 French loaf, sliced
+- 1/2 tsp salt
+- 1 tbsp olive oil
+
+Instructions:
+1. Slice the cucumbers thinly
+2. Toast the French loaf slices
+3. Arrange cucumber slices on bread
+4. Sprinkle with salt and drizzle with oil`;
+
+        console.log("Sending prompt to model:", input);
 
         const response = await hf.textGeneration({
             model: 'mistralai/Mistral-7B-Instruct-v0.3',
             inputs: input,
             parameters: {
-                max_length: 200, // Limit the output length
+                max_length: 800,
                 num_return_sequences: 1,
                 temperature: 0.7,
                 top_p: 0.9
@@ -98,45 +117,79 @@ Instructions:`;
         });
 
         let recipeText = response.generated_text;
+        console.log("Raw model response:", recipeText);
 
-        if (!recipeText) {
-            return res.status(500).json({ error: 'Failed to generate recipe text' });
+        // Extract just the recipe portion by removing the prompt part
+        // Find where the actual recipe begins by looking for the first "Recipe Name:" after the prompt
+        const recipeStartIndex = recipeText.lastIndexOf("Recipe Name:");
+        if (recipeStartIndex === -1) {
+            return res.status(500).json({ 
+                error: 'Failed to find recipe format in generated text',
+                rawText: recipeText 
+            });
         }
 
-        // Adjust regex patterns to match the generated text structure
-        const recipeNameMatch = recipeText.match(/(?:Enjoy your |Enjoy this )?(.*)\nServing Size:/);
-        const ingredientsListMatch = recipeText.match(/Ingredients:\n([\s\S]*?)\n\nInstructions:/);
-        const stepsTextMatch = recipeText.match(/Instructions:\n([\s\S]*?)(?:\n\n|$)/);
+        // Extract just the recipe part from the response
+        const actualRecipe = recipeText.substring(recipeStartIndex);
+        console.log("Extracted recipe:", actualRecipe);
+
+        // Parse the recipe content with more specific and robust regex
+        const recipeNameMatch = actualRecipe.match(/Recipe Name:\s*([^\n]+)/);
+        const ingredientsListMatch = actualRecipe.match(/Ingredients:\s*\n([\s\S]*?)(?=\s*Instructions:)/);
+        const stepsTextMatch = actualRecipe.match(/Instructions:\s*\n([\s\S]*?)(?:\n\n|$)/);
 
         if (!recipeNameMatch || !ingredientsListMatch || !stepsTextMatch) {
-            return res.status(500).json({ error: 'Failed to parse generated recipe text' });
+            console.error("Failed to parse recipe with regex patterns");
+            
+            return res.status(200).json({ 
+                recipe: {
+                    recipeName: "Recipe with " + ingredients.join(", "),
+                    ingredientsList: ingredients.map(ing => `${ing} - as needed`),
+                    steps: [
+                        { stepNumber: 1, text: "Combine all ingredients", timer: 5 },
+                        { stepNumber: 2, text: "Cook until done", timer: 10 }
+                    ]
+                },
+                warning: "Recipe was generated but couldn't be parsed correctly",
+                rawText: actualRecipe
+            });
         }
 
+        // Extract and clean recipe components
         const recipeName = recipeNameMatch[1].trim();
-        const ingredientsList = ingredientsListMatch[1].trim().split('\n').map(item => item.trim());
-        const stepsText = stepsTextMatch[1].trim();
+        
+        // Process ingredients - handle bullet points and line breaks
+        const ingredientsList = ingredientsListMatch[1]
+            .trim()
+            .split('\n')
+            .map(item => item.trim().replace(/^[-•*]\s*/, '')) // Remove bullet points
+            .filter(item => item);
+            
+        // Process steps
+        const steps = stepsTextMatch[1]
+            .trim()
+            .split('\n')
+            .map(step => step.trim())
+            .filter(step => step)
+            .map((step, index) => ({
+                stepNumber: index + 1,
+                text: step.replace(/^\d+[\.\)]\s*/, '').trim(), // Remove any existing step numbers
+                timer: 5 // Default timer
+            }));
 
-        // Filter out unwanted lines from ingredientsList
-        const filteredIngredientsList = ingredientsList.filter(item => !item.startsWith('Serving Size:') && !item.startsWith('Cuisine:') && !item.startsWith('Difficulty:') && !item.startsWith('Dietary Preferences:') && item !== '');
-
-        // Clean and format steps
-        const steps = stepsText.split('\n').map((step, index) => ({
-            stepNumber: index + 1,
-            text: step.trim(),
-            timer: 5 // Default timer (can be customized)
-        })).filter(step => step.text);
-
-        // Construct the final recipe object
         const formattedRecipe = {
             recipeName,
-            ingredientsList: filteredIngredientsList,
+            ingredientsList,
             steps
         };
 
         res.status(200).json({ recipe: formattedRecipe });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
+        console.error('Recipe generation error:', error);
+        res.status(500).json({ 
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
 
