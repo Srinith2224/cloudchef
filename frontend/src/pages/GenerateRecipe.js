@@ -15,7 +15,18 @@ const GenerateRecipe = () => {
 
     const handleGenerateRecipe = async () => {
         setLoading(true);
+        setError(null);
+        
         try {
+            // Basic validation
+            if (!ingredients.trim()) {
+                setError('Please enter some ingredients');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Sending request with ingredients:', ingredients);
+
             const response = await fetch('/api/recipes/generate-recipe', {
                 method: 'POST',
                 headers: {
@@ -45,15 +56,24 @@ const GenerateRecipe = () => {
         }
     };
 
-    const handleGenerateRecipeFromImage = async () => {
+    const handleGenerateRecipeFromImage = async (e) => {
+        e.preventDefault(); // Prevent default form submission
+        
+        if (!image) {
+            setError('Please upload an image');
+            return;
+        }
+        
         setLoading(true);
+        setError(null);
+        
         const formData = new FormData();
         formData.append('image', image);
         formData.append('servingSize', servingSize);
         formData.append('cuisine', cuisine);
         formData.append('difficulty', difficulty);
         formData.append('dietaryPreferences', dietaryPreferences);
-
+    
         try {
             const response = await fetch('/api/recipe-image-generation/generate-recipe-from-image-and-text', {
                 method: 'POST',
@@ -62,19 +82,51 @@ const GenerateRecipe = () => {
                 },
                 body: formData
             });
-
+    
             const data = await response.json();
-            if (response.ok) {
-                setGeneratedRecipe(data.recipe);
-                setError(null);
-            } else {
-                setError(data.error);
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to generate recipe');
             }
+            
+            // Make sure recipe data is properly structured
+            if (!data.recipe || !data.recipe.recipeName) {
+                throw new Error('Invalid recipe data received');
+            }
+            
+            // Ensure these properties exist even if they're empty
+            const processedRecipe = {
+                recipeName: data.recipe.recipeName,
+                ingredientsList: Array.isArray(data.recipe.ingredientsList) 
+                    ? data.recipe.ingredientsList 
+                    : [],
+                steps: Array.isArray(data.recipe.steps) 
+                    ? data.recipe.steps.map(step => {
+                        return typeof step === 'string' 
+                            ? { text: step } 
+                            : step;
+                    }) 
+                    : []
+            };
+            
+            setGeneratedRecipe(processedRecipe);
         } catch (error) {
-            setError('Failed to generate recipe');
+            console.error('Recipe generation error:', error);
+            setError('Failed to generate recipe: ' + (error.message || 'Unknown error'));
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleBackClick = () => {
+        setGeneratedRecipe(null);
+        setIngredients('');
+        setServingSize(1);
+        setCuisine('');
+        setDifficulty('');
+        setDietaryPreferences('');
+        setImage(null);
+        setSelectedOption('text');
     };
 
     return (
@@ -82,10 +134,10 @@ const GenerateRecipe = () => {
             <h1>Generate Recipe</h1>
             <div className="option-buttons">
                 <button onClick={() => setSelectedOption('text')} className={selectedOption === 'text' ? 'active' : ''}>
-                Dish by Description
+                    Dish by Description
                 </button>
                 <button onClick={() => setSelectedOption('image')} className={selectedOption === 'image' ? 'active' : ''}>
-                Scan Your Fridge
+                    Scan Your Fridge
                 </button>
             </div>
             <form className={generatedRecipe ? 'slide-out' : ''}>
@@ -182,18 +234,30 @@ const GenerateRecipe = () => {
             {generatedRecipe && (
                 <div className="generated-recipe show">
                     <h2>{generatedRecipe.recipeName}</h2>
-                    <p><strong>Ingredients:</strong></p>
-                    <ul>
-                        {generatedRecipe.ingredientsList.map((ingredient, index) => (
-                            <li key={index}>{ingredient}</li>
-                        ))}
-                    </ul>
-                    <p><strong>Steps:</strong></p>
-                    <ol>
-                        {generatedRecipe.steps.map((step, index) => (
-                            <li key={index}>{step.text.replace(/^\d+\.\s*/, '')}</li>
-                        ))}
-                    </ol>
+                    
+                    <div className="recipe-section">
+                        <h3>Ingredients</h3>
+                        <ul className="ingredients-list">
+                            {(generatedRecipe.ingredientsList || []).map((ingredient, index) => (
+                                <li key={index}>{ingredient}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    
+                    <div className="recipe-section">
+                        <h3>Preparation</h3>
+                        <ol className="steps-list">
+                            {(generatedRecipe.steps || []).map((step, index) => {
+                                // Handle both string and object formats
+                                const stepText = typeof step === 'string' ? step : step.text;
+                                // Remove any existing numbering from the steps
+                                const cleanStep = stepText.replace(/^\d+\.+\s*/, '');
+                                return <li key={index}>{cleanStep}</li>;
+                            })}
+                        </ol>
+                    </div>
+                    
+                    <button onClick={handleBackClick} className="back-button">Back</button>
                 </div>
             )}
         </div>
