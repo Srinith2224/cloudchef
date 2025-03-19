@@ -56,24 +56,15 @@ const GenerateRecipe = () => {
         }
     };
 
-    const handleGenerateRecipeFromImage = async (e) => {
-        e.preventDefault(); // Prevent default form submission
-        
-        if (!image) {
-            setError('Please upload an image');
-            return;
-        }
-        
+    const handleGenerateRecipeFromImage = async () => {
         setLoading(true);
-        setError(null);
-        
         const formData = new FormData();
         formData.append('image', image);
         formData.append('servingSize', servingSize);
         formData.append('cuisine', cuisine);
         formData.append('difficulty', difficulty);
         formData.append('dietaryPreferences', dietaryPreferences);
-    
+
         try {
             const response = await fetch('/api/recipe-image-generation/generate-recipe-from-image-and-text', {
                 method: 'POST',
@@ -82,34 +73,13 @@ const GenerateRecipe = () => {
                 },
                 body: formData
             });
-    
+
             const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to generate recipe');
+            if (response.ok) {
+                setGeneratedRecipe(data.recipe);
+            } else {
+                setError(data.error || 'Failed to generate recipe. Please try again.');
             }
-            
-            // Make sure recipe data is properly structured
-            if (!data.recipe || !data.recipe.recipeName) {
-                throw new Error('Invalid recipe data received');
-            }
-            
-            // Ensure these properties exist even if they're empty
-            const processedRecipe = {
-                recipeName: data.recipe.recipeName,
-                ingredientsList: Array.isArray(data.recipe.ingredientsList) 
-                    ? data.recipe.ingredientsList 
-                    : [],
-                steps: Array.isArray(data.recipe.steps) 
-                    ? data.recipe.steps.map(step => {
-                        return typeof step === 'string' 
-                            ? { text: step } 
-                            : step;
-                    }) 
-                    : []
-            };
-            
-            setGeneratedRecipe(processedRecipe);
         } catch (error) {
             console.error('Recipe generation error:', error);
             setError('Failed to generate recipe: ' + (error.message || 'Unknown error'));
@@ -238,7 +208,7 @@ const GenerateRecipe = () => {
                     <div className="recipe-section">
                         <h3>Ingredients</h3>
                         <ul className="ingredients-list">
-                            {(generatedRecipe.ingredientsList || []).map((ingredient, index) => (
+                            {generatedRecipe.ingredientsList.map((ingredient, index) => (
                                 <li key={index}>{ingredient}</li>
                             ))}
                         </ul>
@@ -247,11 +217,9 @@ const GenerateRecipe = () => {
                     <div className="recipe-section">
                         <h3>Preparation</h3>
                         <ol className="steps-list">
-                            {(generatedRecipe.steps || []).map((step, index) => {
-                                // Handle both string and object formats
-                                const stepText = typeof step === 'string' ? step : step.text;
+                            {generatedRecipe.steps.map((step, index) => {
                                 // Remove any existing numbering from the steps
-                                const cleanStep = stepText.replace(/^\d+\.+\s*/, '');
+                                const cleanStep = step.text.replace(/^\d+\.+\s*/, '');
                                 return <li key={index}>{cleanStep}</li>;
                             })}
                         </ol>
