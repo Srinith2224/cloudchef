@@ -44,13 +44,21 @@ const stepMediaStorage = multer.diskStorage({
 // File filter for media uploads
 const fileFilter = (req, file, cb) => {
     if (file.fieldname === 'mainImage' || file.fieldname.startsWith('stepImage-')) {
-        // For images
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+        // Check both extension and mimetype
+        const validExtension = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.originalname);
+        const validMimeType = file.mimetype.startsWith('image/');
+        
+        if (!validExtension || !validMimeType) {
+            console.log('Rejected image file:', file.originalname, 'mimetype:', file.mimetype);
             return cb(new Error('Only image files are allowed!'), false);
         }
     } else if (file.fieldname.startsWith('stepVideo-')) {
-        // For videos
-        if (!file.originalname.match(/\.(mp4|mov|avi|wmv|mkv|webm)$/)) {
+        // Check both extension and mimetype for videos
+        const validExtension = /\.(mp4|mov|avi|wmv|mkv|webm|m4v)$/i.test(file.originalname);
+        const validMimeType = file.mimetype.startsWith('video/');
+        
+        if (!validExtension || !validMimeType) {
+            console.log('Rejected video file:', file.originalname, 'mimetype:', file.mimetype);
             return cb(new Error('Only video files are allowed!'), false);
         }
     }

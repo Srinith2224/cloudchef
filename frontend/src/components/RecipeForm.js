@@ -644,7 +644,7 @@ const RecipeForm = () => {
                             </div>
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/gif,image/webp"
                                 onChange={(e) => handleStepImageChange(index, e)}
                             />
                         </div>
@@ -663,7 +663,7 @@ const RecipeForm = () => {
                             </div>
                             <input
                                 type="file"
-                                accept="video/*"
+                                accept="video/mp4,video/webm,video/quicktime"
                                 onChange={(e) => handleStepVideoChange(index, e)}
                             />
                         </div>
