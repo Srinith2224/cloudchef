@@ -168,4 +168,8 @@ router.post('/save/:id', recipeController.saveRecipe);
 router.post('/calculate-nutrition', recipeController.calculateNutrition);
 router.delete('/:id', recipeController.deleteRecipe);
 
+// Add recipe generation endpoint
+const recipeGenerationController = require('../controllers/recipeGenerationController');
+router.post('/generate-recipe', recipeGenerationController.generateRecipe);
+
 module.exports = router;
