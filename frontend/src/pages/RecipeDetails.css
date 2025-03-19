@@ -412,22 +412,30 @@
 }
 
 .steps-list {
-    list-style-position: inside;
-    counter-reset: step-counter;
+    list-style-type: none;
     padding-left: 0;
 }
 
 .steps-list li {
-    counter-increment: step-counter;
-    margin-bottom: 15px;
-    padding: 15px;
-    background-color: rgba(15, 15, 15, 0.6); /* Darker background */
-    border-radius: var(--border-radius);
-    position: relative;
     padding-left: 45px;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.95); /* Brighter white for text */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-bottom: 15px;
+    /* rest of your styling */
+}
+
+.step-number {
+    position: absolute;
+    left: 15px;
+    top: 14px;
+    background-color: var(--accent);
+    color: black;
+    font-weight: bold;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .steps-list li:before {

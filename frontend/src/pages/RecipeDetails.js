@@ -79,7 +79,7 @@ const ImmersiveStepMode = ({ recipe, onExit }) => {
                     <div className="immersive-step-title-container">
                         <h2>Step {currentStepIndex + 1}</h2>
                         <p className="immersive-step-description">
-                            {currentStep.text || currentStep.description}
+                            {(currentStep.text || currentStep.description).replace(/^\d+[\.\)\s]+/, '')}
                         </p>
                     </div>
                     
@@ -742,7 +742,7 @@ const RecipeDetails = () => {
                         </div>
                         
                         <div className="current-step">
-                            <h4>{recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description}</h4>
+                            <h4>{(recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description).replace(/^\d+[\.\)\s]+/, '')}</h4>
                             
                             {recipe.steps[currentStepIndex].video && (
                                 <div className="step-video-container">
@@ -813,13 +813,13 @@ const RecipeDetails = () => {
                         </div>
                     </div>
                 ) : (
-                    <ol className="steps-list">
+                    <ul className="steps-list">
                         {recipe.steps.map((step, index) => (
                             <li key={index}>
-                                {step.text || step.description}
+                                <span className="step-number">{index + 1}.</span> {(step.text || step.description).replace(/^\d+[\.\)\s]+/, '')}
                             </li>
                         ))}
-                    </ol>
+                    </ul>
                 )}
             </div>
             
