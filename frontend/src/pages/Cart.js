@@ -18,7 +18,7 @@ const Cart = () => {
             }
 
             try {
-                const response = await fetch(`/api/cart`, {
+                const response = await fetch('/api/cart', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -81,7 +81,7 @@ const Cart = () => {
 
     const handleDelete = async (ingredientId) => {
         try {
-            const response = await fetch(`/api/cart/delete`, {
+            const response = await fetch('/api/cart/delete', {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -123,6 +123,13 @@ const Cart = () => {
         } catch (error) {
             console.error('Error updating ingredient quantity:', error);
         }
+    };
+    
+    const handleBuyOnInstamart = (ingredient) => {
+        // Encode the ingredient name for URL
+        const searchQuery = encodeURIComponent(ingredient);
+        // Open Swiggy Instamart in a new tab with the search query
+        window.open(`https://www.swiggy.com/search?query=${searchQuery}&submitAction=ENTER`, '_blank');
     };
 
     return (
@@ -175,28 +182,36 @@ const Cart = () => {
                             <th>Ingredient</th>
                             <th>Quantity</th>
                             <th>Unit</th>
-                            <th>Delete</th> {/* Changed from "Actions" to "Delete" */}
+                            <th>Actions</th> {/* Changed from "Delete" to "Actions" */}
                         </tr>
                     </thead>
                     <tbody>
-                        {cartItems.map((item, index) => (
-                            <tr key={index}>
-                                <td data-label="Ingredient">
-                                    <span className="ingredient-name">{item.ingredient}</span>
-                                </td>
-                                <td data-label="Quantity">
-                                    <div className="quantity-controls">
-                                        <button onClick={() => handleQuantityChange(item._id, item.quantity - 1)} title="Decrease quantity">
-                                            <span className="material-icons">remove</span>
-                                        </button>
-                                        <span>{item.quantity}</span>
-                                        <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)} title="Increase quantity">
-                                            <span className="material-icons">add</span>
-                                        </button>
-                                    </div>
-                                </td>
-                                <td data-label="Unit">{item.unit}</td>
-                                <td data-label="Delete">
+                    {cartItems.map((item, index) => (
+                        <tr key={index}>
+                            <td data-label="Ingredient">
+                                <span className="ingredient-name">{item.ingredient}</span>
+                            </td>
+                            <td data-label="Quantity">
+                                <div className="quantity-controls">
+                                    <button onClick={() => handleQuantityChange(item._id, item.quantity - 1)} title="Decrease quantity">
+                                        <span className="material-icons">remove</span>
+                                    </button>
+                                    <span>{item.quantity}</span>
+                                    <button onClick={() => handleQuantityChange(item._id, item.quantity + 1)} title="Increase quantity">
+                                        <span className="material-icons">add</span>
+                                    </button>
+                                </div>
+                            </td>
+                            <td data-label="Unit">{item.unit}</td>
+                            <td data-label="Actions">
+                                <div className="cart-actions">
+                                    <button 
+                                        className="cart-buy-button" 
+                                        onClick={() => handleBuyOnInstamart(item.ingredient)}
+                                        title="Buy on Instamart"
+                                    >
+                                        <span className="material-icons">shopping_bag</span>
+                                    </button>
                                     <button 
                                         className="cart-delete-button" 
                                         onClick={() => handleDelete(item._id)}
@@ -204,9 +219,10 @@ const Cart = () => {
                                     >
                                         <span className="material-icons">delete_outline</span>
                                     </button>
-                                </td>
-                            </tr>
-                        ))}
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
                     </tbody>
                 </table>
             ) : (

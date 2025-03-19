@@ -476,3 +476,57 @@
         padding-left: 15px;
     }
 }
+/* Add these styles to your Cart.css file */
+.cart-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.cart-buy-button {
+    background-color: #FC8019; /* Swiggy orange color */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.cart-buy-button:hover {
+    background-color: #e67215;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cart-delete-button {
+    background-color: #c1c1c1;
+    color: #444;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.cart-delete-button:hover {
+    background-color: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Update the th for Actions column to accommodate both buttons */
+.cart-table th:last-child {
+    min-width: 100px;
+}
