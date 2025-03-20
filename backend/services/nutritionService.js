@@ -73,20 +73,20 @@ const getNutritionData = async (ingredient, quantity, unit) => {
   
   // Apply unit-specific multipliers that won't result in extreme values
   if (unit === 'kg') {
-    multiplier *= 5; // Scale it down to keep numbers reasonable
+    multiplier *= 3; // Reduced from 5
   } else if (unit === 'cup') {
-    multiplier *= 2; 
+    multiplier *= 1; // Reduced from 2
   } else if (unit === 'tbsp') {
-    multiplier *= 0.2;
+    multiplier *= 0.1; // Reduced from 0.2
   } else if (unit === 'tsp') {
-    multiplier *= 0.05;
+    multiplier *= 0.03; // Reduced from 0.05
   } else if (unit === 'piece' || unit === 'g') {
     // Keep multiplier small for individual pieces
-    multiplier = Math.min(multiplier, 5);
+    multiplier = Math.min(multiplier, 3); // Reduced from 5
   }
   
-  // Cap multiplier to reasonable values
-  multiplier = Math.min(multiplier, 10);
+  // Cap multiplier to more reasonable values
+  multiplier = Math.min(multiplier, 5); // Reduced from 10
   
   return {
     calories: Math.round(nutrition.calories * multiplier),

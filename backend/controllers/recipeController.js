@@ -365,17 +365,22 @@ const calculateNutrition = async (req, res) => {
       }
     }
     
-    // Ensure values are reasonable
-    const reasonableCalories = Math.min(totalNutrition.calories, 2500);
-    const reasonableFat = Math.min(totalNutrition.fat, 100);
-    const reasonableProtein = Math.min(totalNutrition.protein, 100);
-    const reasonableCarbs = Math.min(totalNutrition.carbs, 300);
+    // Ensure values are reasonable - apply more conservative caps
+    const reasonableCalories = Math.min(totalNutrition.calories, 1500); // Reduced from 2500
+    const reasonableFat = Math.min(totalNutrition.fat, 60); // Reduced from 100
+    const reasonableProtein = Math.min(totalNutrition.protein, 60); // Reduced from 100
+    const reasonableCarbs = Math.min(totalNutrition.carbs, 180); // Reduced from 300
     
+    // Get the number of ingredients for normalization
+    const ingredientCount = ingredients.length;
+    const normalizationFactor = Math.max(1, Math.sqrt(ingredientCount) / 2);
+    
+    // Apply normalization to get more reasonable values
     res.status(200).json({
-      calories: Math.round(reasonableCalories),
-      fat: Math.round(reasonableFat),
-      protein: Math.round(reasonableProtein),
-      carbs: Math.round(reasonableCarbs)
+      calories: Math.round(reasonableCalories / normalizationFactor),
+      fat: Math.round(reasonableFat / normalizationFactor),
+      protein: Math.round(reasonableProtein / normalizationFactor),
+      carbs: Math.round(reasonableCarbs / normalizationFactor)
     });
   } catch (error) {
     console.error('Error calculating nutrition:', error);

@@ -55,7 +55,13 @@ const Auth = () => {
         setError(null);
       
         try {
-          const user = isLogin ? { email, password } : { firstName, lastName, email, password };
+          // Normalize email to lowercase
+          const normalizedEmail = email.toLowerCase();
+          
+          const user = isLogin ? 
+            { email: normalizedEmail, password } : 
+            { firstName, lastName, email: normalizedEmail, password };
+          
           const endpoint = isLogin ? '/api/login' : '/api/register';
       
           const response = await fetch(endpoint, {

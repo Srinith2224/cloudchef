@@ -26,10 +26,15 @@ const createToken = (_id) => {
 
 // login function
 const loginUser = async (req, res) => {
-    const { email, password } = req.body;
-
     try {
-        const user = await User.findOne({ email });
+        const { email, password } = req.body;
+        
+        // Convert email to lowercase for case-insensitive comparison
+        const normalizedEmail = email.toLowerCase();
+
+        // Find user with normalized email
+        const user = await User.findOne({ email: normalizedEmail });
+        
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -64,8 +69,11 @@ const logoutUser = (req, res) => {
 const registerUser = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase();
+
+    // Check if the user already exists with normalized email
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
         return res.status(400).json({ error: 'User already exists' });
     }
@@ -74,7 +82,7 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user
-    const user = await User.create({ firstName, lastName, email, password: hashedPassword });
+    const user = await User.create({ firstName, lastName, email: normalizedEmail, password: hashedPassword });
 
     const token = createToken(user._id);
     res.status(201).json({ email: user.email, token });

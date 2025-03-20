@@ -56,10 +56,11 @@ const sendOTPEmail = async (email, otp, isPasswordReset = false, isPasswordUpdat
 // Generate and send OTP for registration
 const sendRegistrationOTP = async (req, res) => {
   const { email, firstName, lastName, password } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
@@ -68,7 +69,7 @@ const sendRegistrationOTP = async (req, res) => {
     const otp = generateOTP();
     
     // Store OTP with user details (expires in 10 minutes)
-    otpStore[email] = {
+    otpStore[normalizedEmail] = {
       otp,
       firstName,
       lastName,
@@ -78,7 +79,7 @@ const sendRegistrationOTP = async (req, res) => {
     };
 
     // Send OTP via email
-    await sendOTPEmail(email, otp);
+    await sendOTPEmail(normalizedEmail, otp);
     
     res.status(200).json({ message: 'OTP sent to your email' });
   } catch (error) {
@@ -90,9 +91,10 @@ const sendRegistrationOTP = async (req, res) => {
 // Verify OTP and complete registration
 const verifyRegistrationOTP = async (req, res) => {
   const { email, otp } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
-    const storedData = otpStore[email];
+    const storedData = otpStore[normalizedEmail];
     
     // Check if OTP exists and is valid
     if (!storedData || storedData.otp !== otp || storedData.type !== 'registration') {
@@ -102,7 +104,7 @@ const verifyRegistrationOTP = async (req, res) => {
     // Check if OTP is expired (10 minutes)
     const now = new Date();
     if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[email];
+      delete otpStore[normalizedEmail];
       return res.status(400).json({ error: 'OTP expired' });
     }
 
@@ -111,7 +113,7 @@ const verifyRegistrationOTP = async (req, res) => {
     const hash = await bcrypt.hash(storedData.password, salt);
 
     const user = await User.create({
-      email,
+      email: normalizedEmail,
       password: hash,
       firstName: storedData.firstName,
       lastName: storedData.lastName
@@ -121,10 +123,10 @@ const verifyRegistrationOTP = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.SECRET, { expiresIn: '3d' });
     
     // Remove OTP data
-    delete otpStore[email];
+    delete otpStore[normalizedEmail];
     
     res.status(200).json({ 
-      email, 
+      email: normalizedEmail, 
       token,
       userId: user._id,
       firstName: user.firstName,
@@ -139,10 +141,11 @@ const verifyRegistrationOTP = async (req, res) => {
 // Generate and send OTP for password reset
 const sendPasswordResetOTP = async (req, res) => {
   const { email } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(400).json({ error: 'User not found' });
     }
@@ -151,7 +154,7 @@ const sendPasswordResetOTP = async (req, res) => {
     const otp = generateOTP();
     
     // Store OTP (expires in 10 minutes)
-    otpStore[email] = {
+    otpStore[normalizedEmail] = {
       otp,
       userId: user._id,
       createdAt: new Date(),
@@ -159,7 +162,7 @@ const sendPasswordResetOTP = async (req, res) => {
     };
 
     // Send OTP via email
-    await sendOTPEmail(email, otp, true);
+    await sendOTPEmail(normalizedEmail, otp, true);
     
     res.status(200).json({ message: 'Password reset OTP sent to your email' });
   } catch (error) {
@@ -171,9 +174,10 @@ const sendPasswordResetOTP = async (req, res) => {
 // Verify OTP and reset password
 const verifyAndResetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
-    const storedData = otpStore[email];
+    const storedData = otpStore[normalizedEmail];
     
     // Check if OTP exists and is valid
     if (!storedData || storedData.otp !== otp || storedData.type !== 'reset') {
@@ -183,7 +187,7 @@ const verifyAndResetPassword = async (req, res) => {
     // Check if OTP is expired (10 minutes)
     const now = new Date();
     if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[email];
+      delete otpStore[normalizedEmail];
       return res.status(400).json({ error: 'OTP expired' });
     }
 
@@ -194,7 +198,7 @@ const verifyAndResetPassword = async (req, res) => {
     await User.findByIdAndUpdate(storedData.userId, { password: hash });
     
     // Remove OTP data
-    delete otpStore[email];
+    delete otpStore[normalizedEmail];
     
     res.status(200).json({ message: 'Password reset successful' });
   } catch (error) {
@@ -207,6 +211,7 @@ const verifyAndResetPassword = async (req, res) => {
 const sendPasswordUpdateOTP = async (req, res) => {
   const userId = req.user?._id || req.userId; // Handle both patterns
   const { email } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
     // Get user 
@@ -219,7 +224,7 @@ const sendPasswordUpdateOTP = async (req, res) => {
     const otp = generateOTP();
     
     // Store OTP (expires in 10 minutes)
-    otpStore[email] = {
+    otpStore[normalizedEmail] = {
       otp,
       userId: user._id,
       createdAt: new Date(),
@@ -227,7 +232,7 @@ const sendPasswordUpdateOTP = async (req, res) => {
     };
 
     // Send OTP via email
-    await sendOTPEmail(email, otp, false, true);
+    await sendOTPEmail(normalizedEmail, otp, false, true);
     
     res.status(200).json({ message: 'Password update OTP sent to your email' });
   } catch (error) {
@@ -240,9 +245,10 @@ const sendPasswordUpdateOTP = async (req, res) => {
 const verifyPasswordUpdateOTP = async (req, res) => {
   const userId = req.user?._id || req.userId;
   const { email, otp, newPassword } = req.body;
+  const normalizedEmail = email.toLowerCase();
 
   try {
-    const storedData = otpStore[email];
+    const storedData = otpStore[normalizedEmail];
     
     // Check if OTP exists and is valid
     if (!storedData || storedData.otp !== otp || storedData.type !== 'update') {
@@ -252,7 +258,7 @@ const verifyPasswordUpdateOTP = async (req, res) => {
     // Check if OTP is expired (10 minutes)
     const now = new Date();
     if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[email];
+      delete otpStore[normalizedEmail];
       return res.status(400).json({ error: 'OTP expired' });
     }
 
@@ -272,7 +278,7 @@ const verifyPasswordUpdateOTP = async (req, res) => {
     );
     
     // Remove OTP data
-    delete otpStore[email];
+    delete otpStore[normalizedEmail];
     
     res.status(200).json({ 
       message: 'Password updated successfully',
