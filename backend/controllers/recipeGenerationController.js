@@ -56,25 +56,39 @@ Instructions:`;
             return res.status(500).json({ error: 'Failed to generate recipe text' });
         }
 
-        // Adjust regex patterns to match the generated text structure
-        const recipeNameMatch = recipeText.match(/(?:Enjoy your |Enjoy this )?(.*)\nServing Size:/);
-        const ingredientsListMatch = recipeText.match(/Ingredients:\n([\s\S]*?)\n\nInstructions:/);
-        const stepsTextMatch = recipeText.match(/Instructions:\n([\s\S]*?)(?:\n\n|$)/);
+        // Since there's no explicit recipe name in the response, we'll create one
+        const recipeName = `${cuisine || 'Mixed'} ${ingredients.join(' & ')} Bowl`;
 
-        if (!recipeNameMatch || !ingredientsListMatch || !stepsTextMatch) {
-            return res.status(500).json({ error: 'Failed to parse generated recipe text' });
+        // Extract instructions and tips separately
+        const instructionsMatch = recipeText.match(/Instructions:\n([\s\S]*?)(?:Tips:|$)/);
+        const tipsMatch = recipeText.match(/Tips:\n([\s\S]*?)$/);
+
+        // We already have the ingredients from the request
+        const ingredientsList = ingredients.map(ing => `${ing} - as needed`);
+
+        // Process the steps properly
+        let steps = [];
+        if (instructionsMatch && instructionsMatch[1]) {
+            steps = instructionsMatch[1].trim().split('\n').map((step, index) => ({
+                stepNumber: index + 1,
+                text: step.trim().replace(/^\d+\.\s*/, ''), // Remove any existing numbers
+                timer: 5 // Default timer
+            })).filter(step => step.text);
         }
 
-        const recipeName = recipeNameMatch[1].trim();
-        const ingredientsList = ingredientsListMatch[1].trim().split('\n').map(item => item.trim());
-        const stepsText = stepsTextMatch[1].trim();
-
-        // Clean and format steps
-        const steps = stepsText.split('\n').map((step, index) => ({
-            stepNumber: index + 1,
-            text: step.trim(),
-            timer: 5 // Default timer (can be customized)
-        })).filter(step => step.text);
+        // Include tips as the last step if available
+        if (tipsMatch && tipsMatch[1]) {
+            const tipsText = tipsMatch[1].trim()
+                .split('\n')
+                .map(tip => tip.trim().replace(/^-\s*/, ''))
+                .join('\n');
+            
+            steps.push({
+                stepNumber: steps.length + 1,
+                text: `Tips: ${tipsText}`,
+                timer: 0
+            });
+        }
 
         // Construct the final recipe object
         const formattedRecipe = {
