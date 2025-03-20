@@ -15,18 +15,23 @@
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Update the profile image styling */
 .profile-image-container {
     width: 150px;
     height: 150px;
     margin-right: 40px;
+    border-radius: 50%;
+    overflow: hidden; /* Add this to clip the image to the container */
+    flex-shrink: 0; /* Prevent the container from shrinking */
+    border: 4px solid var(--primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .profile-image {
     width: 100%;
     height: 100%;
+    object-fit: cover; /* This ensures the image covers the area without distortion */
     border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid var(--primary);
 }
 
 .profile-placeholder {

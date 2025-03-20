@@ -3,11 +3,6 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 require('dotenv').config();
 
-// Debug output to verify credentials are loaded
-console.log('Cloudinary configuration loading with:');
-console.log('Cloud name:', process.env.CLOUDINARY_CLOUD_NAME ? 'is set' : 'missing');
-console.log('API key:', process.env.CLOUDINARY_API_KEY ? 'is set' : 'missing');
-console.log('API secret:', process.env.CLOUDINARY_API_SECRET ? 'is set' : 'missing');
 
 // Configure Cloudinary
 cloudinary.config({

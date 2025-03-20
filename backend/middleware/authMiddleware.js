@@ -16,8 +16,7 @@ const requireAuth = async (req, res, next) => {
   }
   
   try {
-    // Add more logging to debug the token value
-    console.log('Verifying token:', token.substring(0, 10) + '...');
+    
     
     // Verify the token
     const decoded = jwt.verify(token, process.env.SECRET);

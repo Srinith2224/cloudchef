@@ -16,7 +16,7 @@ const createToken = (_id) => {
   try {
     // Make sure _id is a string
     const token = jwt.sign({ _id: _id.toString() }, process.env.SECRET, { expiresIn: '3d' });
-    console.log(`Generated token for user ${_id} (first 10 chars): ${token.substring(0, 10)}...`);
+    
     return token;
   } catch (error) {
     console.error('Error creating token:', error);
@@ -118,8 +118,7 @@ const googleSignIn = async (req, res) => {
     // Create JWT token - ensure it's created correctly
     const jwtToken = createToken(user._id);
     
-    // Log the token generation (first few characters only)
-    console.log(`Generated token for Google user ${user._id} (first 10 chars): ${jwtToken.substring(0, 10)}...`);
+    
     
     res.status(200).json({
       email: user.email,

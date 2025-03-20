@@ -24,28 +24,35 @@ const UserProfile = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
+                setLoading(true);
+                setError(null);
+                
                 const response = await fetch(`/api/users/profile/${id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 
+                const data = await response.json();
+                
                 if (!response.ok) {
-                    throw new Error('Failed to fetch user profile');
+                    throw new Error(data.error || 'Failed to fetch user profile');
                 }
                 
-                const data = await response.json();
                 setProfile(data);
                 setRecipes(data.recipes || []);
                 setIsFollowing(data.isFollowing);
-                setLoading(false);
             } catch (error) {
-                setError(error.message);
+                console.error('Profile fetch error:', error);
+                setError(error.message || 'Failed to fetch user profile');
+            } finally {
                 setLoading(false);
             }
         };
         
-        fetchUserProfile();
+        if (id) {
+            fetchUserProfile();
+        }
     }, [id]);
     
     const handleFollow = async () => {
@@ -151,7 +158,11 @@ const UserProfile = () => {
                         <img 
                             src={getImageUrl(profile.profilePhoto)} 
                             alt={`${profile.firstName} ${profile.lastName}`} 
-                            className="profile-photo"
+                            className="profile-image"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile-pic.png";
+                            }}
                         />
                     ) : (
                         <div className="profile-placeholder">
@@ -216,7 +227,7 @@ const UserProfile = () => {
                     <div className="featured-recipe-card" onClick={() => navigate(`/recipe/${profile.featuredRecipe._id}`)}>
                         {profile.featuredRecipe.mainImage ? (
                             <img 
-                                src={`http://localhost:4000${profile.featuredRecipe.mainImage}`}
+                                src={getImageUrl(profile.featuredRecipe.mainImage)}
                                 alt={profile.featuredRecipe.title}
                             />
                         ) : (
@@ -281,11 +292,13 @@ const UserProfile = () => {
                                     >
                                         {follower.profilePhoto ? (
                                             <img 
-                                                src={follower.profilePhoto.startsWith('http') ? 
-                                                    follower.profilePhoto : 
-                                                    `http://localhost:4000${follower.profilePhoto}`}
+                                                src={getImageUrl(follower.profilePhoto)}
                                                 alt={`${follower.firstName}'s profile`}
                                                 className="follow-avatar"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile-pic.png";
+                                                }}
                                             />
                                         ) : (
                                             <div className="follow-avatar-placeholder">
@@ -327,11 +340,13 @@ const UserProfile = () => {
                                     >
                                         {followedUser.profilePhoto ? (
                                             <img 
-                                                src={followedUser.profilePhoto.startsWith('http') ? 
-                                                    followedUser.profilePhoto : 
-                                                    `http://localhost:4000${followedUser.profilePhoto}`}
+                                                src={getImageUrl(followedUser.profilePhoto)}
                                                 alt={`${followedUser.firstName}'s profile`}
                                                 className="follow-avatar"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile-pic.png";
+                                                }}
                                             />
                                         ) : (
                                             <div className="follow-avatar-placeholder">

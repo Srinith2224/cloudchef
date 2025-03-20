@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecipesContext } from '../hooks/useRecipesContext';
+import { getImageUrl } from '../utils/imageHelper';
 import './Profile.css';
 
 const Profile = () => {
@@ -46,13 +47,9 @@ const Profile = () => {
                 if (response.ok) {
                     setEmail(data.email);
                     
-                    // Fix the profile photo URL handling
+                    // Update to use getImageUrl helper
                     if (data.profilePhoto) {
-                        if (data.profilePhoto.startsWith('http')) {
-                            setProfilePhoto(data.profilePhoto); // Cloudinary URL
-                        } else {
-                            setProfilePhoto(`http://localhost:4000${data.profilePhoto}`); // Local URL
-                        }
+                        setProfilePhoto(getImageUrl(data.profilePhoto));
                     } else {
                         setProfilePhoto(''); 
                     }
@@ -168,10 +165,15 @@ const Profile = () => {
             } else {
                 // Store the EXACT same token that was used for the request
                 const currentUser = JSON.parse(localStorage.getItem('user'));
+                
+                // Make sure we use consistent image URL format both in storage and UI
+                const updatedProfilePhoto = json.profilePhoto || currentUser.profilePhoto;
+                
                 const updatedUser = {
                     ...currentUser,
                     email: json.email || currentUser.email,
-                    profilePhoto: json.profilePhoto || currentUser.profilePhoto,
+                    // Store raw profile photo URL in localStorage (not transformed)
+                    profilePhoto: updatedProfilePhoto,
                     about: json.about || about,
                     region: json.region || region
                 };
@@ -185,10 +187,8 @@ const Profile = () => {
                     payload: updatedUser
                 });
                 
-                // Update UI directly
-                setProfilePhoto(json.profilePhoto ? 
-                    (json.profilePhoto.startsWith('http') ? json.profilePhoto : `http://localhost:4000${json.profilePhoto}`)
-                    : profilePhoto);
+                // Update UI directly with transformed URL
+                setProfilePhoto(updatedProfilePhoto ? getImageUrl(updatedProfilePhoto) : '');
                 
                 setError(null);
                 setShowUpdateSuccessModal(true);
@@ -805,11 +805,13 @@ const Profile = () => {
                                     >
                                         {follower.profilePhoto ? (
                                             <img 
-                                                src={follower.profilePhoto.startsWith('http') ? 
-                                                    follower.profilePhoto : 
-                                                    `http://localhost:4000${follower.profilePhoto}`}
+                                                src={getImageUrl(follower.profilePhoto)}
                                                 alt={`${follower.firstName}'s profile`}
                                                 className="follow-avatar"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile-pic.png";
+                                                }}
                                             />
                                         ) : (
                                             <div className="follow-avatar-placeholder">
@@ -852,11 +854,13 @@ const Profile = () => {
                                     >
                                         {followedUser.profilePhoto ? (
                                             <img 
-                                                src={followedUser.profilePhoto.startsWith('http') ? 
-                                                    followedUser.profilePhoto : 
-                                                    `http://localhost:4000${followedUser.profilePhoto}`}
+                                                src={getImageUrl(followedUser.profilePhoto)}
                                                 alt={`${followedUser.firstName}'s profile`}
                                                 className="follow-avatar"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile-pic.png";
+                                                }}
                                             />
                                         ) : (
                                             <div className="follow-avatar-placeholder">

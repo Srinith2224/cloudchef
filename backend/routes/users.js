@@ -8,7 +8,7 @@ const { uploadProfilePhoto } = require('../config/cloudinaryConfig');
 router.use(requireAuth); // Apply auth middleware to all routes
 
 // PATCH update user profile
-router.patch('/:id', upload.single('profilePhoto'), updateUserProfile);
+router.patch('/:id', uploadProfilePhoto.single('profilePhoto'), updateUserProfile);
 
 // GET user by ID
 router.get('/:id', getUserById);

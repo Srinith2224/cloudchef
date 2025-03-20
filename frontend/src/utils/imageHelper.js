@@ -1,21 +1,24 @@
 /**
  * Helper function to handle image URLs that could be either local paths or Cloudinary URLs
- * @param {string} path - The image path or URL
+ * @param {string} url - The image path or URL
  * @returns {string} - The full URL to the image
  */
-export const getImageUrl = (path) => {
-  if (!path) return '';
+export const getImageUrl = (url) => {
+  if (!url) return '';
   
-  // If it's already a complete URL (from Cloudinary), use it directly
-  if (path.startsWith('http')) {
-    return path;
+  // Check if it's already a Cloudinary URL
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
   }
   
-  // If it's a data URL (from FileReader previews), use it directly
-  if (path.startsWith('data:')) {
-    return path;
+  // Check if it's a local path
+  if (url.startsWith('/profilePhotos/') || 
+      url.startsWith('/recipeImages/') || 
+      url.startsWith('/recipeStepsImages/')) {
+    // For local paths, use your API base URL
+    return `${process.env.REACT_APP_API_URL || ''}${url}`;
   }
   
-  // Otherwise, prepend the backend URL
-  return `http://localhost:4000${path}`;
+  // Return the original URL if we can't determine the type
+  return url;
 };
