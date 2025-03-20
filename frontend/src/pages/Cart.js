@@ -129,7 +129,7 @@ const Cart = () => {
         // Encode the ingredient name for URL
         const searchQuery = encodeURIComponent(ingredient);
         // Open Swiggy Instamart in a new tab with the search query
-        window.open(`https://www.swiggy.com/search?query=${searchQuery}&submitAction=ENTER`, '_blank');
+        window.open(`https://www.swiggy.com/instamart/search?query=${searchQuery}&submitAction=ENTER`, '_blank');
     };
 
     return (
