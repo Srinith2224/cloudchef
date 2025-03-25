@@ -53,6 +53,7 @@ CloudChef is a modern, cloud-based platform that connects food enthusiasts, home
 - **APIs**: FatSecret API for nutrition data, Google OAuth for authentication
 
 ###
+![2025-03-20 (2)](https://github.com/user-attachments/assets/173f8541-57a2-44ac-b908-383b8a91814b)
 
 ## 📋 Installation Guide
 
