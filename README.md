@@ -1,232 +1,227 @@
-
-# CloudChef: A Cloud-Based Recipe Sharing and Cooking Management Platform  
-
-## Overview  
-
-CloudChef is a cloud-powered recipe-sharing and cooking management platform designed to enhance the culinary experience for home cooks, food enthusiasts, and professional chefs. It provides a collaborative space where users can discover, store, and share recipes while leveraging cloud-based services for high availability, performance, and scalability.  
-
-The platform offers an intuitive user interface for managing personal recipe collections, interactive cooking sessions, and AI-driven ingredient recommendations. CloudChef supports multimedia content, including images and videos, to ensure a rich and engaging cooking experience.  
-
-Built with a microservices architecture, CloudChef employs a scalable backend, a dynamic frontend, and a structured database to deliver a seamless experience. Its open-source nature allows developers and contributors to enhance the platform by adding new features and optimizing existing functionalities.  
-
----
-
-## **Key Features**  
-
-### **1. User Authentication and Authorization**  
-- Secure access with multi-layered authentication mechanisms.  
-- Users can register, log in, and manage their accounts with encrypted credentials.  
-- OTP-based verification and Google authentication for secure and flexible access.  
-
-### **2. Recipe Management**  
-- Users can create, edit, and manage their own recipes with structured step-by-step instructions.  
-- Supports embedded images and videos for an interactive cooking experience.  
-- Recipes can be categorized and shared with the community.  
-
-### **3. Saved Recipe Collection**  
-- Users can save and access their favorite recipes in a personalized collection.  
-- Provides quick retrieval of preferred meals for a hassle-free cooking experience.  
-
-### **4. Calendar Integration for Meal Planning**  
-- Allows users to plan daily, weekly, or monthly meals efficiently.  
-- Integrated with a meal scheduler to organize cooking routines and ingredient management.  
-
-### **5. Cart Functionality with Grocery Service Integration**  
-- Users can add ingredients directly from a recipe to a shopping cart.  
-- Seamless redirection to external grocery services for fast and easy purchasing.  
-
-### **6. AI-Powered Recipe Generation**  
-- Intelligent AI-driven system generates personalized recipe recommendations based on available ingredients.  
-- Optimizes ingredient usage and reduces food wastage by suggesting creative cooking ideas.  
-
-### **7. Rating and Review System**  
-- Users can rate and review recipes based on their cooking experience.  
-- Promotes community engagement and highlights top-rated recipes.  
-
-### **8. Advanced Admin Functionalities**  
-- Admins can manage users and recipes, ensuring content quality and compliance.  
-- Includes moderation tools to monitor fraudulent activities and prevent spam.  
-
-### **9. Interactive Cooking Guides**  
-- Step-by-step guided cooking instructions with voice-enabled navigation.  
-- Supports real-time progress tracking to help users follow recipes accurately.  
-
-### **10. AI-Generated Nutritional Insights**  
-- Provides real-time calorie and macronutrient breakdowns for each recipe.  
-- Helps users track their dietary intake and make informed food choices.  
+# CloudChef: A Recipe Sharing & Cooking Management Platform
 
 
----
 
-## **Technology Stack**  
+## Overview
 
-### **Frontend**  
-- React.js with Redux  
-- Material-UI  
-- React Router  
-- Axios  
+CloudChef is a modern, cloud-based platform that connects food enthusiasts, home cooks, and professional chefs. The application allows users to discover, create, and share recipes while providing powerful tools for meal planning, nutrition tracking, and ingredient management.
 
-### **Backend**  
-- Node.js with Express.js  
-- MongoDB with Mongoose  
-- JSON Web Token (JWT) for authentication  
-- Cloudinary for media storage  
+## ✨ Key Features
 
-### **DevOps and Deployment**  
-- Docker for containerization  
-- Kubernetes for orchestration  
-- Nginx as a reverse proxy  
-- CI/CD pipeline with GitHub Actions  
+### User Management
 
----
+- **Secure Authentication**: Email/password login, OTP verification, and Google OAuth
+- **Profile Management**: Customizable user profiles with profile photos
+- **Social Features**: Follow other users, view their recipes and activities
 
-## **Installation and Setup**  
+### Recipe Management
 
-### **Prerequisites**  
-Ensure you have the following installed before setting up CloudChef:  
-- Node.js (v16 or higher)  
-- MongoDB (local or cloud instance)  
-- Docker (optional, for containerized deployment)  
-- Cloudinary account (for media uploads)  
+- **Rich Recipe Creation**: Create recipes with step-by-step instructions, images, and videos
+- **Media Support**: Upload and store images and videos through Cloudinary integration
+- **Recipe Collections**: Save favorite recipes to personal collections
+- **Search & Discovery**: Explore recipes by ingredients, tags, or user
 
-### **Step 1: Clone the Repository**  
-```sh
-git clone https://github.com/Srinith2224/cloudchef.git
-cd cloudchef
-```
+### Cooking Tools
 
----
+- **Interactive Cooking Mode**: Step-by-step guided cooking experience
+- **Nutrition Analysis**: AI-generated nutritional information for recipes
+- **Meal Planning**: Calendar-based meal scheduling system
+- **Shopping Lists**: Convert recipe ingredients to shopping cart items
 
-## **Install Dependencies**  
+### Administration
 
-### **Frontend Setup**  
-Navigate to the frontend directory and install dependencies:  
-```sh
+- **Admin Dashboard**: Manage users, recipes, and platform content
+- **Content Moderation**: Tools to maintain quality and prevent abuse
+- **User Management**: Control user roles and permissions
+
+## 🛠️ Technology Stack
+
+### Frontend
+
+- **Framework**: React.js with functional components and hooks
+- **State Management**: Context API with custom reducers
+- **Routing**: React Router for navigation
+- **Styling**: CSS with responsive design
+- **HTTP Client**: Fetch API for data requests
+
+### Backend
+
+- **Runtime**: Node.js with Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **Media Storage**: Cloudinary for images and videos
+- **APIs**: FatSecret API for nutrition data, Google OAuth for authentication
+
+###
+
+## 📋 Installation Guide
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- MongoDB (local or cloud instance)
+- Cloudinary account
+- FatSecret API credentials (for nutrition features)
+- Google OAuth credentials (for Google sign-in)
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
 cd frontend
+
+# Install dependencies
 npm install
-```
-Start the frontend development server:  
-```sh
+
+# Start development server
 npm start
 ```
-This will launch the application at:  
-```
-http://localhost:3000
-```
 
----
+The frontend will be available at: [http://localhost:3000](http://localhost:3000)
 
-### **Backend Setup**  
-Navigate to the backend directory:  
-```sh
+### Backend Setup
+
+```bash
+# Navigate to backend directory
 cd backend
-```
-Uninstall the existing version of bcrypt:  
-```sh
+
+# Install dependencies
+npm install
+
+#Uninstall the existing version of bcrypt:  
 npm uninstall bcrypt
-```
-Install the specific version of bcrypt:  
-```sh
+
+#Install the specific version of bcrypt:  
 npm install bcrypt@5.0.1
-```
-Fix any vulnerabilities:  
-```sh
+
+#Fix any vulnerabilities:  
 npm audit fix
-```
-Start the backend server:  
-```sh
+
+#Start the backend server:  
 npm start
+
 ```
 
-By default, the backend runs at:  
-```
-http://localhost:5000
-```
+The API server will run at: [http://localhost:4000](http://localhost:4000)
 
----
+### Environment Configuration
 
-## **Environment Variables Setup**  
-Create a `.env` file in the backend directory and add the following values:  
-```env
+Create a `.env` file in the backend directory with the following:
+
+```
+PORT=4000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+SECRET=your_jwt_secret
+
+# Cloudinary configuration
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# APIs
+FATSECRET_KEY=your_fatsecret_key
+FATSECRET_SECRET=your_fatsecret_secret
+HUGGING_FACE_API_KEY=your_huggingface_api_key
+
+# OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+
+# Email service (for OTP)
+EMAIL_USER=your_email
+EMAIL_PASSWORD=your_app_password
 ```
 
----
+## 🔄 Data Migration
 
-## **API Documentation**  
+To migrate existing media files to Cloudinary:
 
-### **1. Authentication**  
-#### **Register a new user**  
-```http
-POST /api/auth/register
-```
-**Body:**  
-```json
-{
-  "username": "testuser",
-  "email": "test@example.com",
-  "password": "securepassword"
-}
+```bash
+cd backend
+node scripts/migrateToCloudinary.js
 ```
 
-#### **Login**  
-```http
-POST /api/auth/login
-```
-**Body:**  
-```json
-{
-  "email": "test@example.com",
-  "password": "securepassword"
-}
+## 🧹 File Management
+
+The system includes automatic cleanup for unused media files:
+
+```bash
+npm run cleanup-images
 ```
 
-### **2. Recipe Endpoints**  
-#### **Create a Recipe**  
-```http
-POST /api/recipes
+## 📚 API Documentation
+
+### Authentication
+
+| Endpoint           | Method | Description               |
+| ------------------ | ------ | ------------------------- |
+| /api/auth/register | POST   | Register a new user       |
+| /api/auth/login    | POST   | Login with credentials    |
+| /api/otp/send      | POST   | Send OTP for verification |
+| /api/otp/verify    | POST   | Verify OTP code           |
+
+### Recipes
+
+| Endpoint                   | Method | Description                 |
+| -------------------------- | ------ | --------------------------- |
+| /api/recipes               | GET    | Get all recipes             |
+| /api/recipes/\:id          | GET    | Get a specific recipe       |
+| /api/recipes               | POST   | Create a new recipe         |
+| /api/recipes/\:id          | PATCH  | Update a recipe             |
+| /api/recipes/\:id          | DELETE | Delete a recipe             |
+| /api/recipes/search        | GET    | Search recipes              |
+| /api/recipes/user/\:userId | GET    | Get user's recipes          |
+| /api/recipes/save/\:id     | POST   | Save a recipe to collection |
+
+### User Management
+
+| Endpoint                       | Method | Description          |
+| ------------------------------ | ------ | -------------------- |
+| /api/users/\:id                | GET    | Get user profile     |
+| /api/users/profile             | PATCH  | Update user profile  |
+| /api/users/profile/photo       | POST   | Upload profile photo |
+| /api/users/set-featured-recipe | POST   | Set featured recipe  |
+| /api/users/\:id/followers      | GET    | Get user's followers |
+| /api/users/\:id/following      | GET    | Get user's following |
+
+### Cart & Calendar
+
+| Endpoint         | Method | Description           |
+| ---------------- | ------ | --------------------- |
+| /api/cart        | GET    | Get cart items        |
+| /api/cart/add    | POST   | Add item to cart      |
+| /api/cart/delete | DELETE | Remove item from cart |
+| /api/calendar    | GET    | Get scheduled meals   |
+| /api/calendar    | POST   | Schedule a meal       |
+
+### Admin
+
+| Endpoint                   | Method | Description       |
+| -------------------------- | ------ | ----------------- |
+| /api/admin/users           | GET    | Get all users     |
+| /api/admin/users/\:id/role | PATCH  | Update user role  |
+| /api/admin/users/\:id      | DELETE | Delete a user     |
+| /api/admin/recipes/\:id    | PATCH  | Update any recipe |
+| /api/admin/recipes/\:id    | DELETE | Delete any recipe |
+
+## 🔐 Admin Access
+
+To create an admin user:
+
+```bash
+cd backend
+node scripts/createAdmin.js
 ```
-**Body:**  
-```json
-{
-  "title": "Chocolate Cake",
-  "ingredients": ["Flour", "Sugar", "Cocoa Powder"],
-  "instructions": ["Mix ingredients", "Bake at 180°C for 30 minutes"]
-}
-```
 
-#### **Fetch All Recipes**  
-```http
-GET /api/recipes
-```
+## 📝 License
 
-#### **Fetch a Single Recipe**  
-```http
-GET /api/recipes/:id
-```
+This project is licensed under the GPL License.
 
----
+## 🙏 Acknowledgments
 
-6. **Submit a Pull Request**  
-
----
-
-## **License**  
-
-This project is licensed under the [MIT License](LICENSE).  
-
----
-
-## **Acknowledgments**  
-
-- Built with [React](https://reactjs.org/) and [Express](https://expressjs.com/).  
-- Uses [Cloudinary](https://cloudinary.com/) for media uploads.  
-- Inspired by the passion for cooking and sharing recipes.  
-
----
-
+- React
+- Node
+- Express
+- MongoDB
+- Cloudinary for media storage
+- FatSecret API for nutrition data
 
