@@ -91,7 +91,7 @@ Ensure you have the following installed before setting up CloudChef:
 
 ### **Step 1: Clone the Repository**  
 ```sh
-git clone https://github.com/your-username/cloudchef.git
+git clone https://github.com/Srinith2224/cloudchef.git
 cd cloudchef
 ```
 
