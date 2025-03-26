@@ -52,8 +52,23 @@ CloudChef is a modern, cloud-based platform that connects food enthusiasts, home
 - **Media Storage**: Cloudinary for images and videos
 - **APIs**: FatSecret API for nutrition data, Google OAuth for authentication
 
-###
-![2025-03-20 (2)](https://github.com/user-attachments/assets/173f8541-57a2-44ac-b908-383b8a91814b)
+📸 Screenshots & Demo
+
+UI Preview
+![2025-03-26](https://github.com/user-attachments/assets/8ea989f3-f212-427b-944d-52a8f3d54e17)
+
+![2025-03-20 (2)](https://github.com/user-attachments/assets/960b9481-4f93-43c8-89ab-af5f2b945ea6)
+
+
+
+
+Video Demo
+
+
+https://github.com/user-attachments/assets/fe16b489-8ed7-48f0-bdb1-8cdf8269d93f
+
+
+
 
 ## 📋 Installation Guide
 
@@ -217,12 +232,4 @@ node scripts/createAdmin.js
 
 This project is licensed under the GPL License.
 
-## 🙏 Acknowledgments
-
-- React
-- Node
-- Express
-- MongoDB
-- Cloudinary for media storage
-- FatSecret API for nutrition data
 
