@@ -127,7 +127,7 @@ Create a `.env` file in the backend directory with the following:
 ```
 PORT=4000
 MONGO_URI=your_mongodb_connection_string
-SECRET=your_jwt_secret
+SECRET=your_jwt_secret # run this command for generating jwt_secret: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))
 
 # Cloudinary configuration
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
