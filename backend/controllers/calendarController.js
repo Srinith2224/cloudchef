@@ -58,23 +58,13 @@ const getCalendarEntries = async (req, res) => {
                 select: 'title mainImage totalTime ingredients steps'
             });
         
-        // Remove or comment out this console.log
-        // console.log('Found calendar for userId:', userId, calendar ? 'yes' : 'no');
-        
         if (!calendar || !calendar.scheduledRecipes || calendar.scheduledRecipes.length === 0) {
-            // Remove or comment out this console.log
-            // console.log('No scheduled recipes found');
             return res.status(200).json([]);
         }
-        
-        // Remove or comment out this console.log
-        // console.log(`Found ${calendar.scheduledRecipes.length} scheduled recipes`);
         
         // Format the data to make it easier to work with on the frontend
         const formattedEntries = calendar.scheduledRecipes.map(entry => {
             if (!entry.recipeId) {
-                // This log might be useful for debugging, but can be removed as well
-                // console.log('Warning: Entry missing recipeId', entry);
                 return null;
             }
             return {
