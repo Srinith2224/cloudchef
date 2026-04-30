@@ -122,7 +122,7 @@ const searchFood = async (query) => {
         oauth_consumer_key: CONSUMER_KEY,
         oauth_signature_method: 'HMAC-SHA1',
         oauth_timestamp: Math.floor(Date.now() / 1000),
-        oauth_nonce: Math.random().toString(36).substring(2),
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
         oauth_version: '1.0'
       },
       headers: {
@@ -162,7 +162,7 @@ const getFoodDetails = async (foodId) => {
         oauth_consumer_key: CONSUMER_KEY,
         oauth_signature_method: 'HMAC-SHA1',
         oauth_timestamp: Math.floor(Date.now() / 1000),
-        oauth_nonce: Math.random().toString(36).substring(2),
+        oauth_nonce: crypto.randomBytes(16).toString('hex'),
         oauth_version: '1.0'
       },
       headers: {
