@@ -32,5 +32,8 @@
     "nodemailer": "^6.10.0",
     "oauth-1.0a": "^2.2.6",
     "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
