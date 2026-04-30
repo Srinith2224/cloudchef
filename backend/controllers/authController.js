@@ -9,7 +9,6 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const createToken = (_id) => {
   // Check if SECRET is defined
   if (!process.env.SECRET) {
-    console.error('ERROR: JWT SECRET is not defined in environment variables!');
     throw new Error('JWT configuration error');
   }
   
