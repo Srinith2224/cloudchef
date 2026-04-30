@@ -2,6 +2,7 @@ const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const crypto = require('crypto');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -105,6 +106,10 @@ const googleSignIn = async (req, res) => {
     let user = await User.findOne({ email });
     
     if (!user) {
+      // Generate a secure random password
+      const securePassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(securePassword, 10);
+
       // Create a new user
       user = await User.create({
         email,
@@ -112,7 +117,7 @@ const googleSignIn = async (req, res) => {
         lastName: family_name || '',
         googleId: sub,
         profilePhoto: picture || '',
-        password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+        password: hashedPassword
       });
     } else if (!user.googleId) {
       // Update existing user with Google ID
