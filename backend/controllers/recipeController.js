@@ -1,26 +1,10 @@
 const Recipe = require('../models/RecipeModel');
 const mongoose = require('mongoose');
 const User = require('../models/UserModel');
-// Remove or comment out the old multer config
-// const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { getNutritionData } = require('../services/nutritionService');
 const { cloudinary } = require('../config/cloudinaryConfig');
-
-// Comment out or remove the old multer config
-/*
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'recipeImages/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-
-const upload = multer({ storage: storage });
-*/
 
 // Maintain the upload export for backward compatibility
 // This should be updated in other files to use the Cloudinary uploader
