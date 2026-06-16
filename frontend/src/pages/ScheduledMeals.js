@@ -22,9 +22,6 @@ const ScheduledMeals = () => {
             }
 
             try {
-                // Remove or comment out this console.log
-                // console.log('Fetching scheduled meals for user ID:', user.userId);
-                
                 const response = await fetch(`/api/calendar/${user.userId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -36,8 +33,6 @@ const ScheduledMeals = () => {
                 }
                 
                 const data = await response.json();
-                // Remove or comment out this console.log
-                // console.log('Calendar data received:', data);
                 
                 if (!Array.isArray(data)) {
                     console.error('Expected array of scheduled meals, received:', typeof data);
@@ -48,9 +43,6 @@ const ScheduledMeals = () => {
                 
                 // Transform data into calendar events
                 const calendarEvents = data.map(entry => {
-                    // Remove or comment out this console.log
-                    // console.log('Processing entry:', entry);
-                    
                     // Validate the entry structure
                     if (!entry || !entry.recipeId) {
                         console.error('Invalid meal entry:', entry);
@@ -62,8 +54,6 @@ const ScheduledMeals = () => {
                     try {
                         const dateObj = new Date(entry.date);
                         formattedDate = dateObj.toISOString().split('T')[0];
-                        // Remove or comment out this console.log
-                        // console.log(`Date conversion: ${entry.date} -> ${formattedDate}`);
                     } catch (e) {
                         console.error('Date parsing error:', e);
                         formattedDate = new Date().toISOString().split('T')[0]; // Fallback to today
@@ -81,8 +71,6 @@ const ScheduledMeals = () => {
                     };
                 }).filter(Boolean); // Filter out any null entries
                 
-                // Remove or comment out this console.log
-                // console.log('Calendar events created:', calendarEvents);
                 setEvents(calendarEvents);
             } catch (error) {
                 console.error('Error fetching scheduled meals:', error);
