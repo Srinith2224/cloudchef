@@ -333,20 +333,24 @@ const calculateNutrition = async (req, res) => {
       carbs: 0
     };
     
-    // Calculate nutrition for each ingredient
-    for (const ingredient of ingredients) {
-      if (ingredient.name && ingredient.quantity) {
-        const nutrition = await getNutritionData(
+    // Calculate nutrition for each ingredient concurrently
+    const nutritionPromises = ingredients
+      .filter(ingredient => ingredient.name && ingredient.quantity)
+      .map(ingredient =>
+        getNutritionData(
           ingredient.name,
           ingredient.quantity,
           ingredient.unit || ''
-        );
-        
-        totalNutrition.calories += nutrition.calories;
-        totalNutrition.fat += nutrition.fat;
-        totalNutrition.protein += nutrition.protein;
-        totalNutrition.carbs += nutrition.carbs;
-      }
+        )
+      );
+
+    const nutritionResults = await Promise.all(nutritionPromises);
+
+    for (const nutrition of nutritionResults) {
+      totalNutrition.calories += nutrition.calories;
+      totalNutrition.fat += nutrition.fat;
+      totalNutrition.protein += nutrition.protein;
+      totalNutrition.carbs += nutrition.carbs;
     }
     
     // Ensure values are reasonable - apply more conservative caps
