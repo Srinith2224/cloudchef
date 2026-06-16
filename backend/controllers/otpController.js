@@ -2,6 +2,7 @@ const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 // Store OTPs temporarily (in production, consider using Redis)
 const otpStore = {};
@@ -17,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 // Generate OTP function
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 };
 
 // Modify the sendOTPEmail function to include password update case
