@@ -2,7 +2,8 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const User = require('../models/UserModel');
 const { sendOtpEmail } = require('../utils/mailer');
-const { authPayload, normalizeEmail, validatePassword, EMAIL_RE } = require('./authController');
+const { HttpError, asyncHandler } = require('../utils/http');
+const { authPayload, normalizeEmail, checkPassword, EMAIL_RE } = require('./authController');
 
 /*
  * One-time codes are kept in memory. That is fine for a single server.
@@ -15,7 +16,6 @@ const RESEND_COOLDOWN_MS = 45 * 1000;
 const MAX_ATTEMPTS = 5;
 
 const keyFor = (purpose, email) => `${purpose}:${email}`;
-const generateOTP = () => crypto.randomInt(100000, 1000000).toString();
 const hashOtp = (otp) => crypto.createHash('sha256').update(String(otp)).digest('hex');
 
 // Remove expired codes every few minutes so memory doesn't grow forever
@@ -32,168 +32,128 @@ const issueOtp = (purpose, email, data = {}) => {
   const existing = otpStore.get(key);
   if (existing && Date.now() - existing.createdAt < RESEND_COOLDOWN_MS) {
     const wait = Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - existing.createdAt)) / 1000);
-    const err = new Error(`Please wait ${wait}s before asking for a new code.`);
-    err.status = 429;
-    throw err;
+    throw new HttpError(429, `Please wait ${wait}s before asking for a new code.`);
   }
-  const otp = generateOTP();
+  const otp = crypto.randomInt(100000, 1000000).toString();
   otpStore.set(key, { otpHash: hashOtp(otp), createdAt: Date.now(), attempts: 0, ...data });
   return otp;
 };
 
-/** Checks a code. Returns the stored entry on success, or an error message. */
-const checkOtp = (purpose, email, otp) => {
+/** Checks a code and returns what was stored with it. Throws a 400 with a helpful message otherwise. */
+const useOtp = (purpose, email, otp) => {
   const key = keyFor(purpose, email);
   const entry = otpStore.get(key);
-  if (!entry) return { error: 'This code is invalid or has expired. Request a new one.' };
+  if (!entry) throw new HttpError(400, 'This code is invalid or has expired. Request a new one.');
 
   if (Date.now() - entry.createdAt > OTP_TTL_MS) {
     otpStore.delete(key);
-    return { error: 'This code has expired. Request a new one.' };
+    throw new HttpError(400, 'This code has expired. Request a new one.');
   }
 
   const given = Buffer.from(hashOtp(String(otp || '').trim()));
   const expected = Buffer.from(entry.otpHash);
-  if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
+  if (!crypto.timingSafeEqual(given, expected)) {
     entry.attempts += 1;
     if (entry.attempts >= MAX_ATTEMPTS) {
       otpStore.delete(key);
-      return { error: 'Too many wrong codes. Request a new one.' };
+      throw new HttpError(400, 'Too many wrong codes. Request a new one.');
     }
-    return { error: `That code is not right. ${MAX_ATTEMPTS - entry.attempts} tries left.` };
+    throw new HttpError(400, `That code is not right. ${MAX_ATTEMPTS - entry.attempts} tries left.`);
   }
 
   otpStore.delete(key);
-  return { entry };
+  return entry;
 };
 
-const handleError = (res, error, fallback) => {
-  if (error.status) return res.status(error.status).json({ error: error.message });
-  console.error(fallback, error);
-  res.status(500).json({ error: fallback });
-};
-
-const sendRegistrationOTP = async (req, res) => {
+/** Sends the email; if that fails, forgets the code so the user can ask again right away. */
+const deliver = async (purpose, email, otp) => {
   try {
-    const email = normalizeEmail(req.body.email);
-    const firstName = (req.body.firstName || '').trim();
-    const lastName = (req.body.lastName || '').trim();
-    const { password } = req.body;
-
-    if (!firstName || !lastName || !email || !password) return res.status(400).json({ error: 'Fill in every field.' });
-    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
-    const passwordError = validatePassword(password);
-    if (passwordError) return res.status(400).json({ error: passwordError });
-
-    if (await User.exists({ email })) {
-      return res.status(400).json({ error: 'An account with this email already exists. Try signing in.' });
-    }
-
-    // Hash now so the plain password never sits in memory waiting for the code
-    const passwordHash = await bcrypt.hash(password, 10);
-    const otp = issueOtp('registration', email, { firstName, lastName, passwordHash });
-    await sendOtpEmail(email, otp, 'registration');
-
-    res.status(200).json({ message: `We sent a 6-digit code to ${email}.` });
+    await sendOtpEmail(email, otp, purpose);
   } catch (error) {
-    handleError(res, error, 'Could not send the code. Check the email address and try again.');
+    otpStore.delete(keyFor(purpose, email));
+    console.error('Email error:', error.message);
+    throw new HttpError(502, 'We could not send the email. Check the address and try again.');
   }
 };
 
-const verifyRegistrationOTP = async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-    const { entry, error } = checkOtp('registration', email, req.body.otp);
-    if (error) return res.status(400).json({ error });
+// POST /api/otp/send-registration-otp  { firstName, lastName, email, password }
+const sendRegistrationOTP = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const firstName = String(req.body.firstName || '').trim().slice(0, 60);
+  const lastName = String(req.body.lastName || '').trim().slice(0, 60);
+  const { password } = req.body;
 
-    if (await User.exists({ email })) {
-      return res.status(400).json({ error: 'An account with this email already exists. Try signing in.' });
-    }
+  if (!firstName || !lastName || !email || !password) throw new HttpError(400, 'Fill in every field.');
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, 'Enter a valid email address.');
+  checkPassword(password);
+  if (await User.exists({ email })) throw new HttpError(400, 'An account with this email already exists. Try signing in.');
 
-    const user = await User.create({
-      email,
-      password: entry.passwordHash,
-      firstName: entry.firstName,
-      lastName: entry.lastName
-    });
+  // Hash now so the plain password never sits in memory waiting for the code
+  const passwordHash = await bcrypt.hash(password, 10);
+  const otp = issueOtp('registration', email, { firstName, lastName, passwordHash });
+  await deliver('registration', email, otp);
+  res.status(200).json({ message: `We sent a 6-digit code to ${email}.` });
+});
 
-    res.status(201).json(authPayload(user));
-  } catch (error) {
-    handleError(res, error, 'Could not verify the code. Try again.');
+// POST /api/otp/verify-registration-otp  { email, otp }
+const verifyRegistrationOTP = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const entry = useOtp('registration', email, req.body.otp);
+  if (await User.exists({ email })) throw new HttpError(400, 'An account with this email already exists. Try signing in.');
+
+  const user = await User.create({ email, password: entry.passwordHash, firstName: entry.firstName, lastName: entry.lastName });
+  res.status(201).json(authPayload(user));
+});
+
+// POST /api/otp/send-password-reset-otp  { email }
+const sendPasswordResetOTP = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, 'Enter a valid email address.');
+
+  // Always answer the same way so this endpoint can't be used to find registered emails
+  const user = await User.findOne({ email });
+  if (user) {
+    const otp = issueOtp('reset', email, { userId: String(user._id) });
+    await deliver('reset', email, otp);
   }
-};
+  res.status(200).json({ message: `If ${email} has an account, a 6-digit code is on its way.` });
+});
 
-const sendPasswordResetOTP = async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
+// POST /api/otp/verify-reset-otp  { email, otp, newPassword }
+const verifyAndResetPassword = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  checkPassword(req.body.newPassword);
+  const entry = useOtp('reset', email, req.body.otp);
 
-    const user = await User.findOne({ email });
-    // Always answer the same way so this endpoint can't be used to find registered emails
-    if (user) {
-      const otp = issueOtp('reset', email, { userId: String(user._id) });
-      await sendOtpEmail(email, otp, 'reset');
-    }
-    res.status(200).json({ message: `If ${email} has an account, a 6-digit code is on its way.` });
-  } catch (error) {
-    handleError(res, error, 'Could not send the reset code. Try again.');
-  }
-};
+  await User.findByIdAndUpdate(entry.userId, { password: await bcrypt.hash(req.body.newPassword, 10) });
+  res.status(200).json({ message: 'Password updated. You can sign in now.' });
+});
 
-const verifyAndResetPassword = async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-    const passwordError = validatePassword(req.body.newPassword);
-    if (passwordError) return res.status(400).json({ error: passwordError });
+// POST /api/otp/send-password-update-otp  { newPassword }
+// The code always goes to the email on the account, never one from the request.
+const sendPasswordUpdateOTP = asyncHandler(async (req, res) => {
+  checkPassword(req.body.newPassword);
+  const user = await User.findById(req.userId);
+  if (!user) throw new HttpError(404, 'Account not found.');
 
-    const { entry, error } = checkOtp('reset', email, req.body.otp);
-    if (error) return res.status(400).json({ error });
+  const passwordHash = await bcrypt.hash(req.body.newPassword, 10);
+  const otp = issueOtp('update', user.email, { userId: String(user._id), passwordHash });
+  await deliver('update', user.email, otp);
+  res.status(200).json({ message: `We sent a 6-digit code to ${user.email}.` });
+});
 
-    const hash = await bcrypt.hash(req.body.newPassword, 10);
-    await User.findByIdAndUpdate(entry.userId, { password: hash });
+// POST /api/otp/verify-password-update-otp  { otp }
+const verifyPasswordUpdateOTP = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  if (!user) throw new HttpError(404, 'Account not found.');
 
-    res.status(200).json({ message: 'Password updated. You can sign in now.' });
-  } catch (error) {
-    handleError(res, error, 'Could not reset your password. Try again.');
-  }
-};
+  const entry = useOtp('update', user.email, req.body.otp);
+  if (entry.userId !== String(user._id)) throw new HttpError(403, 'This code belongs to another account.');
 
-/** Signed-in users: the code always goes to the email on the account, never one from the request. */
-const sendPasswordUpdateOTP = async (req, res) => {
-  try {
-    const passwordError = validatePassword(req.body.newPassword);
-    if (passwordError) return res.status(400).json({ error: passwordError });
-
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ error: 'Account not found.' });
-
-    const passwordHash = await bcrypt.hash(req.body.newPassword, 10);
-    const otp = issueOtp('update', user.email, { userId: String(user._id), passwordHash });
-    await sendOtpEmail(user.email, otp, 'update');
-
-    res.status(200).json({ message: `We sent a 6-digit code to ${user.email}.` });
-  } catch (error) {
-    handleError(res, error, 'Could not send the code. Try again.');
-  }
-};
-
-const verifyPasswordUpdateOTP = async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ error: 'Account not found.' });
-
-    const { entry, error } = checkOtp('update', user.email, req.body.otp);
-    if (error) return res.status(400).json({ error });
-    if (entry.userId !== String(user._id)) return res.status(403).json({ error: 'This code belongs to another account.' });
-
-    user.password = entry.passwordHash;
-    await user.save();
-
-    res.status(200).json({ message: 'Password updated.' });
-  } catch (error) {
-    handleError(res, error, 'Could not update your password. Try again.');
-  }
-};
+  user.password = entry.passwordHash;
+  await user.save();
+  res.status(200).json({ message: 'Password updated.' });
+});
 
 module.exports = {
   sendRegistrationOTP,
@@ -201,7 +161,5 @@ module.exports = {
   sendPasswordResetOTP,
   verifyAndResetPassword,
   sendPasswordUpdateOTP,
-  verifyPasswordUpdateOTP,
-  // exported for tests
-  _otpStore: otpStore
+  verifyPasswordUpdateOTP
 };

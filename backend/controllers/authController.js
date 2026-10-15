@@ -3,16 +3,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
+const { HttpError, asyncHandler } = require('../utils/http');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD = 8;
 
-const createToken = (_id) => {
-  if (!process.env.SECRET) throw new Error('JWT configuration error');
-  return jwt.sign({ _id: _id.toString() }, process.env.SECRET, { expiresIn: '7d' });
-};
+const createToken = (_id) => jwt.sign({ _id: _id.toString() }, process.env.SECRET, { expiresIn: '7d' });
 
 /** The shape every auth endpoint returns, so the frontend stores one consistent user object. */
 const authPayload = (user) => ({
@@ -27,133 +25,85 @@ const authPayload = (user) => ({
 
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
 
-const validatePassword = (password) => {
+/** Throws a 400 if the password is too weak. */
+const checkPassword = (password) => {
   if (typeof password !== 'string' || password.length < MIN_PASSWORD) {
-    return `Password must be at least ${MIN_PASSWORD} characters.`;
-  }
-  return null;
-};
-
-const loginUser = async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-    const { password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Enter your email and password.' });
-    }
-
-    const user = await User.findOne({ email });
-    // Same message for both cases so nobody can probe which emails are registered
-    if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: 'Email or password is incorrect.' });
-    }
-
-    res.status(200).json(authPayload(user));
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Sign in failed. Try again in a moment.' });
+    throw new HttpError(400, `Password must be at least ${MIN_PASSWORD} characters.`);
   }
 };
 
-const logoutUser = (req, res) => {
-  // JWTs are stateless; the client deletes its token.
-  res.status(200).json({ message: 'Signed out' });
-};
+// POST /api/login  { email, password }
+const loginUser = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const { password } = req.body;
+  if (!email || !password) throw new HttpError(400, 'Enter your email and password.');
 
-/** Direct registration without email verification. Kept for tests/tools; the app uses the OTP flow. */
-const registerUser = async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-    const firstName = (req.body.firstName || '').trim();
-    const lastName = (req.body.lastName || '').trim();
-    const { password } = req.body;
-
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ error: 'Fill in every field.' });
-    }
-    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
-    const passwordError = validatePassword(password);
-    if (passwordError) return res.status(400).json({ error: passwordError });
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ error: 'An account with this email already exists.' });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ firstName, lastName, email, password: hashedPassword });
-
-    res.status(201).json(authPayload(user));
-  } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ error: 'Could not create your account. Try again in a moment.' });
+  const user = await User.findOne({ email });
+  // Same message for both cases so nobody can probe which emails are registered
+  if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+    throw new HttpError(401, 'Email or password is incorrect.');
   }
-};
+  res.status(200).json(authPayload(user));
+});
 
-const googleSignIn = async (req, res) => {
+// POST /api/logout  (tokens are stateless; the browser just forgets its token)
+const logoutUser = (req, res) => res.status(200).json({ message: 'Signed out' });
+
+// POST /api/google-signin  { token }
+const googleSignIn = asyncHandler(async (req, res) => {
   const { token: googleToken } = req.body;
-  if (!googleToken) return res.status(400).json({ error: 'Missing Google credential.' });
+  if (!googleToken) throw new HttpError(400, 'Missing Google credential.');
 
+  let payload;
   try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken: googleToken,
-      audience: process.env.GOOGLE_CLIENT_ID
+    const ticket = await googleClient.verifyIdToken({ idToken: googleToken, audience: process.env.GOOGLE_CLIENT_ID });
+    payload = ticket.getPayload();
+  } catch (error) {
+    console.error('Google sign in error:', error.message);
+    throw new HttpError(400, 'Google sign in failed. Try again.');
+  }
+
+  const { email: rawEmail, given_name, family_name, picture, sub, email_verified } = payload;
+  if (!email_verified) throw new HttpError(400, 'Your Google email is not verified.');
+  const email = normalizeEmail(rawEmail);
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      email,
+      firstName: given_name || 'Chef',
+      lastName: family_name || '-',
+      googleId: sub,
+      profilePhoto: picture || '',
+      // Random password: Google accounts can still set a real one with "Forgot password"
+      password: await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10)
     });
-    const { email: rawEmail, given_name, family_name, picture, sub, email_verified } = ticket.getPayload();
-    const email = normalizeEmail(rawEmail);
-
-    if (!email_verified) return res.status(400).json({ error: 'Your Google email is not verified.' });
-
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      const randomPassword = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10);
-      user = await User.create({
-        email,
-        firstName: given_name || 'Chef',
-        lastName: family_name || '-',
-        googleId: sub,
-        profilePhoto: picture || '',
-        password: randomPassword
-      });
-    } else if (!user.googleId) {
-      user.googleId = sub;
-      if (picture && !user.profilePhoto) user.profilePhoto = picture;
-      await user.save();
-    }
-
-    res.status(200).json(authPayload(user));
-  } catch (error) {
-    console.error('Google authentication error:', error.message);
-    res.status(400).json({ error: 'Google sign in failed. Try again.' });
+  } else if (!user.googleId) {
+    user.googleId = sub;
+    if (picture && !user.profilePhoto) user.profilePhoto = picture;
+    await user.save();
   }
-};
+  res.status(200).json(authPayload(user));
+});
 
-const getGoogleClientId = (req, res) => {
-  // Not an error: Google sign-in is simply hidden when it isn't configured
-  res.status(200).json({ clientId: process.env.GOOGLE_CLIENT_ID || null });
-};
+// GET /api/google-client-id  (null hides the Google button)
+const getGoogleClientId = (req, res) => res.status(200).json({ clientId: process.env.GOOGLE_CLIENT_ID || null });
 
-/** Returns a fresh token and the latest user details for the signed-in user. */
-const getMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ error: 'Account not found.' });
-    res.status(200).json(authPayload(user));
-  } catch (error) {
-    res.status(500).json({ error: 'Could not load your account.' });
-  }
-};
+// GET /api/me  (fresh token and the latest user details)
+const getMe = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  if (!user) throw new HttpError(404, 'Account not found.');
+  res.status(200).json(authPayload(user));
+});
 
 module.exports = {
   loginUser,
-  registerUser,
   logoutUser,
   googleSignIn,
   getGoogleClientId,
   getMe,
   authPayload,
-  createToken,
   normalizeEmail,
-  validatePassword,
+  checkPassword,
   EMAIL_RE
 };

@@ -1,13 +1,12 @@
 const express = require('express');
 const recipeController = require('../controllers/recipeController');
 const { requireAuth } = require('../middleware/authMiddleware');
-const { uploadRecipeFiles } = require('../config/cloudinaryConfig');
+const { uploadRecipeFiles } = require('../config/uploads');
 
 const router = express.Router();
 
 // Public
 router.get('/', recipeController.getRecipes);
-router.get('/search', recipeController.searchRecipes);
 router.get('/user/:userId', recipeController.getRecipesByUserId);
 router.get('/:id', recipeController.getRecipe);
 

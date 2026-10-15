@@ -45,19 +45,12 @@ const getRecipeRatings = asyncHandler(async (req, res) => {
 
   const all = await Rating.find({ recipeId }).sort({ updatedAt: -1 }).lean();
 
-  let source = all;
-  if (!all.length) {
-    // Old recipes may still keep ratings inside the recipe document
-    const recipe = await Recipe.findById(recipeId).select('ratings').lean();
-    source = (recipe?.ratings || []).map((r) => ({ ...r, userName: 'CloudChef cook' }));
-  }
-
   const distribution = [0, 0, 0, 0, 0]; // index 0 = 1 star
-  source.forEach((r) => {
+  all.forEach((r) => {
     if (r.rating >= 1 && r.rating <= 5) distribution[r.rating - 1] += 1;
   });
-  const count = source.length;
-  const avg = count ? source.reduce((s, r) => s + r.rating, 0) / count : 0;
+  const count = all.length;
+  const avg = count ? all.reduce((s, r) => s + r.rating, 0) / count : 0;
 
   // Attach reviewer photos for a friendlier list
   const reviewerIds = all.filter((r) => r.comment).map((r) => r.userId);
@@ -68,7 +61,7 @@ const getRecipeRatings = asyncHandler(async (req, res) => {
     avgRating: Math.round(avg * 10) / 10,
     ratingCount: count,
     distribution,
-    reviews: source
+    reviews: all
       .filter((r) => r.comment)
       .map((r) => ({
         _id: r._id,

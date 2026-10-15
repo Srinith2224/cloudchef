@@ -45,7 +45,6 @@ const userSchema = new Schema({
         enum: ['admin', 'user', 'guest'],
         default: 'user'
     },
-    // New social fields
     followers: [{
         type: Schema.Types.ObjectId,
         ref: 'User'
@@ -54,10 +53,6 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     }],
-    bio: {
-        type: String,
-        default: ''
-    },
     featuredRecipe: {
         type: Schema.Types.ObjectId,
         ref: 'Recipe'

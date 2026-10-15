@@ -1,6 +1,6 @@
 const User = require('../models/UserModel');
 const Recipe = require('../models/RecipeModel');
-const { fileUrl, deleteStoredFile } = require('../config/cloudinaryConfig');
+const { fileUrl, deleteStoredFile } = require('../config/uploads');
 const { withRating, LIST_FIELDS } = require('./recipeController');
 const { authPayload } = require('./authController');
 const { HttpError, asyncHandler, assertId } = require('../utils/http');

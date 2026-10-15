@@ -7,7 +7,6 @@ router.use(requireAuth);
 
 router.get('/', calendar.getCalendarEntries);
 router.post('/', calendar.addCalendarEntry);
-router.get('/:userId', calendar.getCalendarEntries); // legacy URL
 router.patch('/:id', calendar.updateCalendarEntry);
 router.delete('/:id', calendar.deleteCalendarEntry);
 
