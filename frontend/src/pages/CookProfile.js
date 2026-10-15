@@ -110,7 +110,7 @@ export default function CookProfile() {
             {featured.mainImage ? <img src={assetUrl(featured.mainImage)} alt="" /> : <div className="rcard__placeholder"><Icon name="skillet" /></div>}
           </div>
           <div className="profile__featured-body">
-            <span className="badge badge--coral"><Icon name="workspace_premium" filled />Signature dish</span>
+            <span className="badge badge--brand"><Icon name="workspace_premium" filled />Signature dish</span>
             <h2>{featured.title}</h2>
             <p className="muted">{featured.description}</p>
             <span className="link">Open recipe</span>

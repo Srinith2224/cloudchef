@@ -8,7 +8,7 @@ body.cook-open .tabbar { display: none; }
   padding: 0;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(120% 70% at 50% -10%, rgba(255, 123, 92, 0.09), transparent 60%), var(--bg);
+  background: radial-gradient(120% 70% at 50% -10%, rgba(255, 194, 51, 0.09), transparent 60%), var(--bg);
 }
 
 .cook__top { display: flex; align-items: center; gap: 12px; padding: 14px var(--gutter) 10px; padding-top: max(14px, env(safe-area-inset-top)); }
@@ -19,8 +19,8 @@ body.cook-open .tabbar { display: none; }
 .cook__progress { display: flex; gap: 4px; padding: 6px var(--gutter) 0; }
 .cook__seg { flex: 1; height: 5px; border-radius: 5px; background: var(--surface-2); transition: background var(--t); position: relative; }
 .cook__seg::after { content: ''; position: absolute; inset: -10px 0; }
-.cook__seg.is-done { background: var(--coral-press); opacity: 0.6; }
-.cook__seg.is-current { background: var(--coral); }
+.cook__seg.is-done { background: var(--brand-press); opacity: 0.6; }
+.cook__seg.is-current { background: var(--brand); }
 
 .cook__stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: clamp(18px, 4vh, 48px) var(--gutter); overflow: hidden; }
 .cook__step { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; touch-action: pan-y; cursor: grab; }
@@ -30,8 +30,8 @@ body.cook-open .tabbar { display: none; }
 
 .cook__text { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
 .cook__step:not(.has-media) .cook__text { max-width: 820px; margin: 0 auto; }
-.cook__num { font-family: var(--font-display); font-weight: 800; font-size: clamp(3.4rem, 9vw, 6rem); line-height: 0.85; color: var(--coral); letter-spacing: -0.05em; font-variation-settings: 'opsz' 96; }
-.cook__instruction { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.55rem, 3.6vw, 2.6rem); line-height: 1.22; letter-spacing: -0.025em; white-space: pre-line; user-select: text; }
+.cook__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(3.4rem, 9vw, 6rem); line-height: 0.85; color: var(--brand); letter-spacing: -0.015em; }
+.cook__instruction { font-family: var(--font-body); font-weight: 600; font-size: clamp(1.55rem, 3.6vw, 2.6rem); line-height: 1.22; letter-spacing: -0.015em; white-space: pre-line; user-select: text; }
 .cook__extras { display: flex; gap: 8px; flex-wrap: wrap; }
 .cook__extras .badge { font-size: 0.9rem; padding: 6px 12px; }
 .cook__visual { width: 100%; }
@@ -40,26 +40,26 @@ body.cook-open .tabbar { display: none; }
 .timer { display: flex; align-items: center; gap: 18px; padding: 12px 18px 12px 12px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line); flex-wrap: wrap; }
 .timer__ring { width: 96px; height: 96px; transform: rotate(-90deg); flex-shrink: 0; }
 .timer__track { fill: none; stroke: var(--surface-3); stroke-width: 8; }
-.timer__progress { fill: none; stroke: var(--saffron); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 250ms linear; }
+.timer__progress { fill: none; stroke: var(--chili); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 250ms linear; }
 .timer { position: relative; }
 .timer__center { position: absolute; left: 12px; top: 12px; width: 96px; height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.timer__time { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.timer__time { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; font-variant-numeric: tabular-nums; letter-spacing: -0.015em; }
 .timer__label { font-size: 0.68rem; color: var(--text-3); }
 .timer__controls { display: flex; align-items: center; gap: 6px; }
-.timer.is-running .timer__progress { stroke: var(--saffron); }
-.timer.is-done { border-color: rgba(127, 207, 149, 0.4); background: var(--herb-soft); }
+.timer.is-running .timer__progress { stroke: var(--chili); }
+.timer.is-done { border-color: rgba(79, 209, 165, 0.4); background: var(--herb-soft); }
 .timer.is-done .timer__progress { stroke: var(--herb); }
 .timer.is-done .timer__time { color: var(--herb); font-size: 1.15rem; }
 .timer.is-done .timer__ring { animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: rotate(-90deg) scale(1.06); } }
-.timer__start { background: var(--saffron) !important; color: #2b1c02 !important; }
+.timer__start { background: var(--chili) !important; color: #1f0a03 !important; }
 
 .cook__running { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 0 var(--gutter) 10px; }
-.cook__pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--r-pill); background: var(--saffron-soft); color: var(--saffron); font-weight: 600; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.cook__pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--r-pill); background: var(--chili-soft); color: var(--chili); font-weight: 600; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
 .cook__pill.is-done { background: var(--herb-soft); color: var(--herb); animation: pulse-pill 1.2s ease-in-out infinite; }
 @keyframes pulse-pill { 50% { transform: scale(1.04); } }
 
-.cook__nav { display: flex; align-items: center; gap: 12px; padding: 14px var(--gutter); padding-bottom: max(16px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(21, 16, 13, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.cook__nav { display: flex; align-items: center; gap: 12px; padding: 14px var(--gutter); padding-bottom: max(16px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(11, 15, 23, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .cook__hint { flex: 1; text-align: center; color: var(--text-3); font-size: 0.85rem; }
 .cook__next { margin-left: auto; min-width: 180px; }
 @media (max-width: 760px) { .cook__next { flex: 1; } }
@@ -71,8 +71,8 @@ body.cook-open .tabbar { display: none; }
 
 .cook--done { justify-content: center; align-items: center; }
 .cook-done { max-width: 560px; padding: 40px var(--gutter); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.cook-done__badge { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: var(--coral); color: var(--coral-ink); margin-bottom: 10px; box-shadow: 0 0 0 12px var(--coral-soft); }
+.cook-done__badge { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); margin-bottom: 10px; box-shadow: 0 0 0 12px var(--brand-soft); }
 .cook-done__badge .icon { font-size: 46px; }
-.cook-done h1 { font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -0.035em; }
+.cook-done h1 { font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -0.015em; }
 .cook-done p { color: var(--text-2); }
 .cook-done__actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 14px 0 4px; }

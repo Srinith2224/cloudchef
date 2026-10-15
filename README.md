@@ -26,7 +26,7 @@ Built with **React 18**, **Express**, **MongoDB** and **Google Gemini**.
 - **Social** — public cook profiles, follow cooks, signature dish, star ratings and written reviews.
 - **Accounts** — email sign-up with a 6-digit code, Google sign-in, password reset, password change with email confirmation.
 - **Admin** — stats, manage cooks and roles, remove recipes, review reports from users.
-- **Dark, warm UI** — designed for phones first, smooth page and modal animations, respects “reduce motion”, keyboard friendly.
+- **"Turmeric night" dark UI** — ink-blue darks with turmeric and chilli accents, designed for phones first, smooth page and modal animations, respects “reduce motion”, keyboard friendly.
 
 ## Run it locally
 

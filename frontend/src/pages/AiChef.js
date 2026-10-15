@@ -215,7 +215,7 @@ export default function AiChef() {
               <h2 className="ai-result__title">{recipe.title}</h2>
               {recipe.description && <p className="muted">{recipe.description}</p>}
               <div className="row ai-result__facts">
-                {formatTime(recipe.totalTime) && <span className="badge badge--saffron"><Icon name="schedule" />{formatTime(recipe.totalTime)}</span>}
+                {formatTime(recipe.totalTime) && <span className="badge badge--chili"><Icon name="schedule" />{formatTime(recipe.totalTime)}</span>}
                 <span className="badge">{recipe.servings} servings</span>
                 {recipe.tags.map((t) => <span key={t} className="tag">{t}</span>)}
               </div>
@@ -233,7 +233,7 @@ export default function AiChef() {
                     {recipe.steps.map((s, i) => (
                       <li key={i}>
                         <span className="step__num">{i + 1}</span>
-                        <p>{s.text}{s.timer > 0 && <span className="badge badge--saffron ai-result__timer"><Icon name="timer" />{s.timer} min</span>}</p>
+                        <p>{s.text}{s.timer > 0 && <span className="badge badge--chili ai-result__timer"><Icon name="timer" />{s.timer} min</span>}</p>
                       </li>
                     ))}
                   </ol>

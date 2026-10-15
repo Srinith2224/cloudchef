@@ -30,12 +30,12 @@ const sendOtpEmail = async (email, otp, purpose) => {
     subject: `${title} – CloudChef`,
     text: `Your CloudChef code is ${otp}. It expires in 10 minutes. If you didn't ask for it, you can ignore this email.`,
     html: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#1a1411;color:#f6eee8;border-radius:16px">
-        <h2 style="margin:0 0 4px;color:#ff7b5c">CloudChef</h2>
-        <p style="margin:0 0 24px;color:#bfb2a8">${title}</p>
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:28px;background:#0b0f17;color:#eef2f8;border-radius:16px">
+        <h2 style="margin:0 0 4px;color:#ffc233">CloudChef</h2>
+        <p style="margin:0 0 24px;color:#a9b3c6">${title}</p>
         <p style="margin:0 0 8px">Your code:</p>
-        <div style="font-size:30px;letter-spacing:8px;font-weight:700;background:#2a211c;padding:16px;border-radius:12px;text-align:center">${otp}</div>
-        <p style="margin:24px 0 0;color:#bfb2a8;font-size:13px">It expires in 10 minutes. If you didn't ask for this code, you can ignore this email.</p>
+        <div style="font-size:30px;letter-spacing:8px;font-weight:700;background:#1d2637;padding:16px;border-radius:12px;text-align:center">${otp}</div>
+        <p style="margin:24px 0 0;color:#a9b3c6;font-size:13px">It expires in 10 minutes. If you didn't ask for this code, you can ignore this email.</p>
       </div>`
   });
 };

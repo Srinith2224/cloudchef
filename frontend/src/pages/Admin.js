@@ -152,7 +152,7 @@ function Reports() {
     <ul className="admin-list">
       {reports.map((r) => (
         <li key={r._id} className={`admin-row admin-row--report ${r.status === 'resolved' ? 'is-resolved' : ''}`}>
-          <span className={`badge ${r.status === 'open' ? 'badge--coral' : 'badge--herb'}`}>{r.status === 'open' ? 'Open' : 'Resolved'}</span>
+          <span className={`badge ${r.status === 'open' ? 'badge--brand' : 'badge--herb'}`}>{r.status === 'open' ? 'Open' : 'Resolved'}</span>
           <div className="admin-row__main">
             {r.item ? <Link to={`/recipe/${r.reportedItem}`} className="admin-row__title">{r.item.title}</Link> : <span className="admin-row__title muted">Recipe was deleted</span>}
             <span className="admin-row__sub">“{r.reason}” — {r.reportedBy ? `${r.reportedBy.firstName} ${r.reportedBy.lastName}` : 'deleted user'}, {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}</span>

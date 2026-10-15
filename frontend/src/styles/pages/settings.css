@@ -1,12 +1,12 @@
 .settings.page { max-width: 980px; }
-.settings__title { font-size: clamp(1.9rem, 4.2vw, 2.6rem); letter-spacing: -0.035em; margin-bottom: 24px; }
+.settings__title { font-size: clamp(1.9rem, 4.2vw, 2.6rem); letter-spacing: -0.015em; margin-bottom: 24px; }
 .settings__layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
 .settings__tabs { display: flex; flex-direction: column; gap: 4px; position: sticky; top: calc(var(--topbar-h) + 20px); }
 .settings__tab { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm); color: var(--text-2); font-weight: 600; text-align: left; }
 .settings__tab > *:not(.settings__tab-bg) { position: relative; z-index: 1; }
 .settings__tab:hover { color: var(--text); }
 .settings__tab.is-active { color: var(--text); }
-.settings__tab.is-active .icon { color: var(--coral); }
+.settings__tab.is-active .icon { color: var(--brand); }
 .settings__tab-bg { position: absolute; inset: 0; border-radius: var(--r-sm); background: var(--surface-2); z-index: 0; }
 @media (max-width: 760px) {
   .settings__layout { grid-template-columns: 1fr; }

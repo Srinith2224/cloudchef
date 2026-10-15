@@ -287,7 +287,7 @@ export default function RecipeDetails() {
                   <p className="step__text">{step.text}</p>
                   {(step.ingredient || step.alternate || step.timer > 0) && (
                     <div className="step__meta">
-                      {step.timer > 0 && <span className="badge badge--saffron"><Icon name="timer" />{step.timer} min</span>}
+                      {step.timer > 0 && <span className="badge badge--chili"><Icon name="timer" />{step.timer} min</span>}
                       {step.ingredient && <span className="badge">{step.ingredient}{step.quantity ? ` · ${step.quantity}` : ''}</span>}
                       {step.alternate && <span className="badge badge--herb">Swap: {step.alternate}</span>}
                     </div>

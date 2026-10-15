@@ -566,7 +566,7 @@ export default function RecipeEditor() {
           <h2>{state.title || 'Untitled recipe'}</h2>
           <p className="muted">{state.description}</p>
           <div className="row" style={{ marginTop: 12 }}>
-            {formatTime({ hours: state.hours, minutes: state.minutes }) && <span className="badge badge--saffron"><Icon name="schedule" />{formatTime({ hours: state.hours, minutes: state.minutes })}</span>}
+            {formatTime({ hours: state.hours, minutes: state.minutes }) && <span className="badge badge--chili"><Icon name="schedule" />{formatTime({ hours: state.hours, minutes: state.minutes })}</span>}
             <span className="badge">{state.servings} servings</span>
             <span className="badge">{state.ingredients.filter((i) => i.name.trim()).length} ingredients</span>
             <span className="badge">{state.steps.filter((s) => s.text.trim()).length} steps</span>

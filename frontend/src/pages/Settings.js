@@ -200,7 +200,7 @@ function AccountTab() {
   return (
     <div className="settings__form">
       <div className="settings__row"><span className="muted">Email</span><strong>{user.email}</strong></div>
-      <div className="settings__row"><span className="muted">Account type</span><span className={`badge ${user.role === 'admin' ? 'badge--coral' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Cook'}</span></div>
+      <div className="settings__row"><span className="muted">Account type</span><span className={`badge ${user.role === 'admin' ? 'badge--brand' : ''}`}>{user.role === 'admin' ? 'Admin' : 'Cook'}</span></div>
       <div className="settings__actions settings__actions--start">
         <button type="button" className="btn btn-danger" onClick={() => { signOut(); navigate('/'); }}><Icon name="logout" />Sign out on this device</button>
       </div>

@@ -1,5 +1,5 @@
 /* Fonts are bundled with the app (no Google Fonts request, works offline). */
-@import '@fontsource-variable/bricolage-grotesque/index.css';
+@import '@fontsource-variable/unbounded/index.css';
 @import '@fontsource-variable/figtree/index.css';
 
 /* Only the icons CloudChef uses. Rebuild with: python scripts/subset-icons.py */
