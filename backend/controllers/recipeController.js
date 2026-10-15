@@ -1,386 +1,276 @@
 const Recipe = require('../models/RecipeModel');
-const mongoose = require('mongoose');
 const User = require('../models/UserModel');
-const path = require('path');
-const fs = require('fs');
-const { getNutritionData } = require('../services/nutritionService');
-const { cloudinary } = require('../config/cloudinaryConfig');
+const Rating = require('../models/RatingModel');
+const Calendar = require('../models/CalendarModel');
+const { estimateRecipeNutrition } = require('../services/nutritionService');
+const { fileUrl, deleteStoredFile } = require('../config/cloudinaryConfig');
+const { HttpError, asyncHandler, assertId, escapeRegex } = require('../utils/http');
 
-// Maintain the upload export for backward compatibility
-// This should be updated in other files to use the Cloudinary uploader
-const upload = require('../config/cloudinaryConfig').uploadRecipeImage;
+const UNITS = ['g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'cup', 'packet', 'piece', 'slice'];
+const LIST_FIELDS = 'title mainImage description totalTime tags createdBy ratingAvg ratingCount ratings.rating ingredients.name servings createdAt';
 
-// Helper function to parse tags
-const parseTags = (tags) => {
-    if (typeof tags === 'string') {
-        try {
-            return JSON.parse(tags);
-        } catch {
-            return tags.split(',').map(tag => tag.trim());
-        }
-    }
-    return tags; // Already an array
+/** Adds avgRating/ratingCount, falling back to the legacy embedded array for old documents. */
+const withRating = (doc) => {
+  const recipe = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  let avg = recipe.ratingAvg || 0;
+  let count = recipe.ratingCount || 0;
+  if (!count && Array.isArray(recipe.ratings) && recipe.ratings.length) {
+    count = recipe.ratings.length;
+    avg = recipe.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / count;
+  }
+  delete recipe.ratings;
+  recipe.avgRating = Math.round(avg * 10) / 10;
+  recipe.ratingCount = count;
+  return recipe;
 };
 
-// Get all recipes
-const getRecipes = async (req, res) => {
-    try {
-        const recipes = await Recipe.find({}).sort({ createdAt: -1 });
-        res.status(200).json(recipes);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+const toInt = (value, min, max, fallback = 0) => {
+  const n = parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
 };
 
-// Get a single recipe
-const getRecipe = async (req, res) => {
-    const { id } = req.params;
+const cleanText = (value, max) => String(value ?? '').trim().slice(0, max);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'No such recipe' });
-    }
+/**
+ * Reads the recipe from the request. The frontend sends one JSON field called
+ * "recipe" plus files named mainImage, stepImage-<index> and stepVideo-<index>.
+ */
+const parseRecipeInput = (req) => {
+  let input;
+  try {
+    input = typeof req.body.recipe === 'string' ? JSON.parse(req.body.recipe) : req.body.recipe || req.body;
+  } catch {
+    throw new HttpError(400, 'Recipe data is not valid JSON.');
+  }
 
-    const recipe = await Recipe.findById(id).populate('createdBy', 'firstName lastName');
+  const title = cleanText(input.title, 120);
+  const description = cleanText(input.description, 1500);
+  if (!title) throw new HttpError(400, 'Add a recipe title.');
+  if (!description) throw new HttpError(400, 'Add a short description.');
 
-    if (!recipe) {
-        return res.status(404).json({ error: 'No such recipe' });
-    }
+  const totalTime = {
+    hours: toInt(input.totalTime?.hours, 0, 72),
+    minutes: toInt(input.totalTime?.minutes, 0, 59)
+  };
+  if (totalTime.hours === 0 && totalTime.minutes === 0) throw new HttpError(400, 'Add the total cooking time.');
 
-    res.status(200).json(recipe);
-};
+  const ingredients = (Array.isArray(input.ingredients) ? input.ingredients : [])
+    .map((ing) => ({
+      name: cleanText(ing?.name, 80),
+      quantity: cleanText(ing?.quantity, 20),
+      unit: UNITS.includes(ing?.unit) ? ing.unit : ''
+    }))
+    .filter((ing) => ing.name && ing.quantity);
+  if (!ingredients.length) throw new HttpError(400, 'Add at least one ingredient with a quantity.');
 
-// Create new recipe
-const createRecipe = async (req, res) => {
-    const { title, description, tags } = req.body;
-    const userId = req.userId;
-    
-    // Initialize mainImage
-    let mainImage = null;
+  const steps = (Array.isArray(input.steps) ? input.steps : [])
+    .map((step) => ({
+      text: cleanText(step?.text ?? step?.description, 2000),
+      ingredient: cleanText(step?.ingredient, 80),
+      quantity: cleanText(step?.quantity, 40),
+      alternate: cleanText(step?.alternate, 120),
+      timer: toInt(step?.timer, 0, 600),
+      image: typeof step?.image === 'string' ? step.image : '',
+      video: typeof step?.video === 'string' ? step.video : ''
+    }))
+    .filter((step) => step.text);
+  if (!steps.length) throw new HttpError(400, 'Add at least one cooking step.');
+  steps.forEach((step, i) => { step.stepNumber = i + 1; });
 
-    // Parse totalTime and nutrition from form-data
-    const totalTime = {
-        hours: parseInt(req.body.totalTime.hours, 10),
-        minutes: parseInt(req.body.totalTime.minutes, 10)
-    };
+  const tags = [...new Set((Array.isArray(input.tags) ? input.tags : []).map((t) => cleanText(t, 30)).filter(Boolean))].slice(0, 20);
 
-    const nutrition = {
-        calories: parseInt(req.body.nutrition.calories, 10),
-        fat: parseInt(req.body.nutrition.fat, 10),
-        protein: parseInt(req.body.nutrition.protein, 10),
-        carbs: parseInt(req.body.nutrition.carbs, 10)
-    };
-
-    // Validate parsed values
-    if (isNaN(totalTime.hours) || isNaN(totalTime.minutes) || 
-        isNaN(nutrition.calories) || isNaN(nutrition.fat) || 
-        isNaN(nutrition.protein) || isNaN(nutrition.carbs)) {
-        return res.status(400).json({ error: 'Invalid totalTime or nutrition values' });
-    }
-
-    // Parse ingredients and steps from string to JSON
-    let ingredients, steps;
-    try {
-        ingredients = JSON.parse(req.body.ingredients);
-        steps = JSON.parse(req.body.steps);
-        
-        // Remove ingredients array from each step
-        steps = steps.map(step => {
-            const { ingredients, ...stepData } = step;
-            return stepData;
-        });
-        
-        // IMPORTANT: Process uploaded files the same way as in updateRecipe
-        if (req.files && req.files.length > 0) {
-            // First handle mainImage
-            const mainImageFile = req.files.find(file => file.fieldname === 'mainImage');
-            if (mainImageFile) {
-                mainImage = mainImageFile.path; // Cloudinary URL
-            }
-            
-            // Handle step images and videos
-            req.files.forEach(file => {
-                if (file.fieldname.startsWith('stepImage-')) {
-                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                    if (stepIndex >= 0 && stepIndex < steps.length) {
-                        steps[stepIndex].image = file.path; // Cloudinary URL
-                    }
-                } else if (file.fieldname.startsWith('stepVideo-')) {
-                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                    if (stepIndex >= 0 && stepIndex < steps.length) {
-                        steps[stepIndex].video = file.path; // Cloudinary URL
-                    }
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Error parsing ingredients or steps:', error);
-        return res.status(400).json({ error: 'Invalid ingredients or steps format' });
-    }
-
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const recipe = await Recipe.create({
-            title,
-            mainImage,
-            description,
-            totalTime,
-            ingredients,
-            nutrition,
-            steps,
-            createdBy: {
-                _id: userId,
-                firstName: user.firstName,
-                lastName: user.lastName
-            },
-            tags: parseTags(tags)
-        });
-
-        res.status(200).json(recipe);
-    } catch (error) {
-        console.error('Error creating recipe:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
-
-// Delete a recipe
-const deleteRecipe = async (req, res) => {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'No such recipe' });
-    }
-
-    try {
-        const recipe = await Recipe.findOneAndDelete({ _id: id });
-        if (!recipe) {
-            return res.status(404).json({ error: 'No such recipe' });
-        }
-
-        // Delete image from Cloudinary if it exists
-        if (recipe.mainImage && recipe.mainImage.includes('cloudinary')) {
-            // Extract public_id from cloudinary URL
-            const publicId = recipe.mainImage.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(`recipe-images/${publicId}`);
-        }
-
-        res.status(200).json({ message: 'Recipe deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: 'Server error' });
-    }
-};
-
-// Update recipe
-const updateRecipe = async (req, res) => {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'No such recipe' });
-    }
-
-    try {
-        // Parse steps data including any uploaded files
-        let steps = JSON.parse(req.body.steps);
-        
-        // Initialize the updates object FIRST
-        const updates = {
-            title: req.body.title,
-            description: req.body.description,
-            totalTime: {
-                hours: parseInt(req.body.totalTime.hours, 10),
-                minutes: parseInt(req.body.totalTime.minutes, 10)
-            },
-            ingredients: JSON.parse(req.body.ingredients),
-            steps: steps,
-            nutrition: {
-                calories: parseInt(req.body.nutrition.calories, 10),
-                fat: parseInt(req.body.nutrition.fat, 10),
-                protein: parseInt(req.body.nutrition.protein, 10),
-                carbs: parseInt(req.body.nutrition.carbs, 10)
-            },
-            tags: parseTags(req.body.tags)
-        };
-        
-        // THEN check for files and modify the updates object
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                if (file.fieldname === 'mainImage') {
-                    updates.mainImage = file.path; // Now this is safe
-                } else if (file.fieldname.startsWith('stepImage-')) {
-                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                    updates.steps[stepIndex].image = file.path;
-                } else if (file.fieldname.startsWith('stepVideo-')) {
-                    const stepIndex = parseInt(file.fieldname.split('-')[1]);
-                    updates.steps[stepIndex].video = file.path;
-                }
-            });
-        }
-
-        const recipe = await Recipe.findOneAndUpdate(
-            { _id: id },
-            { $set: updates },
-            { new: true }
-        );
-
-        if (!recipe) {
-            return res.status(404).json({ error: 'No such recipe' });
-        }
-
-        res.status(200).json(recipe);
-    } catch (error) {
-        console.error('Error updating recipe:', error);
-        res.status(500).json({ error: error.message });
-    }
-};
-
-
-
-// Get recipes by user ID
-const getRecipesByUserId = async (req, res) => {
-    const { userId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const recipes = await Recipe.find({ 'createdBy._id': userId }).sort({ createdAt: -1 });
-        if (recipes.length === 0) {
-            return res.status(404).json({ error: 'No recipes found for this user' });
-        }
-        res.status(200).json(recipes);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-const saveRecipe = async (req, res) => {
-    const userId = req.userId;
-    const { recipeId } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(recipeId)) {
-        return res.status(400).json({ error: 'Invalid user or recipe ID' });
-    }
-
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const recipe = await Recipe.findById(recipeId);
-        if (!recipe) {
-            return res.status(404).json({ error: 'Recipe not found' });
-        }
-
-        user.savedRecipes.push(recipeId);
-        await user.save();
-
-        res.status(200).json({ message: 'Recipe saved successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-
-const searchRecipes = async (req, res) => {
-    const { query } = req.query;
-    try {
-      const results = await Recipe.find({
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { 'ingredients.name': { $regex: query, $options: 'i' } },
-          { tags: { $regex: query, $options: 'i' } }
-        ]
-      });
-      if (!results || results.length === 0) {
-        return res.status(404).json({ error: 'No recipes found' });
-      }
-      res.status(200).json(results);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
+  // Use the cook's numbers if given, otherwise estimate from ingredients
+  const estimate = estimateRecipeNutrition(ingredients);
+  const n = input.nutrition || {};
+  const nutrition = {
+    calories: toInt(n.calories, 0, 50000, estimate.calories),
+    fat: toInt(n.fat, 0, 5000, estimate.fat),
+    protein: toInt(n.protein, 0, 5000, estimate.protein),
+    carbs: toInt(n.carbs, 0, 5000, estimate.carbs)
   };
 
-// Add this function to your exports
-const calculateNutrition = async (req, res) => {
-  try {
-    const { ingredients } = req.body;
-    
-    if (!ingredients || !Array.isArray(ingredients)) {
-      return res.status(400).json({ error: 'Invalid ingredients data' });
+  return {
+    title,
+    description,
+    totalTime,
+    servings: toInt(input.servings, 1, 50, 2),
+    ingredients,
+    steps,
+    tags,
+    nutrition,
+    removeMainImage: Boolean(input.removeMainImage)
+  };
+};
+
+/** Applies uploaded files to the parsed recipe (main image and per-step media). */
+const applyUploads = (req, data) => {
+  for (const file of req.files || []) {
+    const url = fileUrl(file);
+    if (file.fieldname === 'mainImage') {
+      data.mainImage = url;
+      continue;
     }
-    
-    // For the specific recipe shown in your example
-    // This is a simple "override" solution to ensure reasonable numbers
-    if (ingredients.some(i => i.name === "basmati rice" && parseInt(i.quantity) >= 2) &&
-        ingredients.some(i => i.name === "chicken")) {
-      // For a biryani-like recipe with these quantities, return believable nutrition values
-      return res.status(200).json({
-        calories: 1450,
-        fat: 63,
-        protein: 62,
-        carbs: 148
-      });
-    }
-    
-    let totalNutrition = {
-      calories: 0,
-      fat: 0,
-      protein: 0,
-      carbs: 0
-    };
-    
-    // Calculate nutrition for each ingredient
-    for (const ingredient of ingredients) {
-      if (ingredient.name && ingredient.quantity) {
-        const nutrition = await getNutritionData(
-          ingredient.name,
-          ingredient.quantity,
-          ingredient.unit || ''
-        );
-        
-        totalNutrition.calories += nutrition.calories;
-        totalNutrition.fat += nutrition.fat;
-        totalNutrition.protein += nutrition.protein;
-        totalNutrition.carbs += nutrition.carbs;
-      }
-    }
-    
-    // Ensure values are reasonable - apply more conservative caps
-    const reasonableCalories = Math.min(totalNutrition.calories, 1500); // Reduced from 2500
-    const reasonableFat = Math.min(totalNutrition.fat, 60); // Reduced from 100
-    const reasonableProtein = Math.min(totalNutrition.protein, 60); // Reduced from 100
-    const reasonableCarbs = Math.min(totalNutrition.carbs, 180); // Reduced from 300
-    
-    // Get the number of ingredients for normalization
-    const ingredientCount = ingredients.length;
-    const normalizationFactor = Math.max(1, Math.sqrt(ingredientCount) / 2);
-    
-    // Apply normalization to get more reasonable values
-    res.status(200).json({
-      calories: Math.round(reasonableCalories / normalizationFactor),
-      fat: Math.round(reasonableFat / normalizationFactor),
-      protein: Math.round(reasonableProtein / normalizationFactor),
-      carbs: Math.round(reasonableCarbs / normalizationFactor)
-    });
-  } catch (error) {
-    console.error('Error calculating nutrition:', error);
-    res.status(500).json({ error: error.message });
+    const match = file.fieldname.match(/^step(Image|Video)-(\d+)$/);
+    if (!match) continue;
+    const step = data.steps[Number(match[2])];
+    if (!step) continue;
+    if (match[1] === 'Image') step.image = url;
+    else step.video = url;
   }
 };
 
+const mediaUrls = (recipe) => {
+  const urls = [];
+  if (recipe.mainImage) urls.push({ url: recipe.mainImage, type: 'image' });
+  for (const step of recipe.steps || []) {
+    if (step.image) urls.push({ url: step.image, type: 'image' });
+    if (step.video) urls.push({ url: step.video, type: 'video' });
+  }
+  return urls;
+};
+
+/** Deletes uploaded files from a failed request so they don't pile up. */
+const discardUploads = (req) => Promise.all((req.files || []).map((f) => deleteStoredFile(fileUrl(f), f.mimetype.startsWith('video/') ? 'video' : 'image')));
+
+const canEdit = (req, recipe) => req.userRole === 'admin' || String(recipe.createdBy._id) === req.userId;
+
+// GET /api/recipes
+const getRecipes = asyncHandler(async (req, res) => {
+  const filter = {};
+  if (req.query.q) {
+    const rx = new RegExp(escapeRegex(String(req.query.q).slice(0, 80)), 'i');
+    filter.$or = [{ title: rx }, { description: rx }, { tags: rx }, { 'ingredients.name': rx }];
+  }
+  const recipes = await Recipe.find(filter).select(LIST_FIELDS).sort({ createdAt: -1 }).limit(500);
+  res.status(200).json(recipes.map(withRating));
+});
+
+// GET /api/recipes/search?query=
+const searchRecipes = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || req.query.q || '').trim().slice(0, 80);
+  if (!query) return res.status(200).json([]);
+  const rx = new RegExp(escapeRegex(query), 'i');
+  const results = await Recipe.find({ $or: [{ title: rx }, { tags: rx }, { 'ingredients.name': rx }] })
+    .select(LIST_FIELDS)
+    .sort({ createdAt: -1 })
+    .limit(100);
+  res.status(200).json(results.map(withRating));
+});
+
+// GET /api/recipes/:id
+const getRecipe = asyncHandler(async (req, res) => {
+  assertId(req.params.id, 'recipe ID');
+  const recipe = await Recipe.findById(req.params.id);
+  if (!recipe) throw new HttpError(404, 'This recipe does not exist or was deleted.');
+
+  const data = withRating(recipe);
+  const author = await User.findById(recipe.createdBy._id).select('firstName lastName profilePhoto');
+  if (author) {
+    data.createdBy = { _id: author._id, firstName: author.firstName, lastName: author.lastName, profilePhoto: author.profilePhoto || '' };
+  }
+  res.status(200).json(data);
+});
+
+// GET /api/recipes/user/:userId
+const getRecipesByUserId = asyncHandler(async (req, res) => {
+  assertId(req.params.userId, 'user ID');
+  const recipes = await Recipe.find({ 'createdBy._id': req.params.userId }).select(LIST_FIELDS).sort({ createdAt: -1 });
+  res.status(200).json(recipes.map(withRating));
+});
+
+// POST /api/recipes
+const createRecipe = asyncHandler(async (req, res) => {
+  try {
+    const data = parseRecipeInput(req);
+    applyUploads(req, data);
+    delete data.removeMainImage;
+
+    const user = await User.findById(req.userId).select('firstName lastName');
+    if (!user) throw new HttpError(404, 'Account not found.');
+
+    const recipe = await Recipe.create({
+      ...data,
+      createdBy: { _id: user._id, firstName: user.firstName, lastName: user.lastName || '-' }
+    });
+    res.status(201).json(withRating(recipe));
+  } catch (error) {
+    await discardUploads(req);
+    throw error;
+  }
+});
+
+// PATCH /api/recipes/:id
+const updateRecipe = asyncHandler(async (req, res) => {
+  try {
+    assertId(req.params.id, 'recipe ID');
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) throw new HttpError(404, 'This recipe does not exist or was deleted.');
+    if (!canEdit(req, recipe)) throw new HttpError(403, 'You can only edit your own recipes.');
+
+    const data = parseRecipeInput(req);
+    const oldMedia = mediaUrls(recipe);
+    const { removeMainImage } = data;
+    delete data.removeMainImage;
+
+    data.mainImage = removeMainImage ? '' : recipe.mainImage;
+    applyUploads(req, data);
+
+    recipe.set(data);
+    await recipe.save();
+
+    // Remove files that are no longer used by this recipe
+    const stillUsed = new Set(mediaUrls(recipe).map((m) => m.url));
+    await Promise.all(oldMedia.filter((m) => !stillUsed.has(m.url)).map((m) => deleteStoredFile(m.url, m.type)));
+
+    res.status(200).json(withRating(recipe));
+  } catch (error) {
+    await discardUploads(req);
+    throw error;
+  }
+});
+
+// DELETE /api/recipes/:id
+const deleteRecipe = asyncHandler(async (req, res) => {
+  assertId(req.params.id, 'recipe ID');
+  const recipe = await Recipe.findById(req.params.id);
+  if (!recipe) throw new HttpError(404, 'This recipe does not exist or was deleted.');
+  if (!canEdit(req, recipe)) throw new HttpError(403, 'You can only delete your own recipes.');
+
+  await removeRecipeEverywhere(recipe);
+  res.status(200).json({ message: 'Recipe deleted', _id: recipe._id });
+});
+
+/** Deletes a recipe and every reference to it. Also used by the admin tools. */
+const removeRecipeEverywhere = async (recipe) => {
+  await Recipe.deleteOne({ _id: recipe._id });
+  await Promise.all([
+    Rating.deleteMany({ recipeId: recipe._id }),
+    User.updateMany({ savedRecipes: recipe._id }, { $pull: { savedRecipes: recipe._id } }),
+    User.updateMany({ featuredRecipe: recipe._id }, { $unset: { featuredRecipe: '' } }),
+    Calendar.updateMany({ 'scheduledRecipes.recipeId': recipe._id }, { $pull: { scheduledRecipes: { recipeId: recipe._id } } }),
+    ...mediaUrls(recipe).map((m) => deleteStoredFile(m.url, m.type))
+  ]);
+};
+
+// POST /api/recipes/calculate-nutrition
+const calculateNutrition = asyncHandler(async (req, res) => {
+  const { ingredients } = req.body;
+  if (!Array.isArray(ingredients)) throw new HttpError(400, 'Send a list of ingredients.');
+  res.status(200).json(estimateRecipeNutrition(ingredients.slice(0, 100)));
+});
+
 module.exports = {
-    getRecipes,
-    getRecipe,
-    createRecipe,
-    deleteRecipe,
-    updateRecipe,
-    getRecipesByUserId,
-    saveRecipe,
-    searchRecipes,
-    calculateNutrition,
-    upload // Export for backwards compatibility
+  getRecipes,
+  getRecipe,
+  createRecipe,
+  deleteRecipe,
+  updateRecipe,
+  getRecipesByUserId,
+  searchRecipes,
+  calculateNutrition,
+  removeRecipeEverywhere,
+  withRating,
+  parseRecipeInput,
+  LIST_FIELDS
 };

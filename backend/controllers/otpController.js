@@ -1,294 +1,197 @@
-const User = require('../models/UserModel');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const User = require('../models/UserModel');
+const { sendOtpEmail } = require('../utils/mailer');
+const { authPayload, normalizeEmail, validatePassword, EMAIL_RE } = require('./authController');
 
-// Store OTPs temporarily (in production, consider using Redis)
-const otpStore = {};
+/*
+ * One-time codes are kept in memory. That is fine for a single server.
+ * If you run several instances, move this store to Redis or MongoDB.
+ */
+const otpStore = new Map();
 
-// Create email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+const OTP_TTL_MS = 10 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 45 * 1000;
+const MAX_ATTEMPTS = 5;
+
+const keyFor = (purpose, email) => `${purpose}:${email}`;
+const generateOTP = () => crypto.randomInt(100000, 1000000).toString();
+const hashOtp = (otp) => crypto.createHash('sha256').update(String(otp)).digest('hex');
+
+// Remove expired codes every few minutes so memory doesn't grow forever
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of otpStore) {
+    if (now - entry.createdAt > OTP_TTL_MS) otpStore.delete(key);
   }
-});
+}, 5 * 60 * 1000).unref();
 
-// Generate OTP function
-const generateOTP = () => {
-  return crypto.randomInt(100000, 1000000).toString();
+/** Stores a fresh code, enforcing a resend cooldown. Returns the plain code. */
+const issueOtp = (purpose, email, data = {}) => {
+  const key = keyFor(purpose, email);
+  const existing = otpStore.get(key);
+  if (existing && Date.now() - existing.createdAt < RESEND_COOLDOWN_MS) {
+    const wait = Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - existing.createdAt)) / 1000);
+    const err = new Error(`Please wait ${wait}s before asking for a new code.`);
+    err.status = 429;
+    throw err;
+  }
+  const otp = generateOTP();
+  otpStore.set(key, { otpHash: hashOtp(otp), createdAt: Date.now(), attempts: 0, ...data });
+  return otp;
 };
 
-// Modify the sendOTPEmail function to include password update case
-const sendOTPEmail = async (email, otp, isPasswordReset = false, isPasswordUpdate = false) => {
-  const subject = isPasswordReset 
-    ? 'Password Reset Code' 
-    : (isPasswordUpdate ? 'Password Update Verification' : 'Email Verification Code');
+/** Checks a code. Returns the stored entry on success, or an error message. */
+const checkOtp = (purpose, email, otp) => {
+  const key = keyFor(purpose, email);
+  const entry = otpStore.get(key);
+  if (!entry) return { error: 'This code is invalid or has expired. Request a new one.' };
 
-  const heading = isPasswordReset 
-    ? 'Password Reset Code' 
-    : (isPasswordUpdate ? 'Password Update Verification' : 'Email Verification Code');
+  if (Date.now() - entry.createdAt > OTP_TTL_MS) {
+    otpStore.delete(key);
+    return { error: 'This code has expired. Request a new one.' };
+  }
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #32cd32; text-align: center;">Cloud Chef</h2>
-        <h3 style="text-align: center;">${heading}</h3>
-        <p>Your verification code is:</p>
-        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold;">
-          ${otp}
-        </div>
-        <p style="margin-top: 20px;">This code will expire in 10 minutes.</p>
-        <p style="color: #777; font-size: 12px; margin-top: 30px; text-align: center;">
-          If you didn't request this code, you can safely ignore this email.
-        </p>
-      </div>
-    `
-  };
+  const given = Buffer.from(hashOtp(String(otp || '').trim()));
+  const expected = Buffer.from(entry.otpHash);
+  if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
+    entry.attempts += 1;
+    if (entry.attempts >= MAX_ATTEMPTS) {
+      otpStore.delete(key);
+      return { error: 'Too many wrong codes. Request a new one.' };
+    }
+    return { error: `That code is not right. ${MAX_ATTEMPTS - entry.attempts} tries left.` };
+  }
 
-  return transporter.sendMail(mailOptions);
+  otpStore.delete(key);
+  return { entry };
 };
 
-// Generate and send OTP for registration
+const handleError = (res, error, fallback) => {
+  if (error.status) return res.status(error.status).json({ error: error.message });
+  console.error(fallback, error);
+  res.status(500).json({ error: fallback });
+};
+
 const sendRegistrationOTP = async (req, res) => {
-  const { email, firstName, lastName, password } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+    const email = normalizeEmail(req.body.email);
+    const firstName = (req.body.firstName || '').trim();
+    const lastName = (req.body.lastName || '').trim();
+    const { password } = req.body;
+
+    if (!firstName || !lastName || !email || !password) return res.status(400).json({ error: 'Fill in every field.' });
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
+    const passwordError = validatePassword(password);
+    if (passwordError) return res.status(400).json({ error: passwordError });
+
+    if (await User.exists({ email })) {
+      return res.status(400).json({ error: 'An account with this email already exists. Try signing in.' });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
-    
-    // Store OTP with user details (expires in 10 minutes)
-    otpStore[normalizedEmail] = {
-      otp,
-      firstName,
-      lastName,
-      password,
-      createdAt: new Date(),
-      type: 'registration'
-    };
+    // Hash now so the plain password never sits in memory waiting for the code
+    const passwordHash = await bcrypt.hash(password, 10);
+    const otp = issueOtp('registration', email, { firstName, lastName, passwordHash });
+    await sendOtpEmail(email, otp, 'registration');
 
-    // Send OTP via email
-    await sendOTPEmail(normalizedEmail, otp);
-    
-    res.status(200).json({ message: 'OTP sent to your email' });
+    res.status(200).json({ message: `We sent a 6-digit code to ${email}.` });
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    handleError(res, error, 'Could not send the code. Check the email address and try again.');
   }
 };
 
-// Verify OTP and complete registration
 const verifyRegistrationOTP = async (req, res) => {
-  const { email, otp } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    const storedData = otpStore[normalizedEmail];
-    
-    // Check if OTP exists and is valid
-    if (!storedData || storedData.otp !== otp || storedData.type !== 'registration') {
-      return res.status(400).json({ error: 'Invalid OTP' });
-    }
-    
-    // Check if OTP is expired (10 minutes)
-    const now = new Date();
-    if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[normalizedEmail];
-      return res.status(400).json({ error: 'OTP expired' });
-    }
+    const email = normalizeEmail(req.body.email);
+    const { entry, error } = checkOtp('registration', email, req.body.otp);
+    if (error) return res.status(400).json({ error });
 
-    // Create user
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(storedData.password, salt);
+    if (await User.exists({ email })) {
+      return res.status(400).json({ error: 'An account with this email already exists. Try signing in.' });
+    }
 
     const user = await User.create({
-      email: normalizedEmail,
-      password: hash,
-      firstName: storedData.firstName,
-      lastName: storedData.lastName
+      email,
+      password: entry.passwordHash,
+      firstName: entry.firstName,
+      lastName: entry.lastName
     });
 
-    // Create token
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET, { expiresIn: '3d' });
-    
-    // Remove OTP data
-    delete otpStore[normalizedEmail];
-    
-    res.status(200).json({ 
-      email: normalizedEmail, 
-      token,
-      userId: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName
-    });
+    res.status(201).json(authPayload(user));
   } catch (error) {
-    console.error('Error verifying OTP:', error);
-    res.status(500).json({ error: 'Failed to verify OTP' });
+    handleError(res, error, 'Could not verify the code. Try again.');
   }
 };
 
-// Generate and send OTP for password reset
 const sendPasswordResetOTP = async (req, res) => {
-  const { email } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    // Check if user exists
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' });
+    const email = normalizeEmail(req.body.email);
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
+
+    const user = await User.findOne({ email });
+    // Always answer the same way so this endpoint can't be used to find registered emails
+    if (user) {
+      const otp = issueOtp('reset', email, { userId: String(user._id) });
+      await sendOtpEmail(email, otp, 'reset');
     }
-
-    // Generate OTP
-    const otp = generateOTP();
-    
-    // Store OTP (expires in 10 minutes)
-    otpStore[normalizedEmail] = {
-      otp,
-      userId: user._id,
-      createdAt: new Date(),
-      type: 'reset'
-    };
-
-    // Send OTP via email
-    await sendOTPEmail(normalizedEmail, otp, true);
-    
-    res.status(200).json({ message: 'Password reset OTP sent to your email' });
+    res.status(200).json({ message: `If ${email} has an account, a 6-digit code is on its way.` });
   } catch (error) {
-    console.error('Error sending reset OTP:', error);
-    res.status(500).json({ error: 'Failed to send reset OTP' });
+    handleError(res, error, 'Could not send the reset code. Try again.');
   }
 };
 
-// Verify OTP and reset password
 const verifyAndResetPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    const storedData = otpStore[normalizedEmail];
-    
-    // Check if OTP exists and is valid
-    if (!storedData || storedData.otp !== otp || storedData.type !== 'reset') {
-      return res.status(400).json({ error: 'Invalid OTP' });
-    }
-    
-    // Check if OTP is expired (10 minutes)
-    const now = new Date();
-    if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[normalizedEmail];
-      return res.status(400).json({ error: 'OTP expired' });
-    }
+    const email = normalizeEmail(req.body.email);
+    const passwordError = validatePassword(req.body.newPassword);
+    if (passwordError) return res.status(400).json({ error: passwordError });
 
-    // Update password
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(newPassword, salt);
+    const { entry, error } = checkOtp('reset', email, req.body.otp);
+    if (error) return res.status(400).json({ error });
 
-    await User.findByIdAndUpdate(storedData.userId, { password: hash });
-    
-    // Remove OTP data
-    delete otpStore[normalizedEmail];
-    
-    res.status(200).json({ message: 'Password reset successful' });
+    const hash = await bcrypt.hash(req.body.newPassword, 10);
+    await User.findByIdAndUpdate(entry.userId, { password: hash });
+
+    res.status(200).json({ message: 'Password updated. You can sign in now.' });
   } catch (error) {
-    console.error('Error resetting password:', error);
-    res.status(500).json({ error: 'Failed to reset password' });
+    handleError(res, error, 'Could not reset your password. Try again.');
   }
 };
 
-// Update this function to work with both req.user._id and req.userId
+/** Signed-in users: the code always goes to the email on the account, never one from the request. */
 const sendPasswordUpdateOTP = async (req, res) => {
-  const userId = req.user?._id || req.userId; // Handle both patterns
-  const { email } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    // Get user 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    const passwordError = validatePassword(req.body.newPassword);
+    if (passwordError) return res.status(400).json({ error: passwordError });
 
-    // Generate OTP
-    const otp = generateOTP();
-    
-    // Store OTP (expires in 10 minutes)
-    otpStore[normalizedEmail] = {
-      otp,
-      userId: user._id,
-      createdAt: new Date(),
-      type: 'update'
-    };
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
 
-    // Send OTP via email
-    await sendOTPEmail(normalizedEmail, otp, false, true);
-    
-    res.status(200).json({ message: 'Password update OTP sent to your email' });
+    const passwordHash = await bcrypt.hash(req.body.newPassword, 10);
+    const otp = issueOtp('update', user.email, { userId: String(user._id), passwordHash });
+    await sendOtpEmail(user.email, otp, 'update');
+
+    res.status(200).json({ message: `We sent a 6-digit code to ${user.email}.` });
   } catch (error) {
-    console.error('Error sending update OTP:', error);
-    res.status(500).json({ error: 'Failed to send update OTP' });
+    handleError(res, error, 'Could not send the code. Try again.');
   }
 };
 
-// Similarly update the verifyPasswordUpdateOTP function
 const verifyPasswordUpdateOTP = async (req, res) => {
-  const userId = req.user?._id || req.userId;
-  const { email, otp, newPassword } = req.body;
-  const normalizedEmail = email.toLowerCase();
-
   try {
-    const storedData = otpStore[normalizedEmail];
-    
-    // Check if OTP exists and is valid
-    if (!storedData || storedData.otp !== otp || storedData.type !== 'update') {
-      return res.status(400).json({ error: 'Invalid OTP' });
-    }
-    
-    // Check if OTP is expired (10 minutes)
-    const now = new Date();
-    if ((now - storedData.createdAt) > 10 * 60 * 1000) {
-      delete otpStore[normalizedEmail];
-      return res.status(400).json({ error: 'OTP expired' });
-    }
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
 
-    // Make sure the user ID matches
-    if (storedData.userId.toString() !== userId.toString()) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
+    const { entry, error } = checkOtp('update', user.email, req.body.otp);
+    if (error) return res.status(400).json({ error });
+    if (entry.userId !== String(user._id)) return res.status(403).json({ error: 'This code belongs to another account.' });
 
-    // Update password
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(newPassword, salt);
+    user.password = entry.passwordHash;
+    await user.save();
 
-    const user = await User.findByIdAndUpdate(
-      userId, 
-      { password: hash },
-      { new: true }
-    );
-    
-    // Remove OTP data
-    delete otpStore[normalizedEmail];
-    
-    res.status(200).json({ 
-      message: 'Password updated successfully',
-      email: user.email, 
-      profilePhoto: user.profilePhoto 
-    });
+    res.status(200).json({ message: 'Password updated.' });
   } catch (error) {
-    console.error('Error updating password:', error);
-    res.status(500).json({ error: 'Failed to update password' });
+    handleError(res, error, 'Could not update your password. Try again.');
   }
 };
 
@@ -298,5 +201,7 @@ module.exports = {
   sendPasswordResetOTP,
   verifyAndResetPassword,
   sendPasswordUpdateOTP,
-  verifyPasswordUpdateOTP
+  verifyPasswordUpdateOTP,
+  // exported for tests
+  _otpStore: otpStore
 };

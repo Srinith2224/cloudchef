@@ -1,15 +1,12 @@
 const express = require('express');
-const { addRating, getRecipeRatings, getUserRating } = require('../controllers/ratingController');
-const requireAuth = require('../middleware/authMiddleware'); // Corrected path
+const { addRating, getRecipeRatings, getUserRating, deleteMyRating } = require('../controllers/ratingController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Apply authentication middleware
-router.use(requireAuth);
-
-// Routes
-router.post('/', addRating);
-router.get('/recipe/:recipeId', getRecipeRatings);
-router.get('/user/recipe/:recipeId', getUserRating);
+router.get('/recipe/:recipeId', getRecipeRatings); // public
+router.post('/', requireAuth, addRating);
+router.get('/user/recipe/:recipeId', requireAuth, getUserRating);
+router.delete('/recipe/:recipeId', requireAuth, deleteMyRating);
 
 module.exports = router;

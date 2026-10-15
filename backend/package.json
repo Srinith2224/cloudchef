@@ -1,39 +1,38 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
+  "name": "cloudchef-backend",
+  "version": "2.0.0",
+  "description": "CloudChef REST API (Express + MongoDB)",
   "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "test": "jest",
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "cleanup-images": "node cleanupImages.js"
+    "test": "jest",
+    "create-admin": "node scripts/createAdmin.js",
+    "migrate-ratings": "node scripts/migrateRatings.js",
+    "migrate-cloudinary": "node scripts/migrateToCloudinary.js"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@huggingface/inference": "^2.8.1",
-    "@huggingface/transformers": "^3.2.4",
-    "axios": "^1.8.1",
+    "@google/genai": "^1.52.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.0",
-    "form-data": "^4.0.1",
+    "express-rate-limit": "^7.4.0",
     "google-auth-library": "^9.15.1",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.3",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "node-fetch": "^3.3.2",
-    "nodemailer": "^6.10.0",
-    "oauth-1.0a": "^2.2.6",
-    "sharp": "^0.33.5"
+    "nodemailer": "^6.10.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0"
   }
 }

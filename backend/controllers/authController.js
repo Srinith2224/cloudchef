@@ -1,210 +1,159 @@
 const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Make sure the token creation is correct
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD = 8;
+
 const createToken = (_id) => {
-  // Check if SECRET is defined
-  if (!process.env.SECRET) {
-    throw new Error('JWT configuration error');
-  }
-  
-  try {
-    // Make sure _id is a string
-    const token = jwt.sign({ _id: _id.toString() }, process.env.SECRET, { expiresIn: '3d' });
-    
-    return token;
-  } catch (error) {
-    console.error('Error creating token:', error);
-    throw error;
-  }
+  if (!process.env.SECRET) throw new Error('JWT configuration error');
+  return jwt.sign({ _id: _id.toString() }, process.env.SECRET, { expiresIn: '7d' });
 };
 
-// login function
+/** The shape every auth endpoint returns, so the frontend stores one consistent user object. */
+const authPayload = (user) => ({
+  token: createToken(user._id),
+  userId: user._id,
+  email: user.email,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  profilePhoto: user.profilePhoto || '',
+  role: user.role || 'user'
+});
+
+const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : '');
+
+const validatePassword = (password) => {
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD) {
+    return `Password must be at least ${MIN_PASSWORD} characters.`;
+  }
+  return null;
+};
+
 const loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
-        // Validation
-        if (!email || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-        
-        // Convert email to lowercase for case-insensitive comparison
-        const normalizedEmail = email.toLowerCase();
-
-        // Find user with normalized email
-        const user = await User.findOne({ email: normalizedEmail });
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Invalid password' });
-        }
-
-        const token = createToken(user._id);
-        
-        res.status(200).json({
-            email: user.email, 
-            token,
-            firstName: user.firstName, 
-            lastName: user.lastName,
-            userId: user._id,
-            role: user.role // Add the role field here
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Enter your email and password.' });
     }
+
+    const user = await User.findOne({ email });
+    // Same message for both cases so nobody can probe which emails are registered
+    if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Email or password is incorrect.' });
+    }
+
+    res.status(200).json(authPayload(user));
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Sign in failed. Try again in a moment.' });
+  }
 };
 
-//  logout function
 const logoutUser = (req, res) => {
-    // Invalidate the token on the client side
-    res.status(200).json({ message: 'Logout successful' });
+  // JWTs are stateless; the client deletes its token.
+  res.status(200).json({ message: 'Signed out' });
 };
 
-// Register a new user
+/** Direct registration without email verification. Kept for tests/tools; the app uses the OTP flow. */
 const registerUser = async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+  try {
+    const email = normalizeEmail(req.body.email);
+    const firstName = (req.body.firstName || '').trim();
+    const lastName = (req.body.lastName || '').trim();
+    const { password } = req.body;
 
-    // Normalize email to lowercase
-    const normalizedEmail = email.toLowerCase();
-
-    // Check if the user already exists with normalized email
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-        return res.status(400).json({ error: 'User already exists' });
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ error: 'Fill in every field.' });
     }
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
+    const passwordError = validatePassword(password);
+    if (passwordError) return res.status(400).json({ error: passwordError });
 
-    // Hash the password
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: 'An account with this email already exists.' });
+
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ firstName, lastName, email, password: hashedPassword });
 
-    // Create a new user
-    const user = await User.create({ firstName, lastName, email: normalizedEmail, password: hashedPassword });
-
-    const token = createToken(user._id);
-    res.status(201).json({ email: user.email, token });
+    res.status(201).json(authPayload(user));
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: 'Could not create your account. Try again in a moment.' });
+  }
 };
 
-// In your googleSignIn controller
 const googleSignIn = async (req, res) => {
   const { token: googleToken } = req.body;
-  
+  if (!googleToken) return res.status(400).json({ error: 'Missing Google credential.' });
+
   try {
-    // Verify the Google token
-    const ticket = await client.verifyIdToken({
+    const ticket = await googleClient.verifyIdToken({
       idToken: googleToken,
       audience: process.env.GOOGLE_CLIENT_ID
     });
-    
-    const { email, given_name, family_name, picture, sub } = ticket.getPayload();
-    
-    // Check if user exists
-    let user = await User.findOne({ email });
-    
-    if (!user) {
-      // Generate a secure random password
-      const securePassword = crypto.randomBytes(16).toString('hex');
-      const hashedPassword = await bcrypt.hash(securePassword, 10);
+    const { email: rawEmail, given_name, family_name, picture, sub, email_verified } = ticket.getPayload();
+    const email = normalizeEmail(rawEmail);
 
-      // Create a new user
+    if (!email_verified) return res.status(400).json({ error: 'Your Google email is not verified.' });
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const randomPassword = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10);
       user = await User.create({
         email,
-        firstName: given_name || 'User',
-        lastName: family_name || '',
+        firstName: given_name || 'Chef',
+        lastName: family_name || '-',
         googleId: sub,
         profilePhoto: picture || '',
-        password: hashedPassword
+        password: randomPassword
       });
     } else if (!user.googleId) {
-      // Update existing user with Google ID
       user.googleId = sub;
-      if (picture && !user.profilePhoto) {
-        user.profilePhoto = picture;
-      }
+      if (picture && !user.profilePhoto) user.profilePhoto = picture;
       await user.save();
     }
-    
-    // Create JWT token - ensure it's created correctly
-    const jwtToken = createToken(user._id);
-    
-    
-    
-    res.status(200).json({
-      email: user.email,
-      userId: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profilePhoto: user.profilePhoto,
-      role: user.role || 'user',
-      token: jwtToken
-    });
+
+    res.status(200).json(authPayload(user));
   } catch (error) {
-    console.error('Google authentication error:', error);
-    res.status(400).json({ error: 'Google authentication failed' });
+    console.error('Google authentication error:', error.message);
+    res.status(400).json({ error: 'Google sign in failed. Try again.' });
   }
 };
 
-// Add this function after your googleSignIn function
-const getGoogleClientId = async (req, res) => {
+const getGoogleClientId = (req, res) => {
+  // Not an error: Google sign-in is simply hidden when it isn't configured
+  res.status(200).json({ clientId: process.env.GOOGLE_CLIENT_ID || null });
+};
+
+/** Returns a fresh token and the latest user details for the signed-in user. */
+const getMe = async (req, res) => {
   try {
-    // Check if the Google Client ID is set in the environment
-    const googleClientId = process.env.GOOGLE_CLIENT_ID;
-    
-    if (!googleClientId) {
-      return res.status(500).json({ error: 'Google Client ID not configured' });
-    }
-    
-    res.status(200).json({ clientId: googleClientId });
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'Account not found.' });
+    res.status(200).json(authPayload(user));
   } catch (error) {
-    console.error('Error getting Google client ID:', error);
-    res.status(500).json({ error: 'Failed to get Google client ID' });
+    res.status(500).json({ error: 'Could not load your account.' });
   }
 };
 
-// Add this new function
-const refreshToken = async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    
-    if (!refreshToken) {
-      return res.status(400).json({ error: 'Refresh token required' });
-    }
-    
-    // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
-    
-    // If valid, create a new access token
-    const userId = decoded._id;
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // Create a new access token
-    const newToken = createToken(userId);
-    
-    // Return the new token
-    res.status(200).json({ token: newToken });
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid refresh token' });
-  }
-};
-
-// Make sure to export the function in your module.exports
 module.exports = {
   loginUser,
   registerUser,
   logoutUser,
   googleSignIn,
-  getGoogleClientId, // Add this line
-  refreshToken
+  getGoogleClientId,
+  getMe,
+  authPayload,
+  createToken,
+  normalizeEmail,
+  validatePassword,
+  EMAIL_RE
 };

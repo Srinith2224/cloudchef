@@ -1,0 +1,51 @@
+.planner__weeknav { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-pill); border: 1px solid var(--line); }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1180px) { .week { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .week { grid-template-columns: 1fr; } }
+
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.day.is-today { border-color: var(--brand-line); box-shadow: inset 0 3px 0 var(--brand); }
+.day.is-past { opacity: 0.62; }
+.day__head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px; }
+.day__name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.day.is-today .day__name { color: var(--brand-hover); }
+.day__date { color: var(--text-3); font-size: 0.82rem; }
+.day__short { display: none; }
+@media (min-width: 1181px) { .day__long { display: none; } .day__short { display: inline; } }
+.day { scroll-margin-top: calc(var(--topbar-h) + 12px); }
+.day__meals { display: flex; flex-direction: column; gap: 8px; }
+.meal { display: flex; flex-direction: column; gap: 4px; }
+.meal__label { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-3); font-weight: 600; padding: 0 4px; }
+.meal__label .icon { font-size: 1rem; }
+.meal__item { display: flex; align-items: center; gap: 2px; border-radius: var(--r-sm); background: var(--bg-raised); padding: 4px 2px 4px 4px; }
+.meal__link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; line-height: 1.2; }
+.meal__link span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.meal__link:hover span { color: var(--brand-hover); }
+.meal__link img, .meal__ph { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; flex-shrink: 0; background: var(--surface-2); display: grid; place-items: center; color: var(--text-3); }
+.meal__item .icon-btn { width: 30px; height: 30px; opacity: 0.6; }
+.meal__item:hover .icon-btn { opacity: 1; }
+.meal__add { height: 46px; border-radius: var(--r-sm); border: 1px dashed var(--line-strong); color: var(--text-3); display: grid; place-items: center; transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast); }
+.meal__add:hover { border-color: var(--brand-line); color: var(--brand); background: var(--brand-soft); }
+.day__more { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; padding: 4px 6px; border-radius: 8px; font-size: 0.8rem; color: var(--text-3); }
+.day__more:hover { color: var(--text); background: var(--surface-2); }
+@media (max-width: 760px) {
+  .day__meals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .day__more { grid-column: 1 / -1; }
+  .meal__link img, .meal__ph { width: 30px; height: 30px; }
+  .meal__link { font-size: 0.8rem; }
+}
+@media (max-width: 340px) { .day__meals { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .meal__item { position: relative; padding: 4px; }
+  .meal__link { flex-direction: column; align-items: stretch; gap: 6px; }
+  .meal__link img, .meal__ph { width: 100%; height: 64px; }
+  .meal__item .icon-btn { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: rgba(11, 15, 23, 0.8); opacity: 1; }
+  .meal__add { height: 100%; min-height: 96px; }
+}
+
+.picker { list-style: none; display: flex; flex-direction: column; gap: 4px; max-height: 55vh; overflow: auto; }
+.picker__item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: var(--r-sm); text-align: left; transition: background var(--t-fast); }
+.picker__item:hover { background: var(--surface-2); }
+.picker__item img, .picker__ph { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; flex-shrink: 0; background: var(--surface-2); display: grid; place-items: center; color: var(--text-3); }
+.picker__title { flex: 1; font-weight: 600; }
+.picker__item > .icon { color: var(--brand); }

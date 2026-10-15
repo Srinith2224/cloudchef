@@ -1,19 +1,18 @@
 const express = require('express');
-const router = express.Router();
-const requireAuth = require('../middleware/authMiddleware');
+const admin = require('../controllers/adminController');
+const { requireAuth } = require('../middleware/authMiddleware');
 const requireAdmin = require('../middleware/adminMiddleware');
-const adminController = require('../controllers/adminController');
 
-// Apply authentication and admin middleware to all routes
+const router = express.Router();
 router.use(requireAuth, requireAdmin);
 
-// User management routes
-router.get('/users', adminController.getAllUsers);
-router.patch('/users/:id/role', adminController.updateUserRole);
-router.delete('/users/:id', adminController.deleteUser);
-
-// Recipe management routes
-router.patch('/recipes/:id', adminController.updateAnyRecipe);
-router.delete('/recipes/:id', adminController.deleteAnyRecipe);
+router.get('/stats', admin.getStats);
+router.get('/users', admin.getAllUsers);
+router.patch('/users/:id/role', admin.updateUserRole);
+router.delete('/users/:id', admin.deleteUser);
+router.get('/recipes', admin.getAllRecipes);
+router.delete('/recipes/:id', admin.deleteAnyRecipe);
+router.get('/reports', admin.getReports);
+router.patch('/reports/:id', admin.updateReport);
 
 module.exports = router;

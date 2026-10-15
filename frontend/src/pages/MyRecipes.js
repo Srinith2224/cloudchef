@@ -1,116 +1,74 @@
 import React, { useEffect, useState } from 'react';
-import { useRecipesContext } from '../hooks/useRecipesContext';
-import { useNavigate } from 'react-router-dom';
-import './MyRecipes.css'; // Import the CSS file for styling
-import RecipeCard from '../components/RecipeCard'; // Fix the import path
-import LoadingAnimation from '../components/LoadingAnimation';
+import { Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import Page, { PageHeader } from '../components/Page';
+import Icon from '../components/Icon';
+import RecipeCard from '../components/RecipeCard';
+import EmptyState from '../components/EmptyState';
+import { RecipeGridSkeleton } from '../components/Skeleton';
+import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 
-const MyRecipes = () => {
-    const { user } = useRecipesContext();
-    const [recipes, setRecipes] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+export default function MyRecipes() {
+  const { user } = useAuth();
+  const { toast, confirm } = useUI();
+  const [recipes, setRecipes] = useState(null);
+  const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchUserRecipes = async () => {
-            if (!user) return;
+  useEffect(() => {
+    api(`/recipes/user/${user.userId}`).then(setRecipes).catch((err) => setError(err.message));
+  }, [user.userId]);
 
-            try {
-                const response = await fetch(`/api/recipes/user/${user.userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+  const remove = async (recipe) => {
+    const ok = await confirm({ title: 'Delete this recipe?', message: `“${recipe.title}” and its reviews will be removed for everyone.`, confirmLabel: 'Delete', danger: true });
+    if (!ok) return;
+    try {
+      await api(`/recipes/${recipe._id}`, { method: 'DELETE' });
+      setRecipes((list) => list.filter((r) => r._id !== recipe._id));
+      toast('Recipe deleted');
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  };
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+  const totalReviews = recipes?.reduce((sum, r) => sum + (r.ratingCount || 0), 0) || 0;
 
-                const data = await response.json();
-                setRecipes(data);
-            } catch (error) {
-                console.error('Error fetching user recipes:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchUserRecipes();
-    }, [user]);
-
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this recipe?')) {
-            try {
-                const response = await fetch(`/api/recipes/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                setRecipes(recipes.filter(recipe => recipe._id !== id));
-            } catch (error) {
-                console.error('Error deleting recipe:', error);
-            }
-        }
-    };
-
-    return (
-        <div className="my-recipes">
-            <h1>My Recipes</h1>
-            {isLoading && <LoadingAnimation message="Loading your recipes..." />}
-            <div className="recipes-grid">
-                {recipes.length > 0 ? (
-                    recipes.map((recipe) => (
-                        <div key={recipe._id} className="recipe-wrapper" onClick={() => navigate(`/recipe/${recipe._id}`)}>
-                            <RecipeCard recipe={recipe} />
-                            <div className="recipe-actions">
-                                <button 
-                                    className="action-btn delete-btn"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(recipe._id);
-                                    }}
-                                    style={{
-                                        backgroundColor: '#f44336',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '8px 12px',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '5px',
-                                        position: 'absolute',
-                                        bottom: '15px',
-                                        right: '15px',
-                                        zIndex: '100'
-                                    }}
-                                >
-                                    <span className="material-icons">delete</span> Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="no-recipes">
-                        <span className="material-icons no-recipes-icon">menu_book</span>
-                        <p>You haven't created any recipes yet.</p>
-                        <button 
-                            className="browse-recipes-btn" 
-                            onClick={() => navigate('/welcome')}  // Change from '/' to '/welcome'
-                        >
-                            Discover Recipes
-                        </button>
-                    </div>
-                )}
-            </div>
+  return (
+    <Page title="My recipes" wide>
+      <PageHeader
+        title="My recipes"
+        subtitle={recipes?.length ? `${recipes.length} ${recipes.length === 1 ? 'recipe' : 'recipes'} shared, ${totalReviews} ${totalReviews === 1 ? 'review' : 'reviews'} from other cooks.` : 'Everything you have shared with the community.'}
+        actions={<Link to="/new-recipe" className="btn btn-primary"><Icon name="add" />New recipe</Link>}
+      />
+      {error ? (
+        <EmptyState icon="cloud_off" title="Couldn’t load your recipes">{error}</EmptyState>
+      ) : !recipes ? (
+        <RecipeGridSkeleton count={4} />
+      ) : recipes.length ? (
+        <div className="recipe-grid">
+          <AnimatePresence initial={false}>
+            {recipes.map((recipe) => (
+              <motion.div key={recipe._id} layout exit={{ opacity: 0, scale: 0.94, transition: { duration: 0.18 } }}>
+                <RecipeCard
+                  recipe={recipe}
+                  showSave={false}
+                  actions={(
+                    <>
+                      <Link to={`/edit-recipe/${recipe._id}`} className="btn btn-ghost btn-sm"><Icon name="edit" />Edit</Link>
+                      <button type="button" className="btn btn-quiet btn-sm" onClick={() => remove(recipe)}><Icon name="delete" />Delete</button>
+                    </>
+                  )}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-    );
-};
-
-export default MyRecipes;
+      ) : (
+        <EmptyState icon="menu_book" title="You haven’t shared a recipe yet" action={<><Link to="/new-recipe" className="btn btn-primary"><Icon name="add" />Write a recipe</Link><Link to="/ai-chef" className="btn btn-ghost"><Icon name="auto_awesome" />Get one from the AI chef</Link></>}>
+          Start with the dish people always ask you to make.
+        </EmptyState>
+      )}
+    </Page>
+  );
+}

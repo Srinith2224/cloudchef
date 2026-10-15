@@ -1,14 +1,14 @@
 const express = require('express');
+const calendar = require('../controllers/calendarController');
+const { requireAuth } = require('../middleware/authMiddleware');
+
 const router = express.Router();
-const { addCalendarEntry, getCalendarEntries, deleteCalendarEntry } = require('../controllers/calendarController');
-const authMiddleware = require('../middleware/authMiddleware');
+router.use(requireAuth);
 
-// Apply auth middleware to all routes
-router.use(authMiddleware);
-
-// Routes
-router.post('/', addCalendarEntry);
-router.get('/:userId', getCalendarEntries);
-router.delete('/:id', deleteCalendarEntry);
+router.get('/', calendar.getCalendarEntries);
+router.post('/', calendar.addCalendarEntry);
+router.get('/:userId', calendar.getCalendarEntries); // legacy URL
+router.patch('/:id', calendar.updateCalendarEntry);
+router.delete('/:id', calendar.deleteCalendarEntry);
 
 module.exports = router;

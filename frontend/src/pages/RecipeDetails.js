@@ -1,911 +1,317 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useRecipesContext } from '../hooks/useRecipesContext';
-import CalendarPopup from '../components/CalendarPopup';
-import './RecipeDetails.css';
-import RecipeRatings from '../components/RecipeRatings';
-import LoadingAnimation from '../components/LoadingAnimation';
-import { getImageUrl } from '../utils/imageHelper';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { format } from 'date-fns';
+import Page from '../components/Page';
+import Icon from '../components/Icon';
+import Avatar from '../components/Avatar';
+import Spinner, { PageLoader } from '../components/Spinner';
+import StarRating from '../components/StarRating';
+import EmptyState from '../components/EmptyState';
+import Reviews from '../components/Reviews';
+import ScheduleDialog from '../components/ScheduleDialog';
+import ReportDialog from '../components/ReportDialog';
+import { api, assetUrl } from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
+import { formatTime, scaleQuantity, unitLabel } from '../lib/format';
+import '../styles/pages/recipe.css';
 
-// Component for the immersive step-by-step mode
-const ImmersiveStepMode = ({ recipe, onExit }) => {
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
-    
-    const totalSteps = recipe.steps.length;
-    const currentStep = recipe.steps[currentStepIndex] || {};
-    const isFirstStep = currentStepIndex === 0;
-    const isLastStep = currentStepIndex === totalSteps - 1;
-    const progress = ((currentStepIndex + 1) / totalSteps) * 100;
-    
-    const handleNextStep = useCallback(() => {
-        if (isLastStep) {
-            setSuccessMessage("Your dish is ready! 🎉");
-            setShowSuccessModal(true);
-        } else {
-            setCurrentStepIndex(prev => prev + 1);
-        }
-    }, [isLastStep]);
-    
-    const handlePrevStep = useCallback(() => {
-        if (!isFirstStep) {
-            setCurrentStepIndex(prev => prev - 1);
-        }
-    }, [isFirstStep]);
-    
-    const handleOkClick = useCallback(() => {
-        setShowSuccessModal(false);
-        if (isLastStep) {
-            onExit();
-        }
-    }, [isLastStep, onExit]);
-    
-    const handleKeyDown = useCallback((e) => {
-        if (e.key === 'ArrowRight' && currentStepIndex < totalSteps - 1) {
-            handleNextStep();
-        } else if (e.key === 'ArrowLeft' && !isFirstStep) {
-            handlePrevStep();
-        } else if (e.key === 'Escape') {
-            onExit();
-        }
-    }, [currentStepIndex, totalSteps, handleNextStep, handlePrevStep, isFirstStep, onExit]);
-    
-    useEffect(() => {
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
-    
+function MoreMenu({ items }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [open]);
+
+  return (
+    <div className="more" ref={ref}>
+      <button type="button" className="btn btn-ghost more__btn" aria-label="More actions" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <Icon name="more_horiz" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div className="more__panel" role="menu" initial={{ opacity: 0, y: -4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}>
+            {items.map((item) => (
+              <button key={item.label} type="button" role="menuitem" className={`more__item ${item.danger ? 'more__item--danger' : ''}`} onClick={() => { setOpen(false); item.onClick(); }}>
+                <Icon name={item.icon} />{item.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default function RecipeDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, isAdmin, savedIds, toggleSaved } = useAuth();
+  const { toast, confirm } = useUI();
+
+  const [recipe, setRecipe] = useState(null);
+  const [error, setError] = useState(null);
+  const [servings, setServings] = useState(2);
+  const [checked, setChecked] = useState(() => new Set());
+  const [addingAll, setAddingAll] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setRecipe(null);
+    setError(null);
+    api(`/recipes/${id}`)
+      .then((data) => {
+        if (!alive) return;
+        setRecipe(data);
+        setServings(data.servings || 2);
+      })
+      .catch((err) => alive && setError(err));
+    return () => { alive = false; };
+  }, [id]);
+
+  if (error) {
     return (
-        <div className="immersive-step-mode">
-            <div className="immersive-step-header">
-                <div className="immersive-step-title">
-                    {recipe.title}
-                </div>
-                <div className="immersive-step-title">
-                    Step {currentStepIndex + 1} of {totalSteps}
-                </div>
-                <button className="immersive-step-exit" onClick={onExit}>
-                    Exit
-                </button>
-            </div>
-            
-            <div className="progress-bar-container">
-                <div className="step-progress-bar" style={{ width: `${progress}%` }}></div>
-            </div>
-            
-            <div className="immersive-step-content">
-                <div className="immersive-step-body">
-                    <div className="immersive-step-title-container">
-                        <h2>Step {currentStepIndex + 1}</h2>
-                        <p className="immersive-step-description">
-                            {(currentStep.text || currentStep.description).replace(/^\d+[\.\)\s]+/, '')}
-                        </p>
-                    </div>
-                    
-                    <div className="immersive-media-section">
-                        <div className="immersive-media-wrapper">
-                            {/* Display video if available */}
-                            {currentStep.video && (
-                                <video 
-                                    className="immersive-media"
-                                    src={getImageUrl(currentStep.video)} 
-                                    controls
-                                    poster={currentStep.image ? getImageUrl(currentStep.image) : ''}
-                                >
-                                    Your browser does not support video playback.
-                                </video>
-                            )}
-                            
-                            {/* Display image only if no video and image exists */}
-                            {!currentStep.video && currentStep.image && (
-                                <img 
-                                    className="immersive-media"
-                                    src={getImageUrl(currentStep.image)} 
-                                    alt={`Step ${currentStepIndex + 1}`} 
-                                />
-                            )}
-                        </div>
-                        
-                        {/* Step ingredients info - removed the redundant step instruction */}
-                        {(currentStep.ingredients && currentStep.ingredients.length > 0) || 
-                         (currentStep.ingredient) || 
-                         (currentStep.alternate) || 
-                         (currentStep.timer) ? (
-                            <div className="immersive-step-info">
-                                {currentStep.ingredients && currentStep.ingredients.length > 0 && (
-                                    <>
-                                        <h4>Ingredients for this step:</h4>
-                                        <ul>
-                                            {currentStep.ingredients.map((ing, idx) => (
-                                                <li key={idx}>{ing}</li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                )}
-                                
-                                {/* Support for single ingredient format */}
-                                {currentStep.ingredient && (
-                                    <>
-                                        <h4>Ingredients for this step:</h4>
-                                        <p>{currentStep.ingredient} 
-                                           {currentStep.quantity && ` - ${currentStep.quantity}`}
-                                        </p>
-                                    </>
-                                )}
-                                
-                                {currentStep.alternate && (
-                                    <>
-                                        <h4>Alternative ingredient:</h4>
-                                        <p>{currentStep.alternate}</p>
-                                    </>
-                                )}
-                                
-                                {currentStep.timer && (
-                                    <>
-                                        <h4>Timer:</h4>
-                                        <p>{currentStep.timer} minutes</p>
-                                    </>
-                                )}
-                            </div>
-                        ) : null}
-                    </div>
-                    
-                    <div className="immersive-navigation-container">
-                        <div className="immersive-navigation">
-                            <button 
-                                className="immersive-nav-button"
-                                onClick={handlePrevStep}
-                                disabled={isFirstStep}
-                            >
-                                <span className="material-icons">arrow_back</span> Previous Step
-                            </button>
-                            <button 
-                                className={`immersive-nav-button ${isLastStep ? 'finish-pulse' : ''}`}
-                                onClick={handleNextStep}
-                            >
-                                {isLastStep ? "Finish" : "Next Step"} <span className="material-icons">arrow_forward</span>
-                            </button>
-                        </div>
-                        
-                        <div className="keyboard-shortcuts">
-                            Keyboard shortcuts: ← Previous Step | → Next Step | ESC Exit
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            {showSuccessModal && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h4>{successMessage}</h4>
-                        <button onClick={handleOkClick}>OK</button>
-                    </div>
-                </div>
-            )}
-        </div>
+      <Page title="Recipe not found">
+        <EmptyState icon="no_meals" title={error.status === 404 || error.status === 400 ? 'This recipe isn’t here' : 'Recipe didn’t load'} action={<Link to="/explore" className="btn btn-primary">Browse recipes</Link>}>
+          {error.status === 404 || error.status === 400 ? 'It may have been deleted, or the link is wrong.' : error.message}
+        </EmptyState>
+      </Page>
     );
-};
+  }
+  if (!recipe) return <PageLoader label="Getting the recipe…" />;
 
-// Main RecipeDetails component
-const RecipeDetails = () => {
-    const { id } = useParams();
-    const { user } = useRecipesContext();
-    const [recipe, setRecipe] = useState(null);
-    const [isSaved, setIsSaved] = useState(false); // State to track if the recipe is saved
-    const [showSuccessModal, setShowSuccessModal] = useState(false); // State for success modal
-    const [successMessage, setSuccessMessage] = useState(''); // State for success message
-    const [addedIngredients, setAddedIngredients] = useState([]); // State to track added ingredients
-    const [showCalendarPopup, setShowCalendarPopup] = useState(false); // State for calendar popup
-    const [stepByStepMode, setStepByStepMode] = useState(false); // State for step-by-step mode
-    const [currentStepIndex, setCurrentStepIndex] = useState(0); // State for current step index
-    const [isLoading, setIsLoading] = useState(true); // State for loading animation
-    const navigate = useNavigate();
+  const baseServings = recipe.servings || 2;
+  const factor = servings / baseServings;
+  const isOwner = user && String(recipe.createdBy?._id) === String(user.userId);
+  const canEdit = isOwner || isAdmin;
+  const saved = savedIds.has(recipe._id);
+  const time = formatTime(recipe.totalTime);
 
-    // Define checkIfSaved with useCallback (add this near your other state definitions)
-    const checkIfSaved = useCallback(async () => {
-        try {
-            const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                const isRecipeSaved = data.some(savedRecipe => savedRecipe._id === id);
-                setIsSaved(isRecipeSaved);
-            } else {
-                console.error('Failed to fetch saved recipes:', data.message);
-            }
-        } catch (error) {
-            console.error('Error fetching saved recipes:', error);
-        }
-    }, [user, id]); // Add user and id as dependencies
-
-    // Define checkCartItems with useCallback
-    const checkCartItems = useCallback(async () => {
-        try {
-            // Fetch actual cart items from server instead of relying only on localStorage
-            const response = await fetch('/api/cart', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (response.ok) {
-                const cartData = await response.json();
-                // Extract ingredient names from server response
-                const cartIngredientNames = cartData.items.map(item => item.ingredient.toLowerCase());
-                
-                // Compare with recipe ingredients and mark those that are in the cart
-                const addedIngs = recipe.ingredients
-                    .filter(ing => cartIngredientNames.includes(ing.name.toLowerCase()))
-                    .map(ing => ing.name);
-                
-                setAddedIngredients(addedIngs);
-                
-                // Store with user-specific key
-                const userKey = `addedIngredients_${user?.userId}_${id}`;
-                localStorage.setItem(userKey, JSON.stringify(addedIngs));
-            }
-        } catch (error) {
-            console.error('Error checking cart items:', error);
-        }
-    }, [recipe, user, id]); // Add recipe, user, and id as dependencies
-
-    useEffect(() => {
-        const fetchRecipe = async () => {
-            try {
-                // Public endpoint, no token needed
-                const response = await fetch(`/api/recipes/${id}`);
-                const data = await response.json();
-
-                if (response.ok) {
-                    setRecipe(data);
-                } else {
-                    console.error('Failed to fetch recipe:', data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching recipe:', error);
-            } finally {
-                setIsLoading(false); // Set loading to false after fetching
-            }
-        };
-
-        fetchRecipe();
-        
-        // Only check saved status if the user is logged in
-        if (user && user.userId) {
-            checkIfSaved();
-        }
-    }, [id, user, checkIfSaved]); // Add checkIfSaved to the dependency array
-
-    useEffect(() => {
-        if (recipe) {  // Only check cart if recipe is loaded
-            checkCartItems();
-        }
-    }, [recipe, checkCartItems]);  // Add checkCartItems to the dependency array
-
-    const handleAddToCart = async (ingredient) => {
-        try {
-            const response = await fetch('/api/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    ingredient: ingredient.name,
-                    quantity: parseInt(ingredient.quantity, 10),
-                    unit: ingredient.unit || '' // Include unit
-                })
-            });
-
-            if (response.ok) {
-                setSuccessMessage('Ingredient added to cart successfully');
-                setShowSuccessModal(true);
-                const updatedAddedIngredients = [...addedIngredients, ingredient.name];
-                setAddedIngredients(updatedAddedIngredients);
-                // Use user-specific key
-                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(updatedAddedIngredients));
-            } else {
-                console.error('Failed to add ingredient to cart');
-            }
-        } catch (error) {
-            console.error('Error adding ingredient to cart:', error);
-        }
-    };
-
-    const handleRemoveFromCart = async (ingredient) => {
-        try {
-            // First find the cart item to get its ID
-            const cartResponse = await fetch('/api/cart', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            
-            if (!cartResponse.ok) {
-                throw new Error('Failed to fetch cart items');
-            }
-            
-            const cartData = await cartResponse.json();
-            
-            // Find the item in the cart that matches this ingredient
-            const cartItem = cartData.items.find(item => 
-                item.ingredient.toLowerCase() === ingredient.name.toLowerCase()
-            );
-            
-            if (!cartItem) {
-                console.error('Item not found in cart');
-                return;
-            }
-
-            // Now delete it using its ID
-            const response = await fetch('/api/cart/delete', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ ingredientId: cartItem._id })
-            });
-
-            if (response.ok) {
-                // Only update UI if the request was successful
-                setSuccessMessage('Ingredient removed from cart successfully');
-                setShowSuccessModal(true);
-                
-                // Update the local state to reflect the removal
-                const updatedAddedIngredients = addedIngredients.filter(item => item !== ingredient.name);
-                setAddedIngredients(updatedAddedIngredients);
-                
-                // Update localStorage to persist the state
-                // Use user-specific key here too
-                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(updatedAddedIngredients));
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to remove ingredient from cart');
-            }
-        } catch (error) {
-            console.error('Error removing ingredient from cart:', error);
-            setSuccessMessage(`Error: ${error.message}`);
-            setShowSuccessModal(true);
-        }
-    };
-
-    const handleAddAllToCart = async () => {
-        try {
-            // Make sure each ingredient has a unit property (even if it's empty string)
-            const ingredientsWithUnits = recipe.ingredients.map(ingredient => ({
-                ...ingredient,
-                unit: ingredient.unit || ''
-            }));
-
-            const response = await fetch('/api/cart/add-multiple', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ ingredients: ingredientsWithUnits })
-            });
-
-            if (response.ok) {
-                setSuccessMessage('All ingredients added to cart successfully');
-                setShowSuccessModal(true);
-                const allIngredientNames = recipe.ingredients.map(ingredient => ingredient.name);
-                setAddedIngredients(allIngredientNames);
-                // Use user-specific key
-                localStorage.setItem(`addedIngredients_${user.userId}_${id}`, JSON.stringify(allIngredientNames));
-            } else {
-                console.error('Failed to add all ingredients to cart');
-            }
-        } catch (error) {
-            console.error('Error adding all ingredients to cart:', error);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to delete this recipe? This action cannot be undone.')) {
-            try {
-                const response = await fetch(`/api/recipes/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (response.ok) {
-                    setSuccessMessage('Recipe deleted successfully');
-                    setShowSuccessModal(true);
-                    
-                    // Set a short timeout before navigating away
-                    setTimeout(() => {
-                        navigate('/my-recipes');
-                    }, 1500);
-                } else {
-                    console.error('Failed to delete recipe');
-                    setSuccessMessage('Failed to delete recipe. Please try again.');
-                    setShowSuccessModal(true);
-                }
-            } catch (error) {
-                console.error('Error deleting recipe:', error);
-                setSuccessMessage('Error deleting recipe. Please try again.');
-                setShowSuccessModal(true);
-            }
-        }
-    };
-
-    const handleSave = async () => {
-        try {
-            const response = await fetch('/api/users/save-recipe', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ userId: user.userId, recipeId: id })
-            });
-
-            if (response.ok) {
-                setIsSaved(true);
-                setSuccessMessage('Recipe Saved Successfully');
-                setShowSuccessModal(true); // Show success modal
-            } else {
-                console.error('Failed to save recipe');
-            }
-        } catch (error) {
-            console.error('Error saving recipe:', error);
-        }
-    };
-
-    const handleUnsave = async () => {
-        try {
-            const response = await fetch('/api/users/delete-saved-recipe', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ userId: user.userId, recipeId: id })
-            });
-
-            if (response.ok) {
-                setIsSaved(false);
-                setSuccessMessage('Recipe Unsaved Successfully');
-                setShowSuccessModal(true); // Show success modal
-            } else {
-                console.error('Failed to unsave recipe');
-            }
-        } catch (error) {
-            console.error('Error unsaving recipe:', error);
-        }
-    };
-
-    const handleSchedule = () => {
-        setShowCalendarPopup(true);
-    };
-
-    const handleCalendarSubmit = async (date, mealTime = 'Dinner') => {
-        try {
-            console.log('Scheduling recipe:', id, 'for date:', date, 'as:', mealTime);
-            
-            // Make sure date is a proper Date object
-            const dateObj = new Date(date);
-            const formattedDate = dateObj.toISOString();
-            
-            const response = await fetch('/api/calendar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ 
-                    recipeId: id, 
-                    date: formattedDate,
-                    userId: user.userId,
-                    mealTime: mealTime // Use the selected meal time
-                })
-            });
-
-            const responseData = await response.json();
-            console.log('Schedule response:', responseData);
-        
-            if (response.ok) {
-                setSuccessMessage(`Recipe scheduled successfully as ${mealTime}!`);
-                setShowSuccessModal(true);
-                setShowCalendarPopup(false);
-            } else {
-                console.error('Failed to schedule recipe:', responseData.error || 'Unknown error');
-                setSuccessMessage('Failed to schedule recipe. Please try again.');
-                setShowSuccessModal(true);
-            }
-        } catch (error) {
-            console.error('Error scheduling recipe:', error);
-            setSuccessMessage('Error scheduling recipe. Please try again.');
-            setShowSuccessModal(true);
-        }
-    };
-
-    const handleOkClick = () => {
-        setShowSuccessModal(false);
-    };
-
-    const handleClose = () => {
-        navigate(-1); // Go back to the previous page
-    };
-
-    // Toggle step-by-step mode
-    const toggleStepByStepMode = () => {
-        setStepByStepMode(!stepByStepMode);
-        setCurrentStepIndex(0); // Reset to first step when toggling mode
-    };
-
-    // Navigate to next step
-    const nextStep = () => {
-        if (currentStepIndex < recipe.steps.length - 1) {
-            setCurrentStepIndex(currentStepIndex + 1);
-        } else {
-            // At last step
-            setSuccessMessage("Your dish is ready! 🎉");
-            setShowSuccessModal(true);
-        }
-    };
-
-    // Navigate to previous step
-    const prevStep = () => {
-        if (currentStepIndex > 0) {
-            setCurrentStepIndex(currentStepIndex - 1);
-        }
-    };
-
-    // If in step-by-step mode, render the immersive experience
-    if (stepByStepMode && recipe) {
-        return <ImmersiveStepMode recipe={recipe} onExit={toggleStepByStepMode} />;
+  const requireUser = (action) => {
+    if (!user) {
+      toast('Sign in to do that', 'info', { action: { label: 'Sign in', onClick: () => navigate('/auth', { state: { from: `/recipe/${id}` } }) } });
+      return false;
     }
+    action();
+    return true;
+  };
 
-    if (isLoading) {
-        return <LoadingAnimation message="Loading recipe details..." />;
+  const onSave = () => requireUser(async () => {
+    try {
+      const nowSaved = await toggleSaved(recipe._id);
+      toast(nowSaved ? 'Saved to your recipes' : 'Removed from saved');
+    } catch (err) {
+      toast(err.message, 'error');
     }
+  });
 
-    if (!recipe) {
-        return <p>Loading...</p>;
+  const addToList = (items, label) => requireUser(async () => {
+    setAddingAll(true);
+    try {
+      await api('/cart/add-multiple', { method: 'POST', body: { ingredients: items } });
+      toast(label, 'success', { action: { label: 'Open list', onClick: () => navigate('/shopping-list') } });
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      setAddingAll(false);
     }
+  });
 
-    // Look for the renderActionButtons function (around line 570-590)
-    const renderActionButtons = () => {
-        if (!user) {
-            return (
-                <div className="guest-actions">
-                    <p>Sign in or create an account to save this recipe or add ingredients to your shopping list.</p>
-                    <div className="guest-buttons">
-                        <Link to="/auth" className="btn login-btn">Sign In</Link>
-                        <Link to="/auth" className="btn signup-btn">Create Account</Link>
-                    </div>
-                </div>
-            );
-        }
-        
-        if (user.userId === recipe.createdBy._id) {
-            return (
-                <>
-                    <button className="btn update-btn" onClick={() => navigate(`/update-recipe/${recipe._id}`)}>
-                        <span className="material-icons">edit</span> Update
-                    </button>
-                    <button className="btn delete-btn" onClick={handleDelete}>
-                        <span className="material-icons">delete</span> Delete
-                    </button>
-                    <button className="btn schedule-btn" onClick={handleSchedule}>
-                        <span className="material-icons">calendar_today</span> Schedule
-                    </button>
-                </>
-            );
-        }
-        
-        // Rest of the function for non-owner users
-        return (
-            <>
-                {isSaved ? (
-                    <button className="btn unsave-btn" onClick={handleUnsave}>
-                        <span className="material-icons">bookmark_remove</span> Unsave
-                    </button>
-                ) : (
-                    <button className="btn save-btn" onClick={handleSave}>
-                        <span className="material-icons">bookmark_add</span> Save
-                    </button>
-                )}
-                <button className="btn schedule-btn" onClick={handleSchedule}>
-                    <span className="material-icons">calendar_today</span> Schedule
-                </button>
-            </>
-        );
-    };
+  const scaledIngredients = recipe.ingredients.map((ing) => ({ ...ing, quantity: scaleQuantity(ing.quantity, factor) }));
 
-    return (
-        <div className="recipe-details">
-            <button className="close-btn" onClick={handleClose}>&times;</button>
-            
-            <div className="recipe-header">
-                {recipe.mainImage && (
-                    <img 
-                        src={getImageUrl(recipe.mainImage)} 
-                        alt={recipe.title} 
-                        className="recipe-detail-image" 
-                    />
-                )}
-                <h2>{recipe.title}</h2>
+  const onDelete = async () => {
+    const ok = await confirm({ title: 'Delete this recipe?', message: `“${recipe.title}” will be removed for everyone, along with its reviews. This can’t be undone.`, confirmLabel: 'Delete recipe', danger: true });
+    if (!ok) return;
+    try {
+      await api(`/recipes/${recipe._id}`, { method: 'DELETE' });
+      toast('Recipe deleted');
+      navigate('/my-recipes', { replace: true });
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  };
+
+  const onShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: recipe.title, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        toast('Link copied');
+      }
+    } catch {
+      /* share sheet closed */
+    }
+  };
+
+  const toggleChecked = (i) => setChecked((set) => {
+    const next = new Set(set);
+    if (next.has(i)) next.delete(i);
+    else next.add(i);
+    return next;
+  });
+
+  const menuItems = [
+    { icon: 'ios_share', label: 'Share', onClick: onShare },
+    ...(canEdit ? [{ icon: 'edit', label: 'Edit recipe', onClick: () => navigate(`/edit-recipe/${recipe._id}`) }] : []),
+    ...(canEdit ? [{ icon: 'delete', label: 'Delete recipe', danger: true, onClick: onDelete }] : []),
+    ...(user && !isOwner ? [{ icon: 'flag', label: 'Report', onClick: () => setReportOpen(true) }] : [])
+  ];
+
+  const n = recipe.nutrition || {};
+  const perServing = (v) => Math.round((Number(v) || 0) / baseServings);
+
+  return (
+    <Page title={recipe.title} className="recipe">
+      <button type="button" className="btn btn-quiet btn-sm recipe__back" onClick={() => (window.history.length > 2 ? navigate(-1) : navigate('/explore'))}>
+        <Icon name="arrow_back" />Back
+      </button>
+
+      <section className="recipe__hero">
+        <motion.div className="recipe__media" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+          {recipe.mainImage ? <img src={assetUrl(recipe.mainImage)} alt={recipe.title} /> : <div className="recipe__placeholder"><Icon name="skillet" /></div>}
+        </motion.div>
+
+        <div className="recipe__intro">
+          {recipe.tags?.length > 0 && (
+            <div className="recipe__tags">
+              {recipe.tags.slice(0, 4).map((tag) => <Link key={tag} to={`/explore?tags=${encodeURIComponent(tag)}`} className="tag">{tag}</Link>)}
             </div>
-            
-            <div className="recipe-info">
-                <div className="info-card">
-                    <h3>Details</h3>
-                    
-                    {recipe.description && (
-                        <div className="info-item">
-                            <strong>Description:</strong>
-                            <span>{recipe.description}</span>
-                        </div>
-                    )}
-                    
-                    <div className="info-item">
-                        <strong>Total Time:</strong>
-                        <span>
-                            {recipe.totalTime.hours > 0 ? `${recipe.totalTime.hours}h ` : ''}
-                            {recipe.totalTime.minutes}m
-                        </span>
-                    </div>
-                    
-                </div>
-                
-                <div className="info-card">
-                    <h3>Nutrition Facts</h3>
-                    {recipe.nutrition ? (
-                        <table className="nutrition-table">
-                            <thead>
-                                <tr>
-                                    <th>Calories</th>
-                                    <th>Fat</th>
-                                    <th>Protein</th>
-                                    <th>Carbs</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{recipe.nutrition.calories}</td>
-                                    <td>{recipe.nutrition.fat}g</td>
-                                    <td>{recipe.nutrition.protein}g</td>
-                                    <td>{recipe.nutrition.carbs}g</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p>No nutrition information available.</p>
-                    )}
-                </div>
-            </div>
-            
-            <div className="info-card">
-                <h3>Ingredients <button className="add-all-to-cart-btn" onClick={handleAddAllToCart}>Add All to Cart</button></h3>
-                <table className="ingredients-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Quantity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {recipe.ingredients.map((ingredient, index) => (
-                            <tr key={index}>
-                                <td>{ingredient.name}</td>
-                                <td>{ingredient.quantity} {ingredient.unit}</td>
-                                <td>
-                                    {addedIngredients.includes(ingredient.name) ? (
-                                        <button
-                                            className="add-to-cart-btn"
-                                            onClick={() => handleRemoveFromCart(ingredient)}
-                                        >
-                                            <span className="material-icons">remove_shopping_cart</span> Remove
-                                        </button>
-                                    ) : (
-                                        <button
-                                            className="add-to-cart-btn"
-                                            onClick={() => handleAddToCart(ingredient)}
-                                        >
-                                            <span className="material-icons">add_shopping_cart</span> Add
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div className="steps-section">
-                <div className="steps-header">
-                    <h3>Steps</h3>
-                    <button 
-                        className="step-by-step-btn" 
-                        onClick={toggleStepByStepMode}
-                    >
-                        Start Step-by-Step Mode
-                    </button>
-                </div>
-                
-                {stepByStepMode ? (
-                    <div className="step-by-step-view">
-                        <div className="step-counter">
-                            Step {currentStepIndex + 1} of {recipe.steps.length}
-                        </div>
-                        
-                        <div className="current-step">
-                            <h4>{(recipe.steps[currentStepIndex].text || recipe.steps[currentStepIndex].description).replace(/^\d+[\.\)\s]+/, '')}</h4>
-                            
-                            {recipe.steps[currentStepIndex].video && (
-                                <div className="step-video-container">
-                                    <video 
-                                        src={getImageUrl(recipe.steps[currentStepIndex].video)} 
-                                        controls
-                                        className="step-video"
-                                        poster={recipe.steps[currentStepIndex].image ? getImageUrl(recipe.steps[currentStepIndex].image) : ''}
-                                    >
-                                        Your browser does not support video playback.
-                                    </video>
-                                </div>
-                            )}
-                            
-                            {!recipe.steps[currentStepIndex].video && recipe.steps[currentStepIndex].image && (
-                                <img 
-                                    src={getImageUrl(recipe.steps[currentStepIndex].image)} 
-                                    alt={`Step ${currentStepIndex + 1}`} 
-                                    className="step-image"
-                                />
-                            )}
-                            
-                            {recipe.steps[currentStepIndex].ingredients && recipe.steps[currentStepIndex].ingredients.length > 0 && (
-                                <div className="step-ingredients">
-                                    <h5>Ingredients for this step:</h5>
-                                    <ul>
-                                        {recipe.steps[currentStepIndex].ingredients.map((ing, idx) => (
-                                            <li key={idx}>{ing}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                            
-                            {recipe.steps[currentStepIndex].ingredient && (
-                                <div className="step-ingredients">
-                                    <h5>Ingredients for this step:</h5>
-                                    <p>{recipe.steps[currentStepIndex].ingredient} 
-                                       {recipe.steps[currentStepIndex].quantity && ` - ${recipe.steps[currentStepIndex].quantity}`}
-                                    </p>
-                                </div>
-                            )}
-                            
-                            {recipe.steps[currentStepIndex].alternate && (
-                                <div className="step-alternate">
-                                    <h5>Alternative ingredient:</h5>
-                                    <p>{recipe.steps[currentStepIndex].alternate}</p>
-                                </div>
-                            )}
-                            
-                            {recipe.steps[currentStepIndex].timer && (
-                                <div className="step-timer">
-                                    <h5>Timer:</h5>
-                                    <p><span className="material-icons">timer</span> {recipe.steps[currentStepIndex].timer} minutes</p>
-                                </div>
-                            )}
-                            
-                            <div className="step-navigation">
-                                <button 
-                                    onClick={prevStep} 
-                                    disabled={currentStepIndex === 0}
-                                >
-                                    Previous
-                                </button>
-                                <button onClick={nextStep}>
-                                    {currentStepIndex === recipe.steps.length - 1 ? "Finish" : "Next"}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <ul className="steps-list">
-                        {recipe.steps.map((step, index) => (
-                            <li key={index}>
-                                <span className="step-number">{index + 1}.</span> {(step.text || step.description).replace(/^\d+[\.\)\s]+/, '')}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
-            
-            {/* Tags section with new class */}
-            {recipe.tags && recipe.tags.length > 0 && (
-                <div className="info-card tags-card">
-                    <h3>Tags</h3>
-                    <div className="recipe-tags tag-container">
-                        {Array.isArray(recipe.tags) 
-                            ? recipe.tags.map((tag, index) => (
-                                <span key={index} className="tag">{tag}</span>
-                            ))
-                            : typeof recipe.tags === 'string' && recipe.tags.startsWith('[') 
-                                ? JSON.parse(recipe.tags).map((tag, index) => (
-                                    <span key={index} className="tag">{tag}</span>
-                                ))
-                                : recipe.tags.split(',').map((tag, index) => (
-                                    <span key={index} className="tag">{tag.trim()}</span>
-                                ))
-                        }
-                    </div>
-                </div>
+          )}
+          <h1 className="recipe__title">{recipe.title}</h1>
+
+          <div className="recipe__byline">
+            <Link to={`/cook/${recipe.createdBy._id}`} className="recipe__author">
+              <Avatar src={recipe.createdBy.profilePhoto} firstName={recipe.createdBy.firstName} lastName={recipe.createdBy.lastName} size={34} />
+              <span>{recipe.createdBy.firstName} {recipe.createdBy.lastName}</span>
+            </Link>
+            <a href="#reviews-title" className="recipe__rating">
+              <StarRating value={recipe.avgRating || 0} size={16} />
+              <span>{recipe.ratingCount ? `${recipe.avgRating.toFixed(1)} (${recipe.ratingCount})` : 'No ratings yet'}</span>
+            </a>
+          </div>
+
+          <p className="recipe__desc">{recipe.description}</p>
+
+          <dl className="recipe__facts">
+            {time && <div><dt>Total time</dt><dd><Icon name="schedule" />{time}</dd></div>}
+            <div><dt>Ingredients</dt><dd><Icon name="grocery" />{recipe.ingredients.length}</dd></div>
+            <div><dt>Steps</dt><dd><Icon name="format_list_numbered" />{recipe.steps.length}</dd></div>
+            <div><dt>Added</dt><dd><Icon name="event" />{format(new Date(recipe.createdAt), 'd MMM yyyy')}</dd></div>
+          </dl>
+
+          <div className="recipe__actions">
+            <Link to={`/recipe/${recipe._id}/cook`} className="btn btn-primary btn-lg recipe__cook">
+              <Icon name="play_arrow" filled />Start cooking
+            </Link>
+            {!isOwner && (
+              <button type="button" className={`btn btn-ghost btn-lg ${saved ? 'is-saved' : ''}`} onClick={onSave} aria-pressed={saved}>
+                <Icon name="bookmark" filled={saved} />{saved ? 'Saved' : 'Save'}
+              </button>
             )}
-            
-            {recipe.createdBy && (
-                <div className="recipe-author-section">
-                    <h3 className="author-heading">
-                        <span className="material-icons">person</span> Created by
-                    </h3>
-                    <Link to={`/user/${recipe.createdBy._id}`} className="author-link">
-                        <div className="author-card">
-                            <div className="author-avatar">
-                                {recipe.createdBy.profilePhoto ? (
-                                    <img 
-                                        src={recipe.createdBy.profilePhoto.startsWith('http') ? 
-                                            recipe.createdBy.profilePhoto : 
-                                            getImageUrl(recipe.createdBy.profilePhoto)} 
-                                        alt={`${recipe.createdBy.firstName}'s profile`} 
-                                        className="author-image"
-                                    />
-                                ) : (
-                                    <div className="author-image-placeholder">
-                                        <span className="material-icons">account_circle</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="author-details">
-                                <p className="author-name">{recipe.createdBy.firstName} {recipe.createdBy.lastName}</p>
-                                <p className="recipe-date">
-                                    <span className="material-icons">event</span> 
-                                    {new Date(recipe.createdAt).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="author-view-profile">
-                                <span className="view-profile-text">View Profile</span>
-                                <span className="material-icons">arrow_forward</span>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-            )}
-            
-            {recipe && (
-                <RecipeRatings 
-                    recipeId={id} 
-                    creatorId={recipe.createdBy?._id} 
-                />
-            )}
-            
-            <div className="button-row">
-                {renderActionButtons()}
-            </div>
-            
-            {showSuccessModal && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h4>{successMessage}</h4>
-                        <button onClick={handleOkClick}>OK</button>
-                    </div>
-                </div>
-            )}
-            {showCalendarPopup && (
-                <CalendarPopup onSubmit={handleCalendarSubmit} onClose={() => setShowCalendarPopup(false)} />
-            )}
+            <button type="button" className="btn btn-ghost btn-lg" onClick={() => requireUser(() => setScheduleOpen(true))}>
+              <Icon name="calendar_add_on" /><span className="hide-mobile">Plan</span>
+            </button>
+            <MoreMenu items={menuItems} />
+          </div>
         </div>
-    );
-};
+      </section>
 
-export default RecipeDetails;
+      <div className="recipe__body">
+        <aside className="recipe__ingredients panel">
+          <div className="ingredients__head">
+            <h2 className="section-title">Ingredients</h2>
+            <div className="servings" aria-label="Servings">
+              <button type="button" className="icon-btn" onClick={() => setServings((s) => Math.max(1, s - 1))} disabled={servings <= 1} aria-label="Fewer servings"><Icon name="remove" /></button>
+              <span><strong>{servings}</strong> {servings === 1 ? 'serving' : 'servings'}</span>
+              <button type="button" className="icon-btn" onClick={() => setServings((s) => Math.min(50, s + 1))} aria-label="More servings"><Icon name="add" /></button>
+            </div>
+          </div>
+
+          <ul className="ingredients__list">
+            {scaledIngredients.map((ing, i) => (
+              <li key={`${ing.name}-${i}`}>
+                <label className={`ingredient ${checked.has(i) ? 'is-checked' : ''}`}>
+                  <input type="checkbox" checked={checked.has(i)} onChange={() => toggleChecked(i)} />
+                  <span className="ingredient__box"><Icon name="check" /></span>
+                  <span className="ingredient__name">{ing.name}</span>
+                  <span className="ingredient__qty">{ing.quantity} {unitLabel(ing.unit, ing.quantity)}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            disabled={addingAll}
+            onClick={() => {
+              const missing = scaledIngredients.filter((_, i) => !checked.has(i));
+              const list = missing.length ? missing : scaledIngredients;
+              addToList(list, `${list.length} ${list.length === 1 ? 'item' : 'items'} added to your shopping list`);
+            }}
+          >
+            {addingAll ? <Spinner /> : <><Icon name="add_shopping_cart" />{checked.size ? `Add ${recipe.ingredients.length - checked.size || recipe.ingredients.length} I don’t have` : 'Add all to shopping list'}</>}
+          </button>
+          <p className="field__hint ingredients__hint">Tick what you already have, then add the rest to your list.</p>
+
+          {(n.calories > 0) && (
+            <div className="nutrition">
+              <h3>Nutrition per serving <span className="muted small">(estimate)</span></h3>
+              <div className="nutrition__grid">
+                <div><strong>{perServing(n.calories)}</strong><span>kcal</span></div>
+                <div><strong>{perServing(n.protein)} g</strong><span>protein</span></div>
+                <div><strong>{perServing(n.carbs)} g</strong><span>carbs</span></div>
+                <div><strong>{perServing(n.fat)} g</strong><span>fat</span></div>
+              </div>
+            </div>
+          )}
+        </aside>
+
+        <section className="recipe__method">
+          <div className="method__head">
+            <h2 className="section-title">Method</h2>
+            <Link to={`/recipe/${recipe._id}/cook`} className="btn btn-quiet btn-sm"><Icon name="fullscreen" />Cook mode</Link>
+          </div>
+          <ol className="steps">
+            {recipe.steps.map((step, i) => (
+              <li key={step._id || i} className="step">
+                <span className="step__num" aria-hidden>{i + 1}</span>
+                <div className="step__content">
+                  <p className="step__text">{step.text}</p>
+                  {(step.ingredient || step.alternate || step.timer > 0) && (
+                    <div className="step__meta">
+                      {step.timer > 0 && <span className="badge badge--chili"><Icon name="timer" />{step.timer} min</span>}
+                      {step.ingredient && <span className="badge">{step.ingredient}{step.quantity ? ` · ${step.quantity}` : ''}</span>}
+                      {step.alternate && <span className="badge badge--herb">Swap: {step.alternate}</span>}
+                    </div>
+                  )}
+                  {step.video ? (
+                    <video className="step__media" src={assetUrl(step.video)} poster={step.image ? assetUrl(step.image) : undefined} controls preload="metadata" />
+                  ) : step.image ? (
+                    <img className="step__media" src={assetUrl(step.image)} alt={`Step ${i + 1}`} loading="lazy" />
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+
+      <Reviews
+        recipeId={recipe._id}
+        isOwner={isOwner}
+        onSummary={(s) => setRecipe((r) => ({ ...r, avgRating: s.avgRating, ratingCount: s.ratingCount }))}
+      />
+
+      <ScheduleDialog open={scheduleOpen} onClose={() => setScheduleOpen(false)} recipe={recipe} />
+      <ReportDialog open={reportOpen} onClose={() => setReportOpen(false)} recipe={recipe} />
+    </Page>
+  );
+}

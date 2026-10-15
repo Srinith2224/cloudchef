@@ -96,6 +96,22 @@ const RecipeSchema = new Schema({
     tags: [{
         type: String
     }],
+    servings: {
+        type: Number,
+        min: 1,
+        max: 50,
+        default: 2
+    },
+    // Cached rating summary (source of truth is the Rating collection)
+    ratingAvg: {
+        type: Number,
+        default: 0
+    },
+    ratingCount: {
+        type: Number,
+        default: 0
+    },
+    // Legacy embedded ratings kept for old documents; new ratings live in the Rating collection
     ratings: [{
         userId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -120,5 +136,6 @@ const RecipeSchema = new Schema({
 
 RecipeSchema.index({ title: 'text' });
 RecipeSchema.index({ tags: 1 });
+RecipeSchema.index({ 'createdBy._id': 1, createdAt: -1 });
 
 module.exports = mongoose.model('Recipe', RecipeSchema);

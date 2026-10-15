@@ -1,117 +1,179 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useRecipesContext } from '../hooks/useRecipesContext.js';
-import './Navbar.css'; // Assuming you have a CSS file for styling
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import Icon from './Icon';
+import Avatar from './Avatar';
+import { useAuth } from '../context/AuthContext';
 
-const Navbar = () => {
-    const { user } = useRecipesContext();
-    const [profilePhoto, setProfilePhoto] = useState(null);
-    const navigate = useNavigate();
-    const location = useLocation();
-    
-    // Check if we're on the landing page
-    const isLandingPage = location.pathname === '/';
+const MAIN_LINKS = [
+  { to: '/explore', label: 'Explore', icon: 'travel_explore' },
+  { to: '/planner', label: 'Meal plan', icon: 'calendar_month', auth: true },
+  { to: '/shopping-list', label: 'Shopping list', icon: 'shopping_basket', auth: true },
+  { to: '/ai-chef', label: 'AI chef', icon: 'auto_awesome', auth: true }
+];
 
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const response = await fetch(`/api/users/${user.userId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+const TAB_LINKS = [
+  { to: '/explore', label: 'Explore', icon: 'travel_explore' },
+  { to: '/saved', label: 'Saved', icon: 'bookmark' },
+  { to: '/new-recipe', label: 'Create', icon: 'add', primary: true },
+  { to: '/planner', label: 'Plan', icon: 'calendar_month' },
+  { to: '/shopping-list', label: 'List', icon: 'shopping_basket' }
+];
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user info');
-                }
+function UserMenu() {
+  const { user, signOut, isAdmin } = useAuth();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-                const userInfo = await response.json();
-                setProfilePhoto(userInfo.profilePhoto);
-            } catch (error) {
-                console.error(error);
-            }
-        };
+  useEffect(() => setOpen(false), [location.pathname]);
 
-        if (user && user.userId) {
-            fetchUserInfo();
-        }
-    }, [user]);
-
-    const handleProfileClick = () => {
-        navigate('/profile');
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', close);
+      document.removeEventListener('keydown', onKey);
     };
+  }, [open]);
 
-    return (
-        <header className={isLandingPage ? "transparent-header" : ""}>
-            <div className="container">
-                <Link to={user ? "/welcome" : "/"} className="logo-container">
-                    <img
-                        src="/cloudcheflogo.png"
-                        alt="Cloud Chef Logo"
-                        className="logo"
-                    />
-                    <h1 className="logo-text">Cloud Chef</h1>
-                </Link>
-                
-                {user ? (
-                    <div className="nav-links">
-                        <Link to="/welcome" className="nav-link">
-                            <span className="material-icons">home</span> 
-                        </Link>
-                        <Link to="/add-recipe" className="nav-link">
-                            <span className="material-icons">add_box</span> 
-                        </Link>
-                        <Link to="/my-recipes" className="nav-link">
-                            <span className="material-icons">library_books</span> 
-                        </Link>
-                        <Link to="/saved-recipes" className="nav-link">
-                            <span className="material-icons">bookmark</span> 
-                        </Link>
-                        <Link to="/generate-recipe" className="nav-link">
-                            <span className="material-icons">auto_awesome</span> 
-                        </Link>
-                        <Link to="/cart" className="nav-link">
-                            <span className="material-icons">shopping_cart</span>
-                        </Link>
-                        <Link to="/scheduled-meals" className="nav-link">
-                            <span className="material-icons">calendar_today</span>
-                        </Link>
-                        {user && user.role === 'admin' && (
-                            <Link to="/admin" className="nav-link admin-link">
-                                <span className="material-icons">admin_panel_settings</span>
-                            </Link>
-                        )}
-                        {profilePhoto ? (
-                            <Link to="/profile" className="nav-link">
-                                <img
-                                    src={profilePhoto}
-                                    alt="Profile"
-                                    className="profile-photo"
-                                    onClick={handleProfileClick}
-                                />
-                            </Link>
-                        ) : (
-                            <Link to="/profile" className="nav-link">
-                                <span onClick={handleProfileClick} className="material-icons profile-icon">account_circle</span>
-                            </Link>
-                        )}
-                    </div>
-                ) : (
-                    <div className="nav-links">
-                        <Link to="/welcome" className="nav-link">
-                            <span className="material-icons">restaurant_menu</span>
-                            <span className="nav-text">Browse</span>
-                        </Link>
-                        <Link to="/Auth" className="nav-link">
-                            <span className="material-icons">login</span>
-                            <span className="nav-text">Sign In</span>
-                        </Link>
-                    </div>
-                )}
+  const items = [
+    { to: `/cook/${user.userId}`, icon: 'person', label: 'My profile' },
+    { to: '/my-recipes', icon: 'menu_book', label: 'My recipes' },
+    { to: '/saved', icon: 'bookmark', label: 'Saved recipes' },
+    { to: '/ai-chef', icon: 'auto_awesome', label: 'AI chef', mobileOnly: true },
+    { to: '/settings', icon: 'settings', label: 'Settings' },
+    ...(isAdmin ? [{ to: '/admin', icon: 'shield_person', label: 'Admin' }] : [])
+  ];
+
+  return (
+    <div className="usermenu" ref={ref}>
+      <button
+        type="button"
+        className="usermenu__trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Avatar src={user.profilePhoto} firstName={user.firstName} lastName={user.lastName} size={36} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="usermenu__panel"
+            role="menu"
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.12 } }}
+            transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+          >
+            <div className="usermenu__head">
+              <Avatar src={user.profilePhoto} firstName={user.firstName} lastName={user.lastName} size={44} />
+              <div>
+                <strong>{user.firstName} {user.lastName}</strong>
+                <span>{user.email}</span>
+              </div>
             </div>
-        </header>
-    );
-};
+            {items.map((item) => (
+              <Link key={item.to} to={item.to} role="menuitem" className={`usermenu__item ${item.mobileOnly ? 'only-mobile' : ''}`}>
+                <Icon name={item.icon} />{item.label}
+              </Link>
+            ))}
+            <button
+              type="button"
+              role="menuitem"
+              className="usermenu__item usermenu__item--danger"
+              onClick={() => { signOut(); navigate('/'); }}
+            >
+              <Icon name="logout" />Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
-export default Navbar;
+export default function Navbar() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  const onLanding = location.pathname === '/';
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Full-screen cook mode hides the app chrome
+  if (location.pathname.endsWith('/cook')) return null;
+
+  return (
+    <>
+      <a href="#main" className="skip-link">Skip to content</a>
+      <header className={`topbar ${scrolled ? 'is-scrolled' : ''} ${onLanding ? 'topbar--landing' : ''}`}>
+        <div className="topbar__inner">
+          <Link to={user ? '/explore' : '/'} className="brand" aria-label="CloudChef home">
+            <img src="/cloudcheflogo.png" alt="" className="brand__logo" />
+            <span className="brand__name">CloudChef</span>
+          </Link>
+
+          <nav className="topnav" aria-label="Main">
+            {MAIN_LINKS.filter((l) => !l.auth || user).map((link) => (
+              <NavLink key={link.to} to={link.to} className="topnav__link">
+                {({ isActive }) => (
+                  <>
+                    <Icon name={link.icon} filled={isActive} />
+                    <span>{link.label}</span>
+                    {isActive && <motion.span layoutId="topnav-pill" className="topnav__pill" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="topbar__end">
+            {user ? (
+              <>
+                <Link to="/new-recipe" className="btn btn-primary btn-sm hide-mobile">
+                  <Icon name="add" />New recipe
+                </Link>
+                <UserMenu />
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="btn btn-ghost btn-sm">Sign in</Link>
+                <Link to="/auth?mode=signup" className="btn btn-primary btn-sm hide-mobile">Create account</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {user && !onLanding && (
+        <nav className="tabbar" aria-label="Main">
+          {TAB_LINKS.map((tab) => (
+            <NavLink key={tab.to} to={tab.to} className={`tabbar__link ${tab.primary ? 'tabbar__link--primary' : ''}`}>
+              {({ isActive }) => (
+                <>
+                  <span className="tabbar__icon">
+                    <Icon name={tab.icon} filled={isActive} />
+                    {isActive && !tab.primary && <motion.span layoutId="tab-dot" className="tabbar__dot" />}
+                  </span>
+                  <span className="tabbar__label">{tab.label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+    </>
+  );
+}

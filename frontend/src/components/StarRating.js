@@ -1,47 +1,47 @@
-import React from 'react';
-import './StarRating.css';
+import React, { useState } from 'react';
+import Icon from './Icon';
 
-const StarRating = ({ rating, size = "medium", interactive = false, onChange }) => {
-    const renderStars = () => {
-        const stars = [];
-        const fullStars = Math.floor(rating);
-        const halfStar = rating % 1 >= 0.5;
+/** Read-only stars, or an interactive picker when onChange is given. */
+export default function StarRating({ value = 0, onChange, size = 18, className = '' }) {
+  const [hover, setHover] = useState(0);
+  const interactive = typeof onChange === 'function';
+  const shown = hover || value;
 
-        for (let i = 1; i <= 5; i++) {
-            if (interactive) {
-                stars.push(
-                    <span 
-                        key={i} 
-                        className={`star interactive ${size}`}
-                        onClick={() => onChange(i)}
-                        onMouseEnter={() => document.querySelectorAll('.star.interactive').forEach((star, index) => {
-                            if (index < i) star.classList.add('hover');
-                            else star.classList.remove('hover');
-                        })}
-                        onMouseLeave={() => document.querySelectorAll('.star.interactive').forEach(star => {
-                            star.classList.remove('hover');
-                        })}
-                    >
-                        {i <= fullStars ? "★" : "☆"}
-                    </span>
-                );
-            } else {
-                stars.push(
-                    <span key={i} className={`star ${size}`}>
-                        {i <= fullStars ? "★" : (i === fullStars + 1 && halfStar ? "★" : "☆")}
-                    </span>
-                );
-            }
-        }
-        return stars;
-    };
-
+  if (!interactive) {
     return (
-        <div className="star-rating">
-            {renderStars()}
-            {size !== "small" && <span className="rating-value">({rating.toFixed(1)})</span>}
-        </div>
+      <span className={`stars ${className}`} aria-label={`${value.toFixed ? value.toFixed(1) : value} out of 5 stars`}>
+        {[1, 2, 3, 4, 5].map((i) => {
+          const fill = Math.max(0, Math.min(1, value - (i - 1)));
+          return (
+            <span key={i} className="star" style={{ fontSize: size }}>
+              <Icon name="star" className="star__bg" filled />
+              <span className="star__fill" style={{ width: `${fill * 100}%` }}><Icon name="star" filled /></span>
+            </span>
+          );
+        })}
+      </span>
     );
-};
+  }
 
-export default StarRating;
+  return (
+    <span className={`stars stars--input ${className}`} role="radiogroup" aria-label="Your rating" onMouseLeave={() => setHover(0)}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          key={i}
+          type="button"
+          role="radio"
+          aria-checked={value === i}
+          aria-label={`${i} star${i > 1 ? 's' : ''}`}
+          className={`star-btn ${i <= shown ? 'is-on' : ''}`}
+          style={{ fontSize: size }}
+          onMouseEnter={() => setHover(i)}
+          onFocus={() => setHover(i)}
+          onBlur={() => setHover(0)}
+          onClick={() => onChange(i)}
+        >
+          <Icon name="star" filled={i <= shown} />
+        </button>
+      ))}
+    </span>
+  );
+}

@@ -1,19 +1,13 @@
 {
-  "name": "your-project-name",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "name": "cloudchef",
+  "private": true,
+  "description": "CloudChef — recipe sharing, cook mode, meal planning and AI recipes",
   "scripts": {
-    "start": "node backend/server.js"
-  },
-  "dependencies": {
-    "axios": "^1.8.2",
-    "cloudinary": "^1.41.3",
-    "dotenv": "^10.0.0",
-    "framer-motion": "^12.4.11",
-    "multer": "^1.4.3",
-    "multer-storage-cloudinary": "^4.0.0",
-    "node-fetch": "^3.0.0",
-    "sharp": "^0.28.3"
+    "install-all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend start",
+    "test": "npm --prefix backend test",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start"
   }
 }

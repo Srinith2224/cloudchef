@@ -1,33 +1,22 @@
 const Report = require('../models/ReportsModel');
-const mongoose = require('mongoose');
+const Recipe = require('../models/RecipeModel');
+const { HttpError, asyncHandler, assertId } = require('../utils/http');
 
-// Create a report
-const createReport = async (req, res) => {
-    const { reportedBy, reportedItem, reason, type } = req.body;
+// POST /api/reports  { reportedItem, reason, type }
+const createReport = asyncHandler(async (req, res) => {
+  const { reportedItem } = req.body;
+  const reason = String(req.body.reason || '').trim().slice(0, 500);
+  const type = ['recipe', 'review', 'user'].includes(req.body.type) ? req.body.type : 'recipe';
 
-    if (!mongoose.Types.ObjectId.isValid(reportedBy) || !mongoose.Types.ObjectId.isValid(reportedItem)) {
-        return res.status(404).json({ error: 'Invalid user ID or reported item ID' });
-    }
+  assertId(reportedItem, 'item ID');
+  if (reason.length < 5) throw new HttpError(400, 'Tell us briefly what is wrong (at least 5 characters).');
+  if (type === 'recipe' && !(await Recipe.exists({ _id: reportedItem }))) throw new HttpError(404, 'This recipe does not exist.');
 
-    try {
-        const report = await Report.create({ reportedBy, reportedItem, reason, type, createdAt: new Date() });
-        res.status(200).json(report);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+  const duplicate = await Report.exists({ reportedBy: req.userId, reportedItem, status: 'open' });
+  if (duplicate) throw new HttpError(409, 'You already reported this. An admin will review it.');
 
-// Get all reports
-const getReports = async (req, res) => {
-    try {
-        const reports = await Report.find({}).sort({ createdAt: -1 });
-        res.status(200).json(reports);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+  const report = await Report.create({ reportedBy: req.userId, reportedItem, reason, type });
+  res.status(201).json({ message: 'Thanks. An admin will review it.', _id: report._id });
+});
 
-module.exports = {
-    createReport,
-    getReports
-};
+module.exports = { createReport };
