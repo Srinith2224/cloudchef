@@ -1,10 +1,10 @@
 jest.mock('../models/UserModel', () => ({ findOne: jest.fn(), create: jest.fn(), findById: jest.fn() }));
-jest.mock('bcrypt', () => ({ compare: jest.fn(), hash: jest.fn() }));
+jest.mock('bcryptjs', () => ({ compare: jest.fn(), hash: jest.fn() }));
 jest.mock('jsonwebtoken', () => ({ sign: jest.fn(() => 'mock_token'), verify: jest.fn() }));
 jest.mock('google-auth-library', () => ({ OAuth2Client: jest.fn().mockImplementation(() => ({ verifyIdToken: jest.fn() })) }));
 
 const User = require('../models/UserModel');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { loginUser, registerUser, logoutUser, getGoogleClientId } = require('../controllers/authController');
 
 const mockRes = () => ({ status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() });
