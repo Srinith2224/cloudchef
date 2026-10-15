@@ -3,10 +3,10 @@ const Recipe = require('../models/RecipeModel');
 const Rating = require('../models/RatingModel');
 const Cart = require('../models/CartModel');
 const Calendar = require('../models/CalendarModel');
-const Report = require('../models/ReportsModel');
+const Report = require('../models/ReportModel');
 const { removeRecipeEverywhere, withRating, LIST_FIELDS } = require('./recipeController');
 const { refreshRecipeRating } = require('./ratingController');
-const { deleteStoredFile } = require('../config/cloudinaryConfig');
+const { deleteStoredFile } = require('../config/uploads');
 const { HttpError, asyncHandler, assertId } = require('../utils/http');
 
 // GET /api/admin/stats

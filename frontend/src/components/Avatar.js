@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { assetUrl } from '../api/client';
 
 const initials = (first = '', last = '') => `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || '?';
@@ -6,6 +6,7 @@ const initials = (first = '', last = '') => `${first.charAt(0)}${last.charAt(0)}
 /** Profile photo with a colourful initials fallback (also used when the image fails to load). */
 export default function Avatar({ src, firstName, lastName, size = 40, className = '' }) {
   const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [src]); // a new photo gets a fresh try
   const hue = ((firstName || '').charCodeAt(0) * 37 + (lastName || '').charCodeAt(0) * 17) % 360 || 18;
   const style = { width: size, height: size, fontSize: Math.max(11, size * 0.38) };
 

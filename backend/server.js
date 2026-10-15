@@ -7,7 +7,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
-const { UPLOAD_DIR } = require('./config/cloudinaryConfig');
+const { UPLOAD_DIR } = require('./config/uploads');
+const migrateOldRatings = require('./utils/migrateOldRatings');
 
 const REQUIRED_ENV = ['MONGO_URI', 'SECRET'];
 const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
@@ -39,7 +40,7 @@ const limiter = (windowMinutes, max, message) => rateLimit({
   legacyHeaders: false,
   message: { error: message }
 });
-app.use(['/api/login', '/api/register', '/api/google-signin'], limiter(15, 30, 'Too many sign-in attempts. Wait a few minutes and try again.'));
+app.use(['/api/login', '/api/google-signin'], limiter(15, 30, 'Too many sign-in attempts. Wait a few minutes and try again.'));
 app.use('/api/otp', limiter(15, 20, 'Too many code requests. Wait a few minutes and try again.'));
 app.use('/api/ai', limiter(10, 15, 'You are generating recipes very fast. Wait a few minutes and try again.'));
 app.use('/api', limiter(1, 300, 'Too many requests. Slow down a little.'));
@@ -54,7 +55,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/reports', require('./routes/reports'));
-app.use('/api/otp', require('./routes/otpRoutes'));
+app.use('/api/otp', require('./routes/otp'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/ai', require('./routes/ai'));
@@ -94,7 +95,8 @@ const PORT = process.env.PORT || 4000;
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
+    await migrateOldRatings().catch((error) => console.error('Could not move old ratings:', error.message));
     app.listen(PORT, () => console.log(`CloudChef API ready on http://localhost:${PORT}`));
   })
   .catch((error) => {

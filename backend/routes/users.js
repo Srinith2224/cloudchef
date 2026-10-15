@@ -1,7 +1,7 @@
 const express = require('express');
 const users = require('../controllers/userController');
 const { requireAuth, optionalAuth } = require('../middleware/authMiddleware');
-const { uploadProfilePhoto } = require('../config/cloudinaryConfig');
+const { uploadProfilePhoto } = require('../config/uploads');
 
 const router = express.Router();
 

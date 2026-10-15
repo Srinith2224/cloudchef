@@ -33,18 +33,15 @@ Built with **React 18**, **Express**, **MongoDB** and **Google Gemini**.
 You need **Node.js 18+** and a **MongoDB** database (a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster works).
 
 ```bash
-# 1. Install everything
-npm run install-all
+# 1. Install everything (backend and frontend too)
+npm install
 
 # 2. Create the backend settings file
 cp backend/.env.example backend/.env      # Windows: copy backend\.env.example backend\.env
 #    then open backend/.env and set at least MONGO_URI and SECRET
 
-# 3. Start the API (http://localhost:4000)
-npm run dev:api
-
-# 4. In a second terminal, start the website (http://localhost:3000)
-npm run dev:web
+# 3. Start the API (http://localhost:4000) and the website (http://localhost:3000) together
+npm run dev
 ```
 
 Make yourself an admin:
@@ -90,8 +87,9 @@ backend/
   models/        Mongoose schemas
   routes/        URL → controller wiring, with auth middleware
   services/      nutrition estimates, Gemini recipe generation
-  config/        uploads (Cloudinary or local disk)
-  scripts/       create-admin and data migrations
+  config/        uploads.js: file uploads (Cloudinary, or local disk without it)
+  utils/         shared helpers, email, old-data upgrade on start-up
+  scripts/       create-admin, move old local uploads to Cloudinary
   tests/         Jest tests
 frontend/src/
   api/           one fetch wrapper for every API call
@@ -103,11 +101,9 @@ frontend/src/
 
 ## Upgrading from the old version
 
-Old URLs such as `/welcome`, `/cart` or `/user/:id` redirect to their new pages. If your database has ratings from the old version, run once:
+Nothing to run by hand. Old URLs such as `/welcome`, `/cart` or `/user/:id` redirect to their new pages, and ratings stored the old way are moved to the new ratings list automatically the first time the API starts.
 
-```bash
-cd backend && npm run migrate-ratings
-```
+If old photos were saved on the server's disk (before Cloudinary), copy them into `backend/` and run `cd backend && npm run migrate-cloudinary` to upload them.
 
 ## License
 

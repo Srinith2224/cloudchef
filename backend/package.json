@@ -11,7 +11,6 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "create-admin": "node scripts/createAdmin.js",
-    "migrate-ratings": "node scripts/migrateRatings.js",
     "migrate-cloudinary": "node scripts/migrateToCloudinary.js"
   },
   "license": "ISC",

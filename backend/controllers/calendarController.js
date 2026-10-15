@@ -49,9 +49,8 @@ const addCalendarEntry = asyncHandler(async (req, res) => {
   res.status(201).json(formatEntries(await populated(req.userId)));
 });
 
-// GET /api/calendar  (and legacy /api/calendar/:userId — always returns the signed-in user's plan)
+// GET /api/calendar  (the signed-in user's plan)
 const getCalendarEntries = asyncHandler(async (req, res) => {
-  if (req.params.userId && req.params.userId !== req.userId) throw new HttpError(403, 'Meal plans are private.');
   res.status(200).json(formatEntries(await populated(req.userId)));
 });
 

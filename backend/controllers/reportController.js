@@ -1,4 +1,4 @@
-const Report = require('../models/ReportsModel');
+const Report = require('../models/ReportModel');
 const Recipe = require('../models/RecipeModel');
 const { HttpError, asyncHandler, assertId } = require('../utils/http');
 

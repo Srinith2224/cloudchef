@@ -10,7 +10,7 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const Recipe = require('../models/RecipeModel');
 const User = require('../models/UserModel');
-const { cloudinary, cloudinaryEnabled } = require('../config/cloudinaryConfig');
+const { cloudinary, cloudinaryEnabled } = require('../config/uploads');
 
 const ROOT = path.join(__dirname, '..');
 const isLocal = (url) => typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');

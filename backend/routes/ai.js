@@ -1,7 +1,7 @@
 const express = require('express');
 const ai = require('../controllers/aiController');
 const { requireAuth } = require('../middleware/authMiddleware');
-const { uploadAiImage } = require('../config/cloudinaryConfig');
+const { uploadAiImage } = require('../config/uploads');
 
 const router = express.Router();
 

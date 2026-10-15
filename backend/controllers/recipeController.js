@@ -3,24 +3,18 @@ const User = require('../models/UserModel');
 const Rating = require('../models/RatingModel');
 const Calendar = require('../models/CalendarModel');
 const { estimateRecipeNutrition } = require('../services/nutritionService');
-const { fileUrl, deleteStoredFile } = require('../config/cloudinaryConfig');
-const { HttpError, asyncHandler, assertId, escapeRegex } = require('../utils/http');
+const { fileUrl, deleteStoredFile } = require('../config/uploads');
+const { HttpError, asyncHandler, assertId } = require('../utils/http');
 
 const UNITS = ['g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'cup', 'packet', 'piece', 'slice'];
-const LIST_FIELDS = 'title mainImage description totalTime tags createdBy ratingAvg ratingCount ratings.rating ingredients.name servings createdAt';
+const LIST_FIELDS = 'title mainImage description totalTime tags createdBy ratingAvg ratingCount ingredients.name servings createdAt';
 
-/** Adds avgRating/ratingCount, falling back to the legacy embedded array for old documents. */
+/** Adds avgRating/ratingCount (cached on the recipe) in the shape the frontend expects. */
 const withRating = (doc) => {
   const recipe = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
-  let avg = recipe.ratingAvg || 0;
-  let count = recipe.ratingCount || 0;
-  if (!count && Array.isArray(recipe.ratings) && recipe.ratings.length) {
-    count = recipe.ratings.length;
-    avg = recipe.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / count;
-  }
-  delete recipe.ratings;
-  recipe.avgRating = Math.round(avg * 10) / 10;
-  recipe.ratingCount = count;
+  recipe.avgRating = Math.round((recipe.ratingAvg || 0) * 10) / 10;
+  recipe.ratingCount = recipe.ratingCount || 0;
+  delete recipe.ratingAvg;
   return recipe;
 };
 
@@ -136,26 +130,10 @@ const discardUploads = (req) => Promise.all((req.files || []).map((f) => deleteS
 const canEdit = (req, recipe) => req.userRole === 'admin' || String(recipe.createdBy._id) === req.userId;
 
 // GET /api/recipes
+// (Explore searches and filters these in the browser)
 const getRecipes = asyncHandler(async (req, res) => {
-  const filter = {};
-  if (req.query.q) {
-    const rx = new RegExp(escapeRegex(String(req.query.q).slice(0, 80)), 'i');
-    filter.$or = [{ title: rx }, { description: rx }, { tags: rx }, { 'ingredients.name': rx }];
-  }
-  const recipes = await Recipe.find(filter).select(LIST_FIELDS).sort({ createdAt: -1 }).limit(500);
+  const recipes = await Recipe.find({}).select(LIST_FIELDS).sort({ createdAt: -1 }).limit(500);
   res.status(200).json(recipes.map(withRating));
-});
-
-// GET /api/recipes/search?query=
-const searchRecipes = asyncHandler(async (req, res) => {
-  const query = String(req.query.query || req.query.q || '').trim().slice(0, 80);
-  if (!query) return res.status(200).json([]);
-  const rx = new RegExp(escapeRegex(query), 'i');
-  const results = await Recipe.find({ $or: [{ title: rx }, { tags: rx }, { 'ingredients.name': rx }] })
-    .select(LIST_FIELDS)
-    .sort({ createdAt: -1 })
-    .limit(100);
-  res.status(200).json(results.map(withRating));
 });
 
 // GET /api/recipes/:id
@@ -267,7 +245,6 @@ module.exports = {
   deleteRecipe,
   updateRecipe,
   getRecipesByUserId,
-  searchRecipes,
   calculateNutrition,
   removeRecipeEverywhere,
   withRating,

@@ -7,7 +7,7 @@ import Avatar from '../components/Avatar';
 import Spinner, { PageLoader } from '../components/Spinner';
 import CodeInput from '../components/CodeInput';
 import PasswordInput from '../components/PasswordInput';
-import { api, assetUrl } from '../api/client';
+import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import '../styles/pages/settings.css';
@@ -83,7 +83,7 @@ function ProfileTab() {
   return (
     <form className="settings__form" onSubmit={save}>
       <div className="settings__photo">
-        <Avatar src={shownPhoto ? assetUrl(shownPhoto) : ''} firstName={form.firstName} lastName={form.lastName} size={96} />
+        <Avatar src={shownPhoto} firstName={form.firstName} lastName={form.lastName} size={96} />
         <div className="settings__photo-actions">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}><Icon name="photo_camera" />{shownPhoto ? 'Change photo' : 'Add photo'}</button>
           {shownPhoto && <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setRemovePhoto(true); setPhotoFile(null); setPreview(''); }}>Remove</button>}
