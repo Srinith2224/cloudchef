@@ -1,0 +1,28 @@
+.admin.page { max-width: 1000px; }
+.admin-tabs { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 24px; }
+.admin-tabs .chip.active { background: var(--coral-soft); border-color: var(--coral-line); color: var(--coral-hover); }
+.admin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 700px) { .admin-stats { grid-template-columns: 1fr 1fr; } }
+.admin-stat { display: flex; flex-direction: column; gap: 4px; padding: 20px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); transition: border-color var(--t-fast); }
+a.admin-stat:hover { border-color: var(--line-strong); }
+.admin-stat .icon { color: var(--coral); font-size: 1.6rem; margin-bottom: 8px; }
+.admin-stat strong { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; }
+.admin-stat span { color: var(--text-3); font-size: 0.9rem; }
+.admin-stat.is-alert { border-color: var(--coral-line); background: var(--coral-soft); }
+.admin-search { max-width: 420px; margin-bottom: 14px; }
+.admin-list { list-style: none; display: flex; flex-direction: column; }
+.admin-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.admin-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.admin-row__title { font-weight: 600; display: inline-flex; gap: 8px; align-items: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.admin-row__title:hover { color: var(--coral-hover); }
+.admin-row__sub { font-size: 0.82rem; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-row__role { width: auto; min-height: 38px; padding-top: 0; padding-bottom: 0; font-size: 0.9rem; }
+.admin-row__thumb { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+.admin-row__thumb--empty { display: grid; place-items: center; background: var(--surface-2); color: var(--text-3); }
+.admin-row.is-resolved { opacity: 0.6; }
+@media (max-width: 600px) {
+  .admin-row { flex-wrap: wrap; }
+  .admin-row__main { flex-basis: calc(100% - 64px); }
+  .admin-row__sub { white-space: normal; }
+  .admin-row--report .btn { flex: 1; }
+}

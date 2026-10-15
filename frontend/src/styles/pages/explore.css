@@ -1,0 +1,28 @@
+.explore__head { margin-bottom: 26px; }
+.explore__title { font-size: clamp(2.1rem, 5.4vw, 3.6rem); letter-spacing: -0.04em; font-weight: 800; }
+.explore__search { margin-top: 22px; display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 8px 0 18px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-pill); max-width: 720px; transition: border-color var(--t-fast), box-shadow var(--t-fast); }
+.explore__search:focus-within { border-color: var(--coral); box-shadow: 0 0 0 4px var(--coral-soft); }
+.explore__search > .icon { color: var(--text-3); font-size: 1.4rem; }
+.explore__search input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; font-size: 1.05rem; color: var(--text); }
+.explore__search input::placeholder { color: var(--text-3); }
+.explore__search input::-webkit-search-cancel-button { display: none; }
+
+.explore__bar { margin-top: 18px; display: flex; align-items: center; gap: 12px; }
+.explore__chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; flex: 1; padding: 2px; margin: -2px; mask-image: linear-gradient(90deg, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 92%, transparent); padding-right: 30px; }
+.explore__chips::-webkit-scrollbar { display: none; }
+.explore__count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--coral); color: var(--coral-ink); font-size: 0.75rem; font-weight: 700; }
+.explore__sort .select { min-height: 38px; padding-top: 0; padding-bottom: 0; border-radius: var(--r-pill); font-size: 0.9rem; width: auto; background-color: transparent; }
+
+.explore__guest { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--r-md); background: var(--coral-soft); color: var(--text-2); margin-bottom: 26px; font-size: 0.95rem; }
+.explore__guest .icon { color: var(--coral); }
+.explore__guest a { color: var(--coral-hover); font-weight: 700; }
+.explore__summary { color: var(--text-3); font-size: 0.9rem; margin-bottom: 14px; display: flex; gap: 14px; align-items: center; }
+.explore__clear { color: var(--coral-hover); font-weight: 600; }
+.explore__clear:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .explore__bar { flex-wrap: wrap; }
+  .explore__chips { flex-basis: 100%; }
+  .explore__sort { margin-left: auto; }
+}
+

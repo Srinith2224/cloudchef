@@ -1,0 +1,12 @@
+/* Fonts are bundled with the app (no Google Fonts request, works offline). */
+@import '@fontsource-variable/bricolage-grotesque/index.css';
+@import '@fontsource-variable/figtree/index.css';
+
+/* Only the icons CloudChef uses. Rebuild with: python scripts/subset-icons.py */
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url('../assets/fonts/material-symbols-rounded-subset.woff2') format('woff2');
+}

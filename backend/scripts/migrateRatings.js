@@ -1,90 +1,48 @@
+/*
+ * Moves old ratings that were stored inside recipe documents into the Rating
+ * collection, then caches ratingAvg / ratingCount on every recipe.
+ * Safe to run more than once.
+ *
+ *   npm run migrate-ratings
+ */
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const Recipe = require('../models/RecipeModel');
 const Rating = require('../models/RatingModel');
-require('dotenv').config();
+const User = require('../models/UserModel');
+const { refreshRecipeRating } = require('../controllers/ratingController');
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to database for migration'))
-  .catch((error) => console.error('Database connection error:', error));
+async function main() {
+  await mongoose.connect(process.env.MONGO_URI);
+  const recipes = await Recipe.find({}).select('ratings createdBy');
+  let moved = 0;
 
-const migrateRatings = async () => {
-  try {
-    console.log('Starting ratings migration...');
-    
-    // Find all recipes
-    const recipes = await Recipe.find({});
-    console.log(`Found ${recipes.length} recipes to check`);
-    
-    for (const recipe of recipes) {
-      try {
-        // Check if ratings is an array
-        if (Array.isArray(recipe.ratings)) {
-          console.log(`Converting ratings for recipe: ${recipe._id} - ${recipe.title}`);
-
-          // Create Rating documents for each rating in the array
-          for (const oldRating of recipe.ratings) {
-            if (oldRating.userId && oldRating.rating) {
-              await Rating.findOneAndUpdate(
-                { recipeId: recipe._id, userId: oldRating.userId },
-                {
-                  userName: oldRating.userName || 'User',
-                  rating: oldRating.rating,
-                  comment: oldRating.comment || "",
-                  createdAt: oldRating.createdAt || new Date()
-                },
-                { upsert: true, new: true }
-              );
-            }
-          }
-
-          // Now calculate average rating
-          const allRatings = await Rating.find({ recipeId: recipe._id });
-          const avgRating = allRatings.length > 0 ?
-            allRatings.reduce((sum, item) => sum + item.rating, 0) / allRatings.length : 0;
-          
-          // Update the recipe document with new ratings structure
-          await Recipe.updateOne(
-            { _id: recipe._id },
-            {
-              $unset: { ratings: "" },
-              $set: {
-                ratings: {
-                  avg: parseFloat(avgRating.toFixed(1)),
-                  count: allRatings.length
-                }
-              }
-            }
-          );
-          
-          console.log(`Updated recipe ${recipe._id} with avg rating ${avgRating.toFixed(1)} from ${allRatings.length} ratings`);
-        }
-        else if (!recipe.ratings || typeof recipe.ratings !== 'object') {
-          // If ratings doesn't exist or isn't an object, initialize it
-          await Recipe.updateOne(
-            { _id: recipe._id },
-            {
-              $set: {
-                ratings: {
-                  avg: 0,
-                  count: 0
-                }
-              }
-            }
-          );
-          console.log(`Initialized ratings for recipe ${recipe._id}`);
-        }
-      } catch (err) {
-        console.error(`Error processing recipe ${recipe._id}:`, err);
-      }
+  for (const recipe of recipes) {
+    for (const old of recipe.ratings || []) {
+      if (!old.userId || !old.rating) continue;
+      if (String(old.userId) === String(recipe.createdBy._id)) continue;
+      const exists = await Rating.exists({ recipeId: recipe._id, userId: old.userId });
+      if (exists) continue;
+      const user = await User.findById(old.userId).select('firstName lastName');
+      await Rating.create({
+        recipeId: recipe._id,
+        userId: old.userId,
+        userName: user ? `${user.firstName} ${user.lastName}`.trim() : 'CloudChef cook',
+        rating: old.rating,
+        comment: old.comment || ''
+      });
+      moved += 1;
     }
-    
-    console.log('Migration completed successfully');
-    process.exit(0);
-  } catch (error) {
-    console.error('Migration failed:', error);
-    process.exit(1);
+    await refreshRecipeRating(recipe._id);
   }
-};
 
-migrateRatings();
+  console.log(`Checked ${recipes.length} recipes, moved ${moved} old ratings.`);
+  await mongoose.disconnect();
+}
+
+main().catch(async (error) => {
+  console.error('Migration failed:', error);
+  await mongoose.disconnect();
+  process.exit(1);
+});

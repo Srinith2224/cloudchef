@@ -1,0 +1,27 @@
+.sl.page { max-width: 760px; }
+.sl-add { display: grid; grid-template-columns: minmax(0, 1fr) 80px 110px auto; gap: 8px; margin-bottom: 26px; }
+@media (max-width: 560px) {
+  .sl-add { grid-template-columns: 1fr 1fr auto; }
+  .sl-add__name { grid-column: 1 / -1; }
+}
+.sl-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.sl-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px 10px 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); }
+.sl-item__check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-strong); display: grid; place-items: center; color: transparent; flex-shrink: 0; transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast); }
+.sl-item__check .icon { font-size: 18px; font-variation-settings: 'wght' 700; }
+.sl-item__check:hover { border-color: var(--herb); }
+.sl-item__check:active { transform: scale(0.88); }
+.sl-item.is-checked .sl-item__check { background: var(--herb); border-color: var(--herb); color: #0d2414; }
+.sl-item__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sl-item__name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-item__qty { font-size: 0.86rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.sl-item.is-checked { background: transparent; }
+.sl-item.is-checked .sl-item__name { color: var(--text-3); text-decoration: line-through; }
+.sl-item__stepper { display: flex; }
+.sl-item__stepper .icon-btn, .sl-item .icon-btn { width: 36px; height: 36px; }
+.sl-item__buy:hover { color: var(--saffron); background: var(--saffron-soft); }
+@media (max-width: 420px) { .sl-item__buy { display: none; } }
+.sl-basket { margin-top: 32px; }
+.sl-basket__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.sl-basket__head h2 { font-size: 1.1rem; color: var(--text-2); }
+.sl-done { margin-bottom: 8px; }
+.sl-clear { margin-top: 26px; }

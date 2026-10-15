@@ -4,7 +4,8 @@ const Schema = mongoose.Schema;
 const cartItemSchema = new mongoose.Schema({
   ingredient: { type: String, required: true },
   quantity: { type: Number, required: true },
-  unit: { type: String, default: '' } // Make sure this exists
+  unit: { type: String, default: '' },
+  checked: { type: Boolean, default: false }
 });
 
 const cartSchema = new Schema({
@@ -12,6 +13,6 @@ const cartSchema = new Schema({
     items: [cartItemSchema]
 }, { timestamps: true });
 
-cartSchema.index({ userId: 1 });
+cartSchema.index({ userId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Cart', cartSchema);

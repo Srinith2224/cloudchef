@@ -1,183 +1,119 @@
 const Cart = require('../models/CartModel');
-const mongoose = require('mongoose');
+const { HttpError, asyncHandler, assertId, parseQuantity } = require('../utils/http');
 
-// Example cart schema
-const cartItemSchema = new mongoose.Schema({
-    ingredient: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    unit: { type: String, default: '' } // Add unit field
+const UNITS = ['', 'g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'cup', 'packet', 'piece', 'slice'];
+
+const cleanItem = (raw) => {
+  const ingredient = String(raw?.ingredient ?? raw?.name ?? '').trim().slice(0, 80);
+  if (!ingredient) throw new HttpError(400, 'Add an item name.');
+  let quantity = parseQuantity(raw?.quantity);
+  if (!Number.isFinite(quantity) || quantity <= 0) quantity = 1;
+  quantity = Math.min(Math.round(quantity * 100) / 100, 100000);
+  const unit = UNITS.includes(raw?.unit) ? raw.unit : '';
+  return { ingredient, quantity, unit };
+};
+
+const sameItem = (a, b) => a.ingredient.toLowerCase() === b.ingredient.toLowerCase() && (a.unit || '') === (b.unit || '');
+
+const getOrCreateCart = async (userId) => {
+  let cart = await Cart.findOne({ userId });
+  if (!cart) cart = await Cart.create({ userId, items: [] });
+  return cart;
+};
+
+// GET /api/cart
+const getCartItems = asyncHandler(async (req, res) => {
+  const cart = await Cart.findOne({ userId: req.userId });
+  res.status(200).json({ items: cart ? cart.items : [] });
 });
 
-const cartSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    items: [cartItemSchema]
+// POST /api/cart/add  { ingredient, quantity, unit }
+// Adds the item, or adds the quantity to an existing line with the same name and unit.
+const addItemToCart = asyncHandler(async (req, res) => {
+  const item = cleanItem(req.body);
+  const cart = await getOrCreateCart(req.userId);
+  const existing = cart.items.find((i) => sameItem(i, item));
+  if (existing) {
+    existing.quantity = Math.round((existing.quantity + item.quantity) * 100) / 100;
+    existing.checked = false;
+  } else {
+    cart.items.push(item);
+  }
+  await cart.save();
+  res.status(200).json({ items: cart.items });
 });
 
-// Add an item to the cart
-const addItemToCart = async (req, res) => {
-    const userId = req.userId;
-    const { ingredient, quantity, unit } = req.body;
+// POST /api/cart/add-multiple  { ingredients: [{ name, quantity, unit }] }
+const addMultipleItemsToCart = asyncHandler(async (req, res) => {
+  const { ingredients } = req.body;
+  if (!Array.isArray(ingredients) || !ingredients.length) throw new HttpError(400, 'Send at least one ingredient.');
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
+  const cart = await getOrCreateCart(req.userId);
+  for (const raw of ingredients.slice(0, 100)) {
+    let item;
     try {
-        const cart = await Cart.findOne({ userId });
-
-        if (!cart) {
-            // If no cart exists, create a new one with the item
-            const newCart = await Cart.create({
-                userId,
-                items: [{ ingredient, quantity: parseInt(quantity, 10), unit }]
-            });
-            return res.status(200).json(newCart.items[0]); // Return the newly added item
-        }
-
-        const existingItem = cart.items.find(item => item.ingredient.toLowerCase() === ingredient.toLowerCase());
-
-        if (existingItem) {
-            // Update the quantity of the existing item
-            existingItem.quantity = parseInt(quantity, 10);
-            existingItem.unit = unit; // Add unit update
-        } else {
-            // Add the new item to the cart
-            cart.items.push({ 
-                ingredient, 
-                quantity: parseInt(quantity, 10),
-                unit // Include unit
-            });
-        }
-
-        await cart.save();
-        res.status(200).json(existingItem || cart.items[cart.items.length - 1]); // Return the updated or newly added item
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+      item = cleanItem(raw);
+    } catch {
+      continue; // skip blank lines
     }
-};
-
-// Add multiple items to the cart
-const addMultipleItemsToCart = async (req, res) => {
-    const userId = req.userId;
-    const { ingredients } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
+    const existing = cart.items.find((i) => sameItem(i, item));
+    if (existing) {
+      existing.quantity = Math.round((existing.quantity + item.quantity) * 100) / 100;
+      existing.checked = false;
+    } else {
+      cart.items.push(item);
     }
+  }
+  await cart.save();
+  res.status(200).json({ items: cart.items });
+});
 
-    try {
-        const cart = await Cart.findOne({ userId });
+// DELETE /api/cart/delete  { ingredientId }
+const deleteItemFromCart = asyncHandler(async (req, res) => {
+  const { ingredientId } = req.body;
+  assertId(ingredientId, 'item ID');
+  const cart = await Cart.findOneAndUpdate(
+    { userId: req.userId },
+    { $pull: { items: { _id: ingredientId } } },
+    { new: true }
+  );
+  res.status(200).json({ items: cart ? cart.items : [] });
+});
 
-        if (!cart) {
-            // If no cart exists, create a new one with the items
-            const newCart = await Cart.create({
-                userId,
-                items: ingredients.map(ingredient => ({
-                    ingredient: ingredient.name,
-                    quantity: parseInt(ingredient.quantity, 10),
-                    unit: ingredient.unit || '' // Include unit
-                }))
-            });
-            return res.status(200).json(newCart);
-        }
+// POST /api/cart/update  { ingredientId, quantity?, checked? }
+const updateItemQuantity = asyncHandler(async (req, res) => {
+  const { ingredientId } = req.body;
+  assertId(ingredientId, 'item ID');
 
-        // Update the quantities of existing items or add new items
-        ingredients.forEach(ingredient => {
-            const existingItem = cart.items.find(item => item.ingredient.toLowerCase() === ingredient.name.toLowerCase());
+  const cart = await Cart.findOne({ userId: req.userId });
+  const item = cart && cart.items.id(ingredientId);
+  if (!item) throw new HttpError(404, 'This item is no longer in your list.');
 
-            if (existingItem) {
-                existingItem.quantity = parseInt(existingItem.quantity, 10) + parseInt(ingredient.quantity, 10);
-            } else {
-                cart.items.push({ ingredient: ingredient.name, quantity: parseInt(ingredient.quantity, 10), unit: ingredient.unit || '' });
-            }
-        });
+  if (req.body.quantity !== undefined) {
+    const quantity = parseQuantity(req.body.quantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) throw new HttpError(400, 'Quantity must be more than 0.');
+    item.quantity = Math.round(quantity * 100) / 100;
+  }
+  if (typeof req.body.checked === 'boolean') item.checked = req.body.checked;
 
-        await cart.save();
-        res.status(200).json(cart);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+  await cart.save();
+  res.status(200).json({ items: cart.items });
+});
 
-// Get all cart items
-const getCartItems = async (req, res) => {
-    const userId = req.userId;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const cart = await Cart.findOne({ userId });
-        if (!cart) {
-            return res.status(404).json({ error: 'No cart found for this user' });
-        }
-        res.status(200).json(cart);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Delete an item from the cart
-const deleteItemFromCart = async (req, res) => {
-    const userId = req.userId;
-    const { ingredientId } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const cart = await Cart.findOneAndUpdate(
-            { userId },
-            { $pull: { items: { _id: ingredientId } } },
-            { new: true }
-        );
-
-        if (!cart) {
-            return res.status(404).json({ error: 'No cart found for this user' });
-        }
-
-        res.status(200).json(cart);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Update the quantity of an item in the cart
-const updateItemQuantity = async (req, res) => {
-    const userId = req.userId;
-    const { ingredientId, quantity } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const cart = await Cart.findOne({ userId });
-
-        if (!cart) {
-            return res.status(404).json({ error: 'No cart found for this user' });
-        }
-
-        const item = cart.items.id(ingredientId);
-
-        if (!item) {
-            return res.status(404).json({ error: 'No such item in the cart' });
-        }
-
-        item.quantity = parseInt(quantity, 10);
-        await cart.save();
-        res.status(200).json(cart);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+// DELETE /api/cart/clear  { onlyChecked?: boolean }
+const clearCart = asyncHandler(async (req, res) => {
+  const cart = await Cart.findOne({ userId: req.userId });
+  if (!cart) return res.status(200).json({ items: [] });
+  cart.items = req.body?.onlyChecked ? cart.items.filter((i) => !i.checked) : [];
+  await cart.save();
+  res.status(200).json({ items: cart.items });
+});
 
 module.exports = {
-    addItemToCart,
-    addMultipleItemsToCart,
-    getCartItems,
-    deleteItemFromCart,
-    updateItemQuantity
+  addItemToCart,
+  addMultipleItemsToCart,
+  getCartItems,
+  deleteItemFromCart,
+  updateItemQuantity,
+  clearCart
 };

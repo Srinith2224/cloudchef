@@ -1,401 +1,262 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useRecipesContext } from "../hooks/useRecipesContext";
-import Lottie from 'react-lottie';
-import animationData from '../assets/cooking-background.json';
-import './Auth.css'; 
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import Lottie from 'lottie-react';
+import Page from '../components/Page';
+import Icon from '../components/Icon';
+import Spinner from '../components/Spinner';
+import CodeInput from '../components/CodeInput';
+import PasswordInput from '../components/PasswordInput';
+import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
+import cookingAnimation from '../assets/cooking-background.json';
+import '../styles/pages/auth.css';
 
-const Auth = () => {
-    const { dispatch } = useRecipesContext();
-    const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [error, setError] = useState(null);
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [googleClientId, setGoogleClientId] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [showOtpForm, setShowOtpForm] = useState(false);
-    const [otp, setOtp] = useState('');
-
-    const navigate = useNavigate();
-
-    const handleLogin = async (userData) => {
-        try {
-            // Make sure the token is a string before storing
-            if (typeof userData.token !== 'string') {
-                console.error('Invalid token format:', userData.token);
-                throw new Error('Invalid token format');
-            }
-            
-            // Store token correctly
-            localStorage.setItem('token', userData.token);
-            
-            // Store user info separately
-            localStorage.setItem('user', JSON.stringify({
-                userId: userData.userId,
-                email: userData.email,
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                role: userData.role
-            }));
-            
-            // Update context
-            dispatch({ type: 'LOGIN', payload: userData });
-        } catch (error) {
-            console.error('Error storing authentication data:', error);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-      
-        try {
-          // Normalize email to lowercase
-          const normalizedEmail = email.toLowerCase();
-          
-          const user = isLogin ? 
-            { email: normalizedEmail, password } : 
-            { firstName, lastName, email: normalizedEmail, password };
-          
-          const endpoint = isLogin ? '/api/login' : '/api/register';
-      
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            body: JSON.stringify(user),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-      
-          const data = await response.json();
-      
-          if (response.ok) {
-            // Validate the token before storing
-            if (!data.token || typeof data.token !== 'string') {
-              setError('Invalid authentication token received');
-              setIsLoading(false);
-              return;
-            }
-      
-            // Store token
-            localStorage.setItem('token', data.token);
-            
-            // Store user data 
-            const userData = {
-              userId: data.userId,
-              email: data.email,
-              firstName: data.firstName,
-              lastName: data.lastName,
-              role: data.role || 'user'
-            };
-            
-            localStorage.setItem('user', JSON.stringify(userData));
-            
-            // Update auth context
-            dispatch({ 
-              type: 'LOGIN', 
-              payload: { ...userData, token: data.token }
-            });
-            
-            // Show success modal
-            setShowSuccessModal(true);
-          } else {
-            setError(data.error || 'Authentication failed');
-          }
-        } catch (error) {
-          setError('An unexpected error occurred. Please try again.');
-          console.error('Login error:', error);
-        } finally {
-          setIsLoading(false);
-        }
-    };
-
-    const handleGoogleSuccess = async (credentialResponse) => {
-        try {
-            const response = await fetch('/api/google-signin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    token: credentialResponse.credential 
-                })
-            });
-
-            if (response.ok) {
-                // Make sure token is correctly extracted and stored
-                const userData = await response.json();
-                
-                if (!userData.token) {
-                    setError('Server response missing authentication token');
-                    return;
-                }
-                
-                // Store token properly (make sure it's a string)
-                await handleLogin(userData);
-                
-                // Show success modal
-                setShowSuccessModal(true);
-            } else {
-                const json = await response.json();
-                setError(json.error);
-            }
-        } catch (error) {
-            setError('Failed to authenticate with Google');
-            console.error(error);
-        }
-    };
-
-    const handleGoogleFailure = () => {
-        setError('Google sign-in was unsuccessful');
-    };
-
-    const handleOkClick = () => {
-        setShowSuccessModal(false);
-        // Always navigate to welcome page after successful authentication
-        navigate('/welcome');
-    };
-
-    useEffect(() => {
-        const fetchGoogleClientId = async () => {
-            try {
-                const response = await fetch('/api/google-client-id');
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status}`);
-                }
-                const data = await response.json();
-                if (data.clientId) {
-                    setGoogleClientId(data.clientId);
-                    console.log('Successfully loaded Google Client ID');
-                } else {
-                    console.error('Google Client ID not returned from server');
-                }
-            } catch (error) {
-                console.error('Error fetching Google Client ID:', error);
-            }
-        };
-        
-        fetchGoogleClientId();
-    }, []);
-
-    const defaultOptions = {
-        loop: true,
-        autoplay: true,
-        animationData: animationData,
-        rendererSettings: {
-            preserveAspectRatio: 'xMidYMid slice'
-        }
-    };
-
-    const handleSendOTP = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-    
-        try {
-            const response = await fetch('/api/otp/send-registration-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    firstName,
-                    lastName,
-                    email,
-                    password
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                setShowOtpForm(true);
-            } else {
-                setError(data.error || 'Failed to send OTP');
-            }
-        } catch (err) {
-            setError('An error occurred. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    const handleVerifyOTP = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-    
-        try {
-            const response = await fetch('/api/otp/verify-registration-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    otp
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Make sure data.token exists and is a valid string
-                if (!data.token) {
-                    setError('Server response missing authentication token');
-                    return;
-                }
-                
-                // Store the token
-                await handleLogin(data);
-                
-                setShowSuccessModal(true);
-            } else {
-                setError(data.error || 'Verification failed');
-            }
-        } catch (error) {
-            setError('An error occurred. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="auth-page">
-            <div className="auth-animation">
-                <div className="lottie-container">
-                    <Lottie options={defaultOptions} height={600} width={700} />
-                </div>
-            </div>
-            <div className="auth-container">
-                <form 
-                    className="auth-form" 
-                    onSubmit={isLogin ? handleSubmit : (showOtpForm ? handleVerifyOTP : handleSendOTP)}
-                >
-                    <h2>{isLogin ? 'Welcome back' : 'Get Started'}</h2>
-                    <p>{isLogin ? 'Welcome back! Please enter your details' : 'Please fill in the details to create an account'}</p>
-                    
-                    {!isLogin && !showOtpForm && (
-                        <>
-                            <label>First Name</label>
-                            <input 
-                                type="text"
-                                placeholder="Enter your first name"
-                                onChange={(e) => setFirstName(e.target.value)}
-                                value={firstName}
-                                required
-                            />
-                            <label>Last Name</label>
-                            <input 
-                                type="text"
-                                placeholder="Enter your last name"
-                                onChange={(e) => setLastName(e.target.value)}
-                                value={lastName}
-                                required
-                            />
-                        </>
-                    )}
-                    {!showOtpForm && (
-                        <>
-                            <label>Email</label>
-                            <input 
-                                type="email"
-                                placeholder="Enter your email"
-                                onChange={(e) => setEmail(e.target.value)}
-                                value={email}
-                                required
-                            />
-                            <label>Password</label>
-                            <input 
-                                type="password"
-                                placeholder="**********"
-                                onChange={(e) => setPassword(e.target.value)}
-                                value={password}
-                                required
-                            />
-                        </>
-                    )}
-                    {isLogin && (
-                        <div className="auth-options">
-                            <label>
-                                <input type="checkbox" />
-                                Remember&nbsp;me
-                            </label>
-                            <Link to="/forgot-password">Forgot password?</Link>
-                        </div>
-                    )}
-                    {!isLogin && showOtpForm && (
-                        <>
-                            <label>Enter OTP sent to your email:</label>
-                            <input 
-                                type="text"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                required
-                            />
-                        </>
-                    )}
-                    
-                    <button type="submit" className="auth-button" disabled={isLoading}>
-                        {isLoading ? (showOtpForm ? 'Verifying...' : 'Sending...') : (isLogin ? 'Sign in' : (showOtpForm ? 'Verify OTP' : 'Send OTP'))}
-                    </button>
-                    
-                    {isLogin && googleClientId && (
-                        <>
-                            <div className="auth-separator">
-                                <span>OR</span>
-                            </div>
-                            <div className="google-login-container">
-                                <GoogleOAuthProvider clientId={googleClientId}>
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleFailure}
-                                        useOneTap={false}
-                                        theme="filled_black"
-                                        size="large"
-                                        text="signin_with"
-                                        width="100%"
-                                        logo_alignment="left"
-                                        shape="rectangular"
-                                    />
-                                </GoogleOAuthProvider>
-                            </div>
-                        </>
-                    )}
-                    <p className="toggle-link">
-                        {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a 
-                            href="#" 
-                            onClick={(e) => { 
-                                e.preventDefault(); 
-                                setIsLogin(!isLogin); 
-                                setShowOtpForm(false);
-                                setError(null);
-                            }}
-                        >
-                            {isLogin ? 'Sign up for free!' : 'Sign in'}
-                        </a>
-                    </p>
-                    {error && <div className="error">{error}</div>}
-                </form>
-
-                {showSuccessModal && (
-                    <div className="modal">
-                        <div className="modal-content">
-                            <h4>{isLogin ? 'Login Successful' : 'Registration Successful'}</h4>
-                            <button onClick={handleOkClick}>OK</button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+const slide = {
+  initial: { opacity: 0, x: 24 },
+  animate: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, x: -24, transition: { duration: 0.16 } }
 };
 
-export default Auth;
+export default function Auth() {
+  const [params, setParams] = useSearchParams();
+  const mode = params.get('mode') === 'signup' ? 'signup' : 'signin';
+  const [step, setStep] = useState('details'); // signup: details -> code
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState(null);
+
+  const { user, signIn } = useAuth();
+  const { toast } = useUI();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const goTo = location.state?.from || '/explore';
+
+  useEffect(() => {
+    api('/google-client-id').then((d) => setGoogleClientId(d.clientId)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (user) navigate(goTo, { replace: true });
+  }, [user, goTo, navigate]);
+
+  const setField = (name) => (e) => setForm((f) => ({ ...f, [name]: e.target.value }));
+
+  const switchMode = (next) => {
+    setParams(next === 'signup' ? { mode: 'signup' } : {}, { replace: true });
+    setStep('details');
+    setError('');
+    setInfo('');
+    setCode('');
+  };
+
+  const finish = (session, message) => {
+    signIn(session);
+    toast(message);
+    navigate(goTo, { replace: true });
+  };
+
+  const run = async (fn) => {
+    setBusy(true);
+    setError('');
+    try {
+      await fn();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onSignIn = (e) => {
+    e.preventDefault();
+    run(async () => {
+      const session = await api('/login', { method: 'POST', body: { email: form.email, password: form.password } });
+      finish(session, `Welcome back, ${session.firstName}`);
+    });
+  };
+
+  const sendCode = (e) => {
+    e?.preventDefault();
+    run(async () => {
+      const res = await api('/otp/send-registration-otp', { method: 'POST', body: form });
+      setInfo(res.message);
+      setStep('code');
+      setCode('');
+    });
+  };
+
+  const verify = (e) => {
+    e.preventDefault();
+    if (code.length < 6) return setError('Enter all 6 digits.');
+    return run(async () => {
+      const session = await api('/otp/verify-registration-otp', { method: 'POST', body: { email: form.email, otp: code } });
+      finish(session, `Welcome to CloudChef, ${session.firstName}`);
+    });
+  };
+
+  const onGoogle = (credential) => run(async () => {
+    const session = await api('/google-signin', { method: 'POST', body: { token: credential.credential } });
+    finish(session, `Welcome, ${session.firstName}`);
+  });
+
+  const heading = mode === 'signin' ? 'Welcome back' : step === 'code' ? 'Check your email' : 'Create your account';
+  const sub = mode === 'signin'
+    ? 'Sign in to save recipes, plan meals and keep your shopping list.'
+    : step === 'code'
+      ? info || `We sent a 6-digit code to ${form.email}.`
+      : 'It takes a minute. We will email you a code to confirm it’s you.';
+
+  return (
+    <Page title={mode === 'signin' ? 'Sign in' : 'Create account'} className="auth">
+      <div className="auth__layout">
+        <section className="auth__card">
+          <div className="segmented auth__switch" role="tablist">
+            {['signin', 'signup'].map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={mode === m}
+                className={`segmented__btn ${mode === m ? 'is-active' : ''}`}
+                onClick={() => switchMode(m)}
+              >
+                {mode === m && <motion.span layoutId="auth-seg" className="segmented__pill" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+                <span>{m === 'signin' ? 'Sign in' : 'Sign up'}</span>
+              </button>
+            ))}
+          </div>
+
+          <h1 className="auth__title">{heading}</h1>
+          <p className="auth__sub">{sub}</p>
+
+          <AnimatePresence mode="wait" initial={false}>
+            {mode === 'signin' && (
+              <motion.form key="signin" {...slide} onSubmit={onSignIn} className="auth__form" noValidate>
+                <div className="field">
+                  <label className="field__label" htmlFor="email">Email</label>
+                  <div className="input-group">
+                    <Icon name="mail" />
+                    <input id="email" className="input" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" required />
+                  </div>
+                </div>
+                <div className="field">
+                  <div className="auth__label-row">
+                    <label className="field__label" htmlFor="password">Password</label>
+                    <Link to="/forgot-password" className="auth__link">Forgot password?</Link>
+                  </div>
+                  <PasswordInput id="password" value={form.password} onChange={setField('password')} placeholder="Your password" required />
+                </div>
+                {error && <div className="notice notice--error" role="alert"><Icon name="error" />{error}</div>}
+                <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || !form.email || !form.password}>
+                  {busy ? <Spinner /> : 'Sign in'}
+                </button>
+              </motion.form>
+            )}
+
+            {mode === 'signup' && step === 'details' && (
+              <motion.form key="signup" {...slide} onSubmit={sendCode} className="auth__form" noValidate>
+                <div className="auth__names">
+                  <div className="field">
+                    <label className="field__label" htmlFor="firstName">First name</label>
+                    <input id="firstName" className="input" autoComplete="given-name" value={form.firstName} onChange={setField('firstName')} required />
+                  </div>
+                  <div className="field">
+                    <label className="field__label" htmlFor="lastName">Last name</label>
+                    <input id="lastName" className="input" autoComplete="family-name" value={form.lastName} onChange={setField('lastName')} required />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="field__label" htmlFor="su-email">Email</label>
+                  <div className="input-group">
+                    <Icon name="mail" />
+                    <input id="su-email" className="input" type="email" autoComplete="email" value={form.email} onChange={setField('email')} placeholder="you@example.com" required />
+                  </div>
+                </div>
+                <div className="field">
+                  <label className="field__label" htmlFor="su-password">Password</label>
+                  <PasswordInput id="su-password" autoComplete="new-password" value={form.password} onChange={setField('password')} placeholder="At least 8 characters" required />
+                  <PasswordStrength value={form.password} />
+                </div>
+                {error && <div className="notice notice--error" role="alert"><Icon name="error" />{error}</div>}
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg btn-block"
+                  disabled={busy || !form.firstName || !form.lastName || !form.email || form.password.length < 8}
+                >
+                  {busy ? <Spinner /> : 'Send code'}
+                </button>
+              </motion.form>
+            )}
+
+            {mode === 'signup' && step === 'code' && (
+              <motion.form key="code" {...slide} onSubmit={verify} className="auth__form" noValidate>
+                <CodeInput value={code} onChange={setCode} invalid={Boolean(error)} />
+                {error && <div className="notice notice--error" role="alert"><Icon name="error" />{error}</div>}
+                <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={busy || code.length < 6}>
+                  {busy ? <Spinner /> : 'Create account'}
+                </button>
+                <div className="auth__code-actions">
+                  <button type="button" className="btn btn-quiet btn-sm" onClick={() => { setStep('details'); setError(''); }}>
+                    <Icon name="arrow_back" />Change details
+                  </button>
+                  <button type="button" className="btn btn-quiet btn-sm" onClick={sendCode} disabled={busy}>
+                    <Icon name="refresh" />Send a new code
+                  </button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+          {googleClientId && step === 'details' && (
+            <div className="auth__google">
+              <div className="auth__or"><span>or</span></div>
+              <GoogleOAuthProvider clientId={googleClientId}>
+                <GoogleLogin
+                  onSuccess={onGoogle}
+                  onError={() => setError('Google sign in was cancelled or failed.')}
+                  theme="filled_black"
+                  shape="pill"
+                  size="large"
+                  text={mode === 'signup' ? 'signup_with' : 'signin_with'}
+                  width="320"
+                />
+              </GoogleOAuthProvider>
+            </div>
+          )}
+        </section>
+
+        <aside className="auth__art" aria-hidden>
+          <div className="auth__lottie">
+            <Lottie animationData={cookingAnimation} loop />
+          </div>
+          <p className="auth__quote">“Cooking is like love. It should be entered into with abandon or not at all.”</p>
+          <span className="auth__quote-by">Harriet Van Horne</span>
+        </aside>
+      </div>
+    </Page>
+  );
+}
+
+function PasswordStrength({ value }) {
+  if (!value) return <span className="field__hint">Use 8 or more characters. A mix of letters and numbers is stronger.</span>;
+  let score = 0;
+  if (value.length >= 8) score += 1;
+  if (value.length >= 12) score += 1;
+  if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score += 1;
+  if (/\d/.test(value)) score += 1;
+  if (/[^A-Za-z0-9]/.test(value)) score += 1;
+  const level = value.length < 8 ? 0 : Math.min(3, Math.ceil(score / 1.7));
+  const labels = ['Too short', 'Okay', 'Good', 'Strong'];
+  return (
+    <div className={`strength strength--${level}`}>
+      <div className="strength__bars">{[1, 2, 3].map((i) => <span key={i} className={i <= level ? 'on' : ''} />)}</div>
+      <span className="strength__label">{labels[level]}</span>
+    </div>
+  );
+}

@@ -1,310 +1,181 @@
-const mongoose = require('mongoose');
 const User = require('../models/UserModel');
 const Recipe = require('../models/RecipeModel');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { uploadProfilePhoto } = require('../config/cloudinaryConfig');
+const { fileUrl, deleteStoredFile } = require('../config/cloudinaryConfig');
+const { withRating, LIST_FIELDS } = require('./recipeController');
+const { authPayload } = require('./authController');
+const { HttpError, asyncHandler, assertId } = require('../utils/http');
 
-const updateUserProfile = async (req, res) => {
-    const { id } = req.params;
-    const { firstName, lastName, email, password, about, region } = req.body;
+const PUBLIC_FIELDS = 'firstName lastName profilePhoto about region featuredRecipe followers following createdAt';
 
-    const updates = { firstName, lastName, email, about, region };
-    if (password) {
-        updates.password = await bcrypt.hash(password, 10);
-    }
-    
-    // Update to use Cloudinary URL
-    if (req.file) {
-        updates.profilePhoto = req.file.path; // This will be the Cloudinary URL
-    }
+const isSelfOrAdmin = (req, id) => req.userId === String(id) || req.userRole === 'admin';
 
-    try {
-        const user = await User.findOneAndUpdate({ _id: id }, updates, { new: true });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        // Don't return the password
-        user.password = undefined;
-        
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-};
+// GET /api/users/:id  (own account, full details)
+const getUserById = asyncHandler(async (req, res) => {
+  assertId(req.params.id, 'user ID');
+  if (!isSelfOrAdmin(req, req.params.id)) throw new HttpError(403, 'You can only view your own account details.');
+  const user = await User.findById(req.params.id).select('-password -googleId');
+  if (!user) throw new HttpError(404, 'Account not found.');
+  res.status(200).json(user);
+});
 
-const getUserById = async (req, res) => {
-    const { id } = req.params;
+// PATCH /api/users/:id   (multipart: firstName, lastName, about, region, profilePhoto file)
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    assertId(id, 'user ID');
+    if (!isSelfOrAdmin(req, id)) throw new HttpError(403, 'You can only edit your own profile.');
 
-    try {
-        const user = await User.findById(id).select('-password');
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+    const user = await User.findById(id);
+    if (!user) throw new HttpError(404, 'Account not found.');
 
-const saveRecipe = async (req, res) => {
-    const { userId, recipeId } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(recipeId)) {
-        return res.status(400).json({ error: 'Invalid user or recipe ID' });
+    // Only these fields can change here. Email and password have their own verified flows.
+    const fields = { firstName: 60, lastName: 60, about: 500, region: 80 };
+    for (const [field, max] of Object.entries(fields)) {
+      if (typeof req.body[field] === 'string') {
+        const value = req.body[field].trim().slice(0, max);
+        if ((field === 'firstName' || field === 'lastName') && !value) continue; // names can't be blank
+        user[field] = value;
+      }
     }
 
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+    const oldPhoto = user.profilePhoto;
+    if (req.file) user.profilePhoto = fileUrl(req.file);
+    if (req.body.removePhoto === 'true') user.profilePhoto = '';
 
-        const recipe = await Recipe.findById(recipeId);
-        if (!recipe) {
-            return res.status(404).json({ error: 'Recipe not found' });
-        }
+    await user.save();
+    if (oldPhoto && oldPhoto !== user.profilePhoto) await deleteStoredFile(oldPhoto);
 
-        user.savedRecipes.push(recipeId);
-        await user.save();
+    // Keep the author name on their recipes in sync
+    await Recipe.updateMany(
+      { 'createdBy._id': user._id },
+      { $set: { 'createdBy.firstName': user.firstName, 'createdBy.lastName': user.lastName } }
+    );
 
-        res.status(200).json({ message: 'Recipe saved successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+    const { token, ...session } = authPayload(user);
+    res.status(200).json({ ...session, about: user.about || '', region: user.region || '' });
+  } catch (error) {
+    if (req.file) await deleteStoredFile(fileUrl(req.file));
+    throw error;
+  }
+});
 
-const getSavedRecipes = async (req, res) => {
-    const { userId } = req.params;
+// POST /api/users/save-recipe  { recipeId }
+const saveRecipe = asyncHandler(async (req, res) => {
+  const { recipeId } = req.body;
+  assertId(recipeId, 'recipe ID');
+  if (!(await Recipe.exists({ _id: recipeId }))) throw new HttpError(404, 'This recipe does not exist or was deleted.');
+  await User.updateOne({ _id: req.userId }, { $addToSet: { savedRecipes: recipeId } });
+  res.status(200).json({ message: 'Saved', saved: true });
+});
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: 'Invalid user ID' });
-    }
+// DELETE /api/users/delete-saved-recipe  { recipeId }
+const deleteSavedRecipe = asyncHandler(async (req, res) => {
+  const { recipeId } = req.body;
+  assertId(recipeId, 'recipe ID');
+  await User.updateOne({ _id: req.userId }, { $pull: { savedRecipes: recipeId } });
+  res.status(200).json({ message: 'Removed from saved', saved: false });
+});
 
-    try {
-        const user = await User.findById(userId).populate('savedRecipes');
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+// GET /api/users/:userId/saved-recipes  (own list only)
+const getSavedRecipes = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  assertId(userId, 'user ID');
+  if (!isSelfOrAdmin(req, userId)) throw new HttpError(403, 'Saved recipes are private.');
 
-        res.status(200).json(user.savedRecipes);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+  const user = await User.findById(userId).populate({ path: 'savedRecipes', select: LIST_FIELDS });
+  if (!user) throw new HttpError(404, 'Account not found.');
+  res.status(200).json(user.savedRecipes.filter(Boolean).map(withRating));
+});
 
-const deleteSavedRecipe = async (req, res) => {
-    const { userId, recipeId } = req.body;
+// GET /api/users/saved-ids  (just the ids, for quick "is saved" checks)
+const getSavedIds = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId).select('savedRecipes');
+  res.status(200).json((user?.savedRecipes || []).map(String));
+});
 
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(recipeId)) {
-        return res.status(400).json({ error: 'Invalid user or recipe ID' });
-    }
+// POST /api/users/follow/:id
+const followUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  assertId(id, 'user ID');
+  if (id === req.userId) throw new HttpError(400, "You can't follow yourself.");
+  if (!(await User.exists({ _id: id }))) throw new HttpError(404, 'This cook does not exist.');
 
-    try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+  await User.updateOne({ _id: id }, { $addToSet: { followers: req.userId } });
+  await User.updateOne({ _id: req.userId }, { $addToSet: { following: id } });
+  const target = await User.findById(id).select('followers');
+  res.status(200).json({ isFollowing: true, followerCount: target.followers.length });
+});
 
-        user.savedRecipes.pull(recipeId);
-        await user.save();
+// POST /api/users/unfollow/:id
+const unfollowUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  assertId(id, 'user ID');
+  await User.updateOne({ _id: id }, { $pull: { followers: req.userId } });
+  await User.updateOne({ _id: req.userId }, { $pull: { following: id } });
+  const target = await User.findById(id).select('followers');
+  res.status(200).json({ isFollowing: false, followerCount: target ? target.followers.length : 0 });
+});
 
-        res.status(200).json({ message: 'Recipe removed from saved recipes' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+// GET /api/users/profile/:id   (public)
+const getUserProfile = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  assertId(id, 'user ID');
 
-// Follow a user
-const followUser = async (req, res) => {
-    const { id } = req.params; // ID of user to follow
-    const currentUserId = req.userId; // ID of current user
+  const user = await User.findById(id).select(PUBLIC_FIELDS).populate({ path: 'featuredRecipe', select: LIST_FIELDS });
+  if (!user) throw new HttpError(404, 'This cook does not exist.');
 
-    if (id === currentUserId) {
-        return res.status(400).json({ error: 'You cannot follow yourself' });
-    }
+  const recipes = await Recipe.find({ 'createdBy._id': id }).select(LIST_FIELDS).sort({ createdAt: -1 });
+  const data = user.toObject();
+  const followers = (data.followers || []).map(String);
 
-    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(currentUserId)) {
-        return res.status(400).json({ error: 'Invalid user ID' });
-    }
+  res.status(200).json({
+    _id: data._id,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    profilePhoto: data.profilePhoto || '',
+    about: data.about || '',
+    region: data.region || '',
+    createdAt: data.createdAt,
+    featuredRecipe: data.featuredRecipe ? withRating(data.featuredRecipe) : null,
+    followerCount: followers.length,
+    followingCount: (data.following || []).length,
+    isFollowing: Boolean(req.userId && followers.includes(req.userId)),
+    recipes: recipes.map(withRating)
+  });
+});
 
-    try {
-        // Get both users
-        const userToFollow = await User.findById(id);
-        const currentUser = await User.findById(currentUserId);
+const listPeople = (field) => asyncHandler(async (req, res) => {
+  assertId(req.params.id, 'user ID');
+  const user = await User.findById(req.params.id).populate(field, 'firstName lastName profilePhoto');
+  if (!user) throw new HttpError(404, 'This cook does not exist.');
+  res.status(200).json(user[field].filter(Boolean));
+});
 
-        if (!userToFollow || !currentUser) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+// POST /api/users/set-featured-recipe  { recipeId }  (empty = clear)
+const setFeaturedRecipe = asyncHandler(async (req, res) => {
+  const { recipeId } = req.body;
+  if (!recipeId) {
+    await User.updateOne({ _id: req.userId }, { $unset: { featuredRecipe: '' } });
+    return res.status(200).json({ featuredRecipe: null });
+  }
+  assertId(recipeId, 'recipe ID');
+  const recipe = await Recipe.findById(recipeId).select('createdBy');
+  if (!recipe || String(recipe.createdBy._id) !== req.userId) throw new HttpError(403, 'You can only feature your own recipes.');
+  await User.updateOne({ _id: req.userId }, { featuredRecipe: recipeId });
+  res.status(200).json({ featuredRecipe: recipeId });
+});
 
-        // Check if already following
-        if (userToFollow.followers.includes(currentUserId)) {
-            return res.status(400).json({ error: 'Already following this user' });
-        }
-
-        // Update both users
-        await User.findByIdAndUpdate(id, {
-            $push: { followers: currentUserId }
-        });
-        
-        await User.findByIdAndUpdate(currentUserId, {
-            $push: { following: id }
-        });
-
-        res.status(200).json({ message: 'User followed successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Unfollow a user
-const unfollowUser = async (req, res) => {
-    const { id } = req.params; // ID of user to unfollow
-    const currentUserId = req.userId; // ID of current user
-
-    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(currentUserId)) {
-        return res.status(400).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        // Update both users
-        await User.findByIdAndUpdate(id, {
-            $pull: { followers: currentUserId }
-        });
-        
-        await User.findByIdAndUpdate(currentUserId, {
-            $pull: { following: id }
-        });
-
-        res.status(200).json({ message: 'User unfollowed successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Get user profile with social info
-const getUserProfile = async (req, res) => {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const user = await User.findById(id)
-            .select('-password')
-            .populate('featuredRecipe');
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        // Get follower and following counts
-        const followerCount = user.followers.length;
-        const followingCount = user.following.length;
-
-        // Get user's recipes
-        const recipes = await Recipe.find({ 'createdBy._id': id }).sort({ createdAt: -1 }).limit(9);
-
-        // Check if requesting user is following this profile
-        let isFollowing = false;
-        if (req.userId) {
-            const currentUser = await User.findById(req.userId);
-            if (currentUser) {
-                isFollowing = currentUser.following.includes(id);
-            }
-        }
-
-        res.status(200).json({
-            ...user.toObject(),
-            followerCount,
-            followingCount,
-            recipes,
-            isFollowing
-        });
-    } catch (error) {
-        console.error("Error fetching user profile:", error);
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Get followers list
-const getFollowers = async (req, res) => {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const user = await User.findById(id).populate('followers', 'firstName lastName profilePhoto');
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.status(200).json(user.followers);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Get following list
-const getFollowing = async (req, res) => {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json({ error: 'Invalid user ID' });
-    }
-
-    try {
-        const user = await User.findById(id).populate('following', 'firstName lastName profilePhoto');
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.status(200).json(user.following);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Set featured recipe
-const setFeaturedRecipe = async (req, res) => {
-    const { recipeId } = req.body;
-    const userId = req.userId;
-
-    if (!mongoose.Types.ObjectId.isValid(recipeId)) {
-        return res.status(400).json({ error: 'Invalid recipe ID' });
-    }
-
-    try {
-        // Verify recipe belongs to user
-        const recipe = await Recipe.findById(recipeId);
-        if (!recipe || recipe.createdBy._id.toString() !== userId) {
-            return res.status(403).json({ error: 'You can only feature your own recipes' });
-        }
-
-        await User.findByIdAndUpdate(userId, { featuredRecipe: recipeId });
-        
-        res.status(200).json({ message: 'Featured recipe updated successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-module.exports = { 
-    updateUserProfile, 
-    getUserById, 
-    saveRecipe, 
-    getSavedRecipes, 
-    deleteSavedRecipe, 
-    followUser,
-    unfollowUser,
-    getUserProfile,
-    getFollowers,
-    getFollowing,
-    setFeaturedRecipe
+module.exports = {
+  updateUserProfile,
+  getUserById,
+  saveRecipe,
+  getSavedRecipes,
+  getSavedIds,
+  deleteSavedRecipe,
+  followUser,
+  unfollowUser,
+  getUserProfile,
+  getFollowers: listPeople('followers'),
+  getFollowing: listPeople('following'),
+  setFeaturedRecipe
 };

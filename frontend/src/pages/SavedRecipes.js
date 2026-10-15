@@ -1,106 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { useRecipesContext } from '../hooks/useRecipesContext';
-import { useNavigate } from 'react-router-dom';
-import RecipeCard from '../components/RecipeCard';
-import './SavedRecipes.css'; // Import the CSS file for styling
-import LoadingAnimation from '../components/LoadingAnimation';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Page, { PageHeader } from '../components/Page';
+import Icon from '../components/Icon';
+import { RecipeGrid } from '../components/RecipeCard';
+import EmptyState from '../components/EmptyState';
+import { RecipeGridSkeleton } from '../components/Skeleton';
+import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
-const SavedRecipes = () => {
-    const { user } = useRecipesContext();
-    const [savedRecipes, setSavedRecipes] = useState([]);
-    const [unsaveMessage, setUnsaveMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+export default function SavedRecipes() {
+  const { user, savedIds } = useAuth();
+  const [recipes, setRecipes] = useState(null);
+  const [error, setError] = useState('');
 
-    useEffect(() => {
-        const fetchSavedRecipes = async () => {
-            try {
-                const response = await fetch(`/api/users/${user.userId}/saved-recipes`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
+  useEffect(() => {
+    api(`/users/${user.userId}/saved-recipes`).then(setRecipes).catch((err) => setError(err.message));
+  }, [user.userId]);
 
-                if (response.ok) {
-                    setSavedRecipes(data);
-                } else {
-                    console.error('Failed to fetch saved recipes:', data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching saved recipes:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+  // Unsaving from a card removes it from this page straight away
+  const previous = useRef(savedIds);
+  useEffect(() => {
+    const removed = [...previous.current].filter((rid) => !savedIds.has(rid));
+    if (removed.length) setRecipes((list) => list && list.filter((r) => !removed.includes(r._id)));
+    previous.current = savedIds;
+  }, [savedIds]);
+  const shown = recipes || [];
 
-        fetchSavedRecipes();
-    }, [user.userId]);
-
-    const handleUnsave = async (recipeId, e) => {
-        e.stopPropagation(); // Prevent navigating to the recipe details page
-        try {
-            const response = await fetch('/api/users/delete-saved-recipe', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ userId: user.userId, recipeId })
-            });
-
-            if (response.ok) {
-                setSavedRecipes(savedRecipes.filter(recipe => recipe._id !== recipeId));
-                setUnsaveMessage('Recipe unsaved successfully');
-                
-                // Clear message after 3 seconds
-                setTimeout(() => {
-                    setUnsaveMessage('');
-                }, 3000);
-            } else {
-                console.error('Failed to unsave recipe');
-            }
-        } catch (error) {
-            console.error('Error unsaving recipe:', error);
-        }
-    };
-
-    return (
-        <div className="saved-recipes-container">
-            <h1>Saved Recipes</h1>
-            
-            {unsaveMessage && (
-                <div className="unsave-message">
-                    {unsaveMessage}
-                </div>
-            )}
-            
-            {isLoading && <LoadingAnimation message="Loading your saved recipes..." />}
-
-            <div className="recipes-grid">
-                {savedRecipes.length > 0 ? (
-                    savedRecipes.map((recipe) => (
-                        <RecipeCard 
-                            key={recipe._id}
-                            recipe={recipe}
-                            onUnsave={handleUnsave}
-                        />
-                    ))
-                ) : (
-                    <div className="no-recipes">
-                        <span className="material-icons no-recipes-icon">bookmark_border</span>
-                        <p>You haven't saved any recipes yet</p>
-                        <button 
-                            className="browse-recipes-btn" 
-                            onClick={() => navigate('/welcome')}  // Change from '/' to '/welcome'
-                        >
-                            Discover Recipes
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-export default SavedRecipes;
+  return (
+    <Page title="Saved recipes" wide>
+      <PageHeader title="Saved recipes" subtitle="Recipes you bookmarked to cook later." />
+      {error ? (
+        <EmptyState icon="cloud_off" title="Couldn’t load saved recipes">{error}</EmptyState>
+      ) : !recipes ? (
+        <RecipeGridSkeleton count={4} />
+      ) : shown.length ? (
+        <RecipeGrid recipes={shown} />
+      ) : (
+        <EmptyState icon="bookmark" title="Nothing saved yet" action={<Link to="/explore" className="btn btn-primary"><Icon name="travel_explore" />Find recipes</Link>}>
+          Tap the bookmark on any recipe to keep it here.
+        </EmptyState>
+      )}
+    </Page>
+  );
+}

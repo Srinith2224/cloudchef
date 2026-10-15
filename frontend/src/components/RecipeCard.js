@@ -1,96 +1,78 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-//import StarRating from './StarRating';
-import './RecipeCard.css';
-import { getImageUrl } from '../utils/imageHelper';
+import { Link } from 'react-router-dom';
+import Icon from './Icon';
+import { assetUrl } from '../api/client';
+import { formatTime } from '../lib/format';
+import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 
-const RecipeCard = ({ recipe, onUnsave }) => {
-  const navigate = useNavigate();
+export default function RecipeCard({ recipe, actions, showSave = true }) {
+  const { user, savedIds, toggleSaved } = useAuth();
+  const { toast } = useUI();
+  const isOwn = user && String(recipe.createdBy?._id) === String(user.userId);
+  const saved = savedIds.has(recipe._id);
+  const time = formatTime(recipe.totalTime);
 
-  const handleClick = () => {
-    navigate(`/recipe/${recipe._id}`);
-  };
-
-  const calculateAvgRating = (ratings) => {
-    if (!ratings || ratings.length === 0) return { avg: 0, count: 0 };
-    const sum = ratings.reduce((total, r) => total + r.rating, 0);
-    return {
-      avg: sum / ratings.length,
-      count: ratings.length
-    };
-  };
-
-  // Format time for display
-  const formatTime = (totalTime) => {
-    if (!totalTime) return 'N/A';
-    let timeString = '';
-    if (totalTime.hours > 0) timeString += `${totalTime.hours}h `;
-    timeString += `${totalTime.minutes}m`;
-    return timeString;
+  const onSave = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const nowSaved = await toggleSaved(recipe._id);
+      toast(nowSaved ? 'Saved to your recipes' : 'Removed from saved');
+    } catch (error) {
+      toast(error.message, 'error');
+    }
   };
 
   return (
-    <div className="recipe-item" onClick={handleClick}>
-      <div className="recipe-image-container">
-        {recipe.mainImage ? (
-          <img 
-            src={getImageUrl(recipe.mainImage)} 
-            alt={recipe.title} 
-            className="recipe-image"
-          />
-        ) : (
-          <div className="placeholder-image">
-            <span className="material-icons">restaurant_menu</span>
-          </div>
-        )}
-        
-        {/* Display the actual recipe time at top */}
-        {recipe.totalTime && (
-          <div className="time-badge">
-            <span className="material-icons">schedule</span>
-            <span>{formatTime(recipe.totalTime)}</span>
-          </div>
-        )}
-        
-        {/* Optional: Only show if this is specifically a saved recipe */}
-        {onUnsave && (
-          <button 
-            className="unsave-button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onUnsave(recipe._id, e);
-            }}
-            title="Remove from favorites"
-          >
-            <span className="material-icons">bookmark_remove</span>
-          </button>
-        )}
-      </div>
-      
-      <div className="recipe-content">
-        <div className="recipe-title-container">
-          <h4>{recipe.title}</h4>
-          {recipe.ratings && recipe.ratings.length > 0 && (
-            <div className="recipe-rating">
-              <span className="star material-icons">star</span>
-              <span className="rating-value">{calculateAvgRating(recipe.ratings).avg.toFixed(1)}</span>
-              <span className="rating-count">{calculateAvgRating(recipe.ratings).count}</span>
-            </div>
+    <article className="rcard">
+      <Link to={`/recipe/${recipe._id}`} className="rcard__link" aria-label={recipe.title}>
+        <div className="rcard__media">
+          {recipe.mainImage ? (
+            <img src={assetUrl(recipe.mainImage)} alt="" loading="lazy" />
+          ) : (
+            <div className="rcard__placeholder"><Icon name="skillet" /></div>
+          )}
+          {time && (
+            <span className="rcard__time"><Icon name="schedule" />{time}</span>
           )}
         </div>
-        <div className="recipe-meta">
-          <div>
-            <span className="material-icons">restaurant_menu</span>
-            {recipe.ingredients?.length || 0} items
-          </div>
-          <div className="recipe-author">
-            <span className="material-icons">person</span>
-            {recipe.createdBy?.firstName || 'Unknown'}
+        <div className="rcard__body">
+          <h3 className="rcard__title">{recipe.title}</h3>
+          <div className="rcard__meta">
+            <span className="rcard__author">{recipe.createdBy?.firstName} {recipe.createdBy?.lastName}</span>
+            {recipe.ratingCount > 0 ? (
+              <span className="rcard__rating" aria-label={`Rated ${recipe.avgRating} from ${recipe.ratingCount} cooks`}>
+                <Icon name="star" filled />{recipe.avgRating.toFixed(1)}
+                <span className="rcard__count">({recipe.ratingCount})</span>
+              </span>
+            ) : (
+              <span className="rcard__new">New</span>
+            )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
+      </Link>
 
-export default RecipeCard;
+      {showSave && user && !isOwn && (
+        <button
+          type="button"
+          className={`rcard__save ${saved ? 'is-saved' : ''}`}
+          onClick={onSave}
+          aria-pressed={saved}
+          aria-label={saved ? 'Remove from saved' : 'Save recipe'}
+        >
+          <Icon name="bookmark" filled={saved} />
+        </button>
+      )}
+      {actions && <div className="rcard__actions">{actions}</div>}
+    </article>
+  );
+}
+
+export const RecipeGrid = ({ recipes, renderActions }) => (
+  <div className="recipe-grid">
+    {recipes.map((recipe) => (
+      <RecipeCard key={recipe._id} recipe={recipe} actions={renderActions?.(recipe)} />
+    ))}
+  </div>
+);
